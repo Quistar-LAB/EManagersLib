@@ -3,3 +3,7 @@
 ################################################################################
 
 /bin/Release
+/.vs/EManagersLib/v16
+/obj
+/packages
+/packages.config
