@@ -11,10 +11,10 @@ Unlike Tree Anarchy, props have a hard limit of 64k due to the utilization of us
 While replacing the framework, I have opted to enhance the performance of the rendering framework, because with more props, the impact on performance will be greater.
 
 Current state of this mod is ALPHA, with the following targets to achieve BETA stage.
-[list]
-[] Introduce native codes to improve performance
-[] Stabilize API framework
-[/list]
+
+- [ ] Introduce native codes to improve performance
+- [ ] Stabilize API framework
+
 
 I need supporters/volunteers to help debug/code to make this mod even better. If you want to contribute, please contact me anytime.
 
