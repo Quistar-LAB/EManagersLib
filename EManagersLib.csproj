@@ -54,7 +54,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DefaultToolSample.cs" />
     <Compile Include="EPropManager.cs" />
     <Compile Include="EPropInstance.cs" />
     <Compile Include="EDistrictManager.cs" />
