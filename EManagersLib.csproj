@@ -54,11 +54,26 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EPropPatch.cs" />
-    <Compile Include="EManagerModule.cs" />
+    <Compile Include="DefaultToolSample.cs" />
     <Compile Include="EPropManager.cs" />
-    <Compile Include="EInstanceID.cs" />
     <Compile Include="EPropInstance.cs" />
+    <Compile Include="EDistrictManager.cs" />
+    <Compile Include="EDisasterHelpers.cs" />
+    <Compile Include="EPropTool.cs" />
+    <Compile Include="EToolBase.cs" />
+    <Compile Include="EDefaultTool.cs" />
+    <Compile Include="ESerializeableExtension.cs" />
+    <Compile Include="EUtils.cs" />
+    <Compile Include="EModule.cs" />
+    <Compile Include="EInstanceID.cs" />
+    <Compile Include="Patches\EPropToolPatch.cs" />
+    <Compile Include="Patches\EInstanceManagerPatch.cs" />
+    <Compile Include="Patches\EDistrictManagerPatch.cs" />
+    <Compile Include="Patches\EDisasterHelpersPatch.cs" />
+    <Compile Include="Patches\EBulldozePatch.cs" />
+    <Compile Include="Patches\EBuildingDecorationPatch.cs" />
+    <Compile Include="Patches\EDefaultToolPatch.cs" />
+    <Compile Include="Patches\EPropManagerPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,27 @@ using System;
 using UnityEngine;
 
 namespace EManagersLib {
+    #region InstanceIDExtensions
+    /* InstanceID Extension class */
+    public static class InstanceIDExtension {
+        private const uint OBJECT_TYPE = 0xff000000u;
+        private const uint OBJECT_INDEX = 0x00ffffffu;
+        private const uint OBJECT_PROP = 0x0a000000u;
+        public static uint GetProp32(this InstanceID instance) {
+            uint id = instance.RawData;
+            return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
+        }
+
+        public static void SetProp32(this InstanceID instance, uint id) {
+            instance.RawData = (OBJECT_PROP | id);
+        }
+
+        public static void SetProp32ByRef(ref InstanceID instance, uint id) {
+            instance.RawData = (OBJECT_PROP | id);
+        }
+    }
+    #endregion InstanceIDExtensions
+
     public struct EInstanceID : IEquatable<EInstanceID> {
         private const uint OBJECT_TYPE = 4278190080u;
         private const uint OBJECT_INDEX = 16777215u;
@@ -29,7 +50,13 @@ namespace EManagersLib {
         public static EInstanceID Empty = default;
         public uint RawData { get; set; }
 
-        public InstanceID OriginalID => new InstanceID() { RawData = RawData };
+        public InstanceID OrigID {
+            get {
+                InstanceID id = default;
+                id.RawData = RawData;
+                return id;
+            }
+        }
 
         public bool IsEmpty {
             get => (RawData & OBJECT_INDEX) == 0u;
@@ -159,8 +186,16 @@ namespace EManagersLib {
             }
         }
 
-        public static explicit operator InstanceID(EInstanceID eInstance) => new InstanceID() { RawData = eInstance.RawData };
-        public static explicit operator EInstanceID(InstanceID instance) => new EInstanceID() { RawData = instance.RawData };
+        public static explicit operator InstanceID(EInstanceID eInstance) {
+            InstanceID id = default;
+            id.RawData = eInstance.RawData;
+            return id;
+        }
+        public static explicit operator EInstanceID(InstanceID instance) {
+            EInstanceID id = default;
+            id.RawData = instance.RawData;
+            return id;
+        }
         public static bool operator ==(EInstanceID x, EInstanceID y) => x.RawData == y.RawData;
         public static bool operator ==(EInstanceID x, InstanceID y) => x.RawData == y.RawData;
         public static bool operator ==(InstanceID x, EInstanceID y) => x.RawData == y.RawData;
