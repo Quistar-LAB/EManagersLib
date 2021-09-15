@@ -1,10 +1,8 @@
 ﻿using ColossalFramework;
-using ColossalFramework.Math;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using UnityEngine;
 
 namespace EManagersLib {
     internal class EDefaultToolPatch {
@@ -224,7 +222,7 @@ namespace EManagersLib {
                 return code;
             }
             var codes = instructions.GetEnumerator();
-            while(codes.MoveNext()) {
+            while (codes.MoveNext()) {
                 var cur = codes.Current;
                 if (cur.opcode == OpCodes.Ldloca_S && (cur.operand as LocalBuilder).LocalIndex == 2 && codes.MoveNext()) {
                     var next = codes.Current;

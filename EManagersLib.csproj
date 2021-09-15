@@ -54,6 +54,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EStatsPanel.cs" />
     <Compile Include="EPropManager.cs" />
     <Compile Include="EPropInstance.cs" />
     <Compile Include="EDistrictManager.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="EUtils.cs" />
     <Compile Include="EModule.cs" />
     <Compile Include="EInstanceID.cs" />
+    <Compile Include="Patches\EBuildingAIPatch.cs" />
     <Compile Include="Patches\EPropToolPatch.cs" />
     <Compile Include="Patches\EInstanceManagerPatch.cs" />
     <Compile Include="Patches\EDistrictManagerPatch.cs" />

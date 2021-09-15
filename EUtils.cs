@@ -71,6 +71,7 @@ namespace EManagersLib {
             new EDistrictManagerPatch().Enable(harmony);
             new EInstanceManagerPatch().Enable(harmony);
             new EPropToolPatch().Enable(harmony);
+            new EBuildingAIPatch().Enable(harmony);
         }
 
         public static void DisablePropPatches() {
@@ -82,6 +83,7 @@ namespace EManagersLib {
             new EDistrictManagerPatch().Disable(harmony);
             new EInstanceManagerPatch().Disable(harmony);
             new EPropToolPatch().Disable(harmony);
+            new EBuildingAIPatch().Disable(harmony);
         }
     }
 }

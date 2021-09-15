@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using ColossalFramework;
+using ColossalFramework.Math;
 using HarmonyLib;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using ColossalFramework;
-using ColossalFramework.Math;
 using UnityEngine;
 using static EManagersLib.EPropManager;
 
@@ -22,7 +20,7 @@ namespace EManagersLib {
             MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
             MethodInfo getNextFreeItem = AccessTools.Method(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.NextFreeItem));
             var codes = instructions.GetEnumerator();
-            while(codes.MoveNext()) {
+            while (codes.MoveNext()) {
                 var cur = codes.Current;
                 if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
                     var next = codes.Current;
@@ -56,13 +54,13 @@ namespace EManagersLib {
             MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
             MethodInfo getNextFreeItem = AccessTools.Method(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.NextFreeItem));
             var codes = instructions.GetEnumerator();
-            while(codes.MoveNext()) {
+            while (codes.MoveNext()) {
                 var cur = codes.Current;
                 if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
                     var next = codes.Current;
-                    if(next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
+                    if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
                         var next1 = codes.Current;
-                        if(next1.opcode == OpCodes.Ldloca_S) {
+                        if (next1.opcode == OpCodes.Ldloca_S) {
                             while (codes.MoveNext()) {
                                 if (codes.Current.opcode == OpCodes.Stloc_S) break;
                             }
@@ -109,7 +107,7 @@ namespace EManagersLib {
             MethodInfo getNextFreeItem = AccessTools.Method(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.NextFreeItem));
             MethodInfo checkPlacementError = AccessTools.Method(typeof(PropTool), nameof(PropTool.CheckPlacementErrors));
             var codes = instructions.GetEnumerator();
-            while(codes.MoveNext()) {
+            while (codes.MoveNext()) {
                 var cur = codes.Current;
                 if (randomizer is null && cur.opcode == OpCodes.Stloc_S && codes.MoveNext()) {
                     var next = codes.Current;
@@ -156,7 +154,7 @@ namespace EManagersLib {
             MethodInfo createProp = AccessTools.Method(typeof(PropManager), nameof(PropManager.CreateProp));
             MethodInfo setFixedHeight = AccessTools.PropertySetter(typeof(PropInstance), nameof(PropInstance.FixedHeight));
             var codes = instructions.GetEnumerator();
-            while(codes.MoveNext()) {
+            while (codes.MoveNext()) {
                 var cur = codes.Current;
                 if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
                     var next = codes.Current;
@@ -191,7 +189,7 @@ namespace EManagersLib {
 
         private static IEnumerable<CodeInstruction> ApplyBrushTranspiler(IEnumerable<CodeInstruction> instructions) {
             var codes = __ApplyBrushTranspiler(instructions);
-            foreach(var code in codes) {
+            foreach (var code in codes) {
                 EUtils.ELog($" {code}");
             }
             return codes;
