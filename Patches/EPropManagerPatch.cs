@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using ColossalFramework;
 
 namespace EManagersLib {
     internal class EPropManagerPatch {
@@ -241,7 +240,7 @@ namespace EManagersLib {
             MethodInfo getPosition = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Position));
             MethodInfo getItemCount = AccessTools.Method(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.ItemCount));
             var codes = instructions.GetEnumerator();
-            while(codes.MoveNext()) {
+            while (codes.MoveNext()) {
                 var cur = codes.Current;
                 if (cur.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
                     var next = codes.Current;
@@ -270,9 +269,9 @@ namespace EManagersLib {
                         }
                     } else if (next.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
                         var next1 = codes.Current;
-                        if(next1.opcode == OpCodes.Ldfld && next1.operand == m_props && codes.MoveNext()) {
+                        if (next1.opcode == OpCodes.Ldfld && next1.operand == m_props && codes.MoveNext()) {
                             var next2 = codes.Current;
-                            if(next2.opcode == OpCodes.Callvirt && next2.operand == getItemCount) {
+                            if (next2.opcode == OpCodes.Callvirt && next2.operand == getItemCount) {
                                 yield return cur;
                                 yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
                                 yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.ItemCount)));
@@ -293,9 +292,9 @@ namespace EManagersLib {
                     }
                 } else if (cur.opcode == OpCodes.Ldloc_1 && codes.MoveNext()) {
                     var next = codes.Current;
-                    if(next.opcode == OpCodes.Ldloc_3 && codes.MoveNext()) {
+                    if (next.opcode == OpCodes.Ldloc_3 && codes.MoveNext()) {
                         var next1 = codes.Current;
-                        if(next1.opcode == OpCodes.Ldelema && codes.MoveNext()) {
+                        if (next1.opcode == OpCodes.Ldelema && codes.MoveNext()) {
                             var next2 = codes.Current;
                             yield return newLdLoc(buffer).WithLabels(cur.labels);
                             yield return next;
@@ -324,10 +323,6 @@ namespace EManagersLib {
             }
         }
 
-        private static IEnumerable<CodeInstruction> SerializeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            return instructions;
-        }
-        
         internal void Enable(Harmony harmony) {
             harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AwakeTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.AfterTerrainUpdate)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterTerrainUpdateTranspiler))));
@@ -342,6 +337,7 @@ namespace EManagersLib {
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdatePropsTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Deserialize))));
             harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserializeTranspiler))));
+            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Serialize))));
         }
 
         internal void Disable(Harmony harmony) {
@@ -358,6 +354,7 @@ namespace EManagersLib {
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), HarmonyPatchType.Prefix, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), HarmonyPatchType.Prefix, EModule.HARMONYID);
         }
     }
 }
