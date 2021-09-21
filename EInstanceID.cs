@@ -14,6 +14,11 @@ namespace EManagersLib {
             return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
         }
 
+        public static uint GetProp32ByRef(ref InstanceID instance) {
+            uint id = instance.RawData;
+            return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
+        }
+
         public static void SetProp32(this InstanceID instance, uint id) {
             instance.RawData = (OBJECT_PROP | id);
         }
@@ -25,28 +30,28 @@ namespace EManagersLib {
     #endregion InstanceIDExtensions
 
     public struct EInstanceID : IEquatable<EInstanceID> {
-        private const uint OBJECT_TYPE = 4278190080u;
-        private const uint OBJECT_INDEX = 16777215u;
-        private const uint OBJECT_BUILDING = 16777216u;
-        private const uint OBJECT_VEHICLE = 33554432u;
-        private const uint OBJECT_DISTRICT = 50331648u;
-        private const uint OBJECT_CITIZEN = 67108864u;
-        private const uint OBJECT_NETNODE = 83886080u;
-        private const uint OBJECT_NETSEGMENT = 100663296u;
-        private const uint OBJECT_PARKEDVEHICLE = 117440512u;
-        private const uint OBJECT_TRANSPORT = 134217728u;
-        private const uint OBJECT_CITIZENINSTANCE = 150994944u;
-        private const uint OBJECT_PROP = 167772160u;
-        private const uint OBJECT_TREE = 184549376u;
-        private const uint OBJECT_EVENT = 201326592u;
-        private const uint OBJECT_NETLANE = 218103808u;
-        private const uint OBJECT_BUILDINGPROP = 234881024u;
-        private const uint OBJECT_NETLANEPROP = 251658240u;
-        private const uint OBJECT_DISASTER = 268435456u;
-        private const uint OBJECT_LIGHTNING = 285212672u;
-        private const uint OBJECT_RADIOCHANNEL = 301989888u;
-        private const uint OBJECT_RADIOCONTENT = 318767104u;
-        private const uint OBJECT_PARK = 335544320u;
+        private const uint OBJECT_TYPE = 0xff000000u;
+        private const uint OBJECT_INDEX = 0x00ffffffu;
+        private const uint OBJECT_BUILDING = 0x01000000u;
+        private const uint OBJECT_VEHICLE = 0x02000000u;
+        private const uint OBJECT_DISTRICT = 0x03000000u;
+        private const uint OBJECT_CITIZEN = 0x04000000u;
+        private const uint OBJECT_NETNODE = 0x05000000u;
+        private const uint OBJECT_NETSEGMENT = 0x06000000u;
+        private const uint OBJECT_PARKEDVEHICLE = 0x07000000u;
+        private const uint OBJECT_TRANSPORT = 0x08000000u;
+        private const uint OBJECT_CITIZENINSTANCE = 0x09000000u;
+        private const uint OBJECT_PROP = 0x0a000000u;
+        private const uint OBJECT_TREE = 0x0b000000u;
+        private const uint OBJECT_EVENT = 0x0c000000u;
+        private const uint OBJECT_NETLANE = 0x0d000000u;
+        private const uint OBJECT_BUILDINGPROP = 0x0e000000u;
+        private const uint OBJECT_NETLANEPROP = 0x0f000000u;
+        private const uint OBJECT_DISASTER = 0x10000000u;
+        private const uint OBJECT_LIGHTNING = 0x11000000u;
+        private const uint OBJECT_RADIOCHANNEL = 0x12000000u;
+        private const uint OBJECT_RADIOCONTENT = 0x13000000u;
+        private const uint OBJECT_PARK = 0x14000000u;
         public static EInstanceID Empty = default;
         public uint RawData { get; set; }
 

@@ -21,6 +21,7 @@ namespace EManagersLib {
         public static ulong[] m_updatedProps;
         [NonSerialized]
         public static uint[] m_propGrid;
+        public static ItemClass.Availability m_mode;
         private static int m_propLayer;
         private static int m_markerLayer;
         private static int m_markerAlpha;
@@ -34,6 +35,7 @@ namespace EManagersLib {
 
         internal static void Awake(PropManager instance) {
             m_pmInstance = instance;
+            m_mode = ItemClass.Availability.Game;
             m_props = new Array32<EPropInstance>((uint)MAX_PROP_LIMIT);
             m_updatedProps = new ulong[MAX_UPDATEDPROP_LIMIT];
             m_propGrid = new uint[DEFAULT_GRID_LIMIT];
@@ -52,10 +54,9 @@ namespace EManagersLib {
         }
 
         public static void EndRenderingImpl(RenderManager.CameraInfo cameraInfo) {
-            ItemClass.Availability mode = Singleton<ToolManager>.instance.m_properties.m_mode;
             FastList<RenderGroup> renderedGroups = Singleton<RenderManager>.instance.m_renderedGroups;
             int layer = 1 << m_propLayer | 1 << Singleton<RenderManager>.instance.lightSystem.m_lightLayer;
-            if ((mode & ItemClass.Availability.Game) == ItemClass.Availability.None && m_markerAlpha >= 0.001f) {
+            if ((m_mode & ItemClass.Availability.Game) == ItemClass.Availability.None && m_markerAlpha >= 0.001f) {
                 layer |= 1 << m_markerLayer;
             }
             uint[] propGrid = m_propGrid;

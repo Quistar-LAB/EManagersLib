@@ -26,34 +26,32 @@ namespace EManagersLib {
                 }
             }
             LocalBuilder prop32 = il.DeclareLocal(typeof(uint));
-            FieldInfo id = AccessTools.Field(typeof(DefaultTool).GetNestedType("<EndMoving>c__Iterator2", BindingFlags.Instance | BindingFlags.NonPublic), "id");
             FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
             MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
             MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
             MethodInfo moveProp = AccessTools.Method(typeof(PropManager), nameof(PropManager.MoveProp));
+            MethodInfo setFixedHeight = AccessTools.PropertySetter(typeof(PropInstance), nameof(PropInstance.FixedHeight));
             var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
+            while(codes.MoveNext()) {
                 var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldflda && cur.operand == id && codes.MoveNext()) {
+                if (cur.opcode == OpCodes.Call && cur.operand == getProp && codes.MoveNext()) {
                     var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == getProp && codes.MoveNext()) {
-                        cur.opcode = OpCodes.Ldfld;
-                        yield return cur;
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
+                    if (next.opcode == OpCodes.Stloc_2) {
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
                         yield return newStLoc(prop32);
                     } else {
                         yield return cur;
                         yield return next;
                     }
+                } else if (cur.opcode == OpCodes.Ldloc_2) {
+                    yield return newLdLoc(prop32);
                 } else if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
                     var next = codes.Current;
-                    if (next.opcode == OpCodes.Ldloc_2) {
-                        yield return cur;
-                        yield return newLdLoc(prop32);
-                    } else if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
-                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
+                    if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
+                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(cur.labels);
                         yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
-                        codes.MoveNext();
+                    } else if (next.opcode == OpCodes.Ldloc_2) {
+                        yield return cur;
                         yield return newLdLoc(prop32);
                     } else {
                         yield return cur;
@@ -61,6 +59,10 @@ namespace EManagersLib {
                     }
                 } else if (cur.opcode == OpCodes.Callvirt && cur.operand == moveProp) {
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.MoveProp)));
+                } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
+                    yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == setFixedHeight) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertySetter(typeof(EPropInstance), nameof(EPropInstance.FixedHeight)));
                 } else {
                     yield return cur;
                 }
@@ -87,79 +89,141 @@ namespace EManagersLib {
                 }
             }
             LocalBuilder prop32 = il.DeclareLocal(typeof(uint));
-            FieldInfo id = AccessTools.Field(typeof(DefaultTool).GetNestedType("<EndRotating>c__Iterator3", BindingFlags.Instance | BindingFlags.NonPublic), "id");
             FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
             MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
             MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
+            MethodInfo setAngle = AccessTools.PropertySetter(typeof(PropInstance), nameof(PropInstance.Angle));
             var codes = instructions.GetEnumerator();
             while (codes.MoveNext()) {
                 var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldflda && cur.operand == id && codes.MoveNext()) {
+                if (cur.opcode == OpCodes.Call && cur.operand == getProp && codes.MoveNext()) {
                     var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == getProp && codes.MoveNext()) {
-                        cur.opcode = OpCodes.Ldfld;
-                        yield return cur;
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
+                    if (next.opcode == OpCodes.Stloc_2) {
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
                         yield return newStLoc(prop32);
                     } else {
                         yield return cur;
                         yield return next;
                     }
+                } else if (cur.opcode == OpCodes.Ldloc_2) {
+                    yield return newLdLoc(prop32);
                 } else if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
                     var next = codes.Current;
                     if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld && codes.MoveNext()) {
-                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(cur.labels);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
-                            yield return newLdLoc(prop32);
-                        } else {
-                            yield return cur;
-                            yield return next;
-                            yield return next1;
-                        }
+                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(cur.labels);
+                        yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
                     } else {
                         yield return cur;
                         yield return next;
                     }
+                } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
+                    yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == setAngle) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertySetter(typeof(EPropInstance), nameof(EPropInstance.Angle)));
                 } else {
                     yield return cur;
                 }
             }
         }
 
-        private static IEnumerable<CodeInstruction> ReplaceUINT16PropAndGetPropTranspiler(IEnumerable<CodeInstruction> instructions) {
-            FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
+        private static IEnumerable<CodeInstruction> RenderGeometryTranspiler(IEnumerable<CodeInstruction> instructions) {
+            MethodInfo renderInstance = AccessTools.Method(typeof(PropInstance), nameof(PropInstance.RenderInstance),
+                new System.Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(UnityEngine.Vector3),
+                                    typeof(float), typeof(float), typeof(UnityEngine.Color), typeof(UnityEngine.Vector4), typeof(bool)
+                });
+            MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
+            MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
+            var codes = instructions.GetEnumerator();
+            while(codes.MoveNext()) {
+                var cur = codes.Current;
+                if (cur.opcode == OpCodes.Call && cur.operand == getProp) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance) {
+                    while(codes.MoveNext()) {
+                        cur = codes.Current;
+                        if(cur.opcode == OpCodes.Call && cur.operand == renderInstance) break;
+                    }
+                    yield return new CodeInstruction(OpCodes.Ldarg_1);
+                    yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(DefaultTool), "m_mousePosition"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_angle"));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.RenderPropGeometry)));
+                } else {
+                    yield return cur;
+                }
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> RenderOverlayTranspiler(IEnumerable<CodeInstruction> instructions) {
+            bool firstSig = false;
+            List<Label> labels = default;
             MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
             MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
+            MethodInfo renderOverlay = AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderOverlay),
+                new System.Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(UnityEngine.Vector3), typeof(float), typeof(float), typeof(UnityEngine.Color) });
             var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
+            while(codes.MoveNext()) {
                 var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
+                if (cur.opcode == OpCodes.Ldloca_S && (cur.operand as LocalBuilder).LocalIndex == 0 && codes.MoveNext()) {
                     var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == getProp) {
-                        yield return new CodeInstruction(OpCodes.Ldloc_0).WithLabels(cur.labels);
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
+                    if (!firstSig && next.opcode == OpCodes.Call && next.operand == getProp) {
+                        yield return cur;
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
+                    } else if (firstSig && next.opcode == OpCodes.Call && next.operand == getProp && codes.MoveNext()) {
+                        labels = cur.ExtractLabels();
                     } else {
                         yield return cur;
                         yield return next;
                     }
-                } else if (cur.opcode == OpCodes.Ldflda) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == getProp) {
-                        cur.opcode = OpCodes.Ldfld;
-                        yield return cur;
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
-                    } else {
-                        yield return cur;
-                        yield return next;
-                    }
+                } else if (!firstSig && cur.opcode == OpCodes.Call && cur.operand == getPMInstance) {
+                    firstSig = true;
+                    while (codes.MoveNext()) if (codes.Current.opcode == OpCodes.Call && codes.Current.operand == renderOverlay) break;
+                    yield return new CodeInstruction(OpCodes.Ldarg_1);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_toolController"));
+                    yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(DefaultTool), "m_mousePosition"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_angle"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_selectErrors"));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.RenderPropOverlay)));
+                } else if (firstSig && cur.opcode == OpCodes.Call && cur.operand == getPMInstance) {
+                    while (codes.MoveNext()) if (codes.Current.opcode == OpCodes.Call && codes.Current.operand == renderOverlay) break;
+                    yield return new CodeInstruction(OpCodes.Ldarg_1).WithLabels(labels);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_toolController"));
+                    yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_selectErrors"));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.RenderPropTypeOverlay)));
+                } else {
+                    yield return cur;
+                }
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> SetHoverInstanceTranspiler(IEnumerable<CodeInstruction> instructions) {
+            FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
+            FieldInfo m_buffer = AccessTools.Field(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.m_buffer));
+            MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
+            MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
+            MethodInfo getHidden = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Hidden));
+            MethodInfo setHidden = AccessTools.PropertySetter(typeof(PropInstance), nameof(PropInstance.Hidden));
+            var codes = instructions.GetEnumerator();
+            while(codes.MoveNext()) {
+                var cur = codes.Current;
+                if (cur.opcode == OpCodes.Call && cur.operand == getProp) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
                 } else if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
                     var next = codes.Current;
                     if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
                         var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld) {
-                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(cur.labels);
+                        if (next1.opcode == OpCodes.Ldfld && next1.operand == m_buffer) {
+                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
                             yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
                         } else {
                             yield return cur;
@@ -170,6 +234,61 @@ namespace EManagersLib {
                         yield return cur;
                         yield return next;
                     }
+                } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
+                    yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == getHidden) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Hidden)));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == setHidden) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertySetter(typeof(EPropInstance), nameof(EPropInstance.Hidden)));
+                } else {
+                    yield return cur;
+                }
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> StartMovingRotatingTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
+            CodeInstruction newStLoc(LocalBuilder local) {
+                switch (local.LocalIndex) {
+                case 0: return new CodeInstruction(OpCodes.Stloc_0);
+                case 1: return new CodeInstruction(OpCodes.Stloc_1);
+                case 2: return new CodeInstruction(OpCodes.Stloc_2);
+                case 3: return new CodeInstruction(OpCodes.Stloc_3);
+                default: return new CodeInstruction(OpCodes.Stloc_S, local);
+                }
+            }
+            CodeInstruction newLdLoc(LocalBuilder local) {
+                switch (local.LocalIndex) {
+                case 0: return new CodeInstruction(OpCodes.Ldloc_0);
+                case 1: return new CodeInstruction(OpCodes.Ldloc_1);
+                case 2: return new CodeInstruction(OpCodes.Ldloc_2);
+                case 3: return new CodeInstruction(OpCodes.Ldloc_3);
+                default: return new CodeInstruction(OpCodes.Ldloc_S, local);
+                }
+            }
+            LocalBuilder prop32 = il.DeclareLocal(typeof(uint));
+            MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
+            MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
+            MethodInfo getHidden = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Hidden));
+            MethodInfo setHidden = AccessTools.PropertySetter(typeof(PropInstance), nameof(PropInstance.Hidden));
+            var codes = instructions.GetEnumerator();
+            while(codes.MoveNext()) {
+                var cur = codes.Current;
+                if (cur.opcode == OpCodes.Call && cur.operand == getProp && codes.MoveNext()) {
+                    var next = codes.Current;
+                    if (next.opcode == OpCodes.Stloc_1) {
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
+                        yield return newStLoc(prop32);
+                    } else {
+                        yield return cur;
+                        yield return next;
+                    }
+                } else if (cur.opcode == OpCodes.Ldloc_1) {
+                    yield return newLdLoc(prop32);
+                } else if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance) {
+                    while (codes.MoveNext()) if (codes.Current.opcode == OpCodes.Call && codes.Current.operand == setHidden) break;
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(DefaultTool), "m_angle"));
+                    yield return newLdLoc(prop32);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.StartMovingRotating)));
                 } else {
                     yield return cur;
                 }
@@ -177,9 +296,6 @@ namespace EManagersLib {
         }
 
         private static IEnumerable<CodeInstruction> SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
-            LocalBuilder raycastOutput = il.DeclareLocal(typeof(EToolBase.RaycastOutput));
-            LocalBuilder origRaycastOutput = default;
-            FieldInfo hoverInstance = AccessTools.Field(typeof(DefaultTool), "m_hoverInstance");
             FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
             FieldInfo m_buffer = AccessTools.Field(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.m_buffer));
             FieldInfo m_hitPos = AccessTools.Field(typeof(ToolBase.RaycastOutput), nameof(ToolBase.RaycastOutput.m_hitPos));
@@ -197,12 +313,6 @@ namespace EManagersLib {
             FieldInfo m_district = AccessTools.Field(typeof(ToolBase.RaycastOutput), nameof(ToolBase.RaycastOutput.m_district));
             FieldInfo m_park = AccessTools.Field(typeof(ToolBase.RaycastOutput), nameof(ToolBase.RaycastOutput.m_park));
             FieldInfo m_transportLine = AccessTools.Field(typeof(ToolBase.RaycastOutput), nameof(ToolBase.RaycastOutput.m_transportLine));
-            MethodInfo raycast = AccessTools.Method(typeof(ToolBase), "RayCast");
-            MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
-            MethodInfo setProp = AccessTools.PropertySetter(typeof(InstanceID), nameof(InstanceID.Prop));
-            MethodInfo checkPlacement = AccessTools.Method(typeof(PropTool), nameof(PropTool.CheckPlacementErrors));
-            MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
-            MethodInfo getPosition = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Position));
             CodeInstruction modifyCode(CodeInstruction code) {
                 if (code.operand == m_hitPos) return new CodeInstruction(code.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_hitPos)));
                 else if (code.operand == m_currentEditObject) return new CodeInstruction(code.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_currentEditObject)));
@@ -221,75 +331,59 @@ namespace EManagersLib {
                 else if (code.operand == m_transportLine) return new CodeInstruction(code.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_transportLine)));
                 return code;
             }
+            IEnumerable<CodeInstruction> yieldPropBuffer(CodeInstruction cur, IEnumerator<CodeInstruction> __codes) {
+                var next = __codes.Current;
+                if (next.opcode == OpCodes.Ldfld && next.operand == m_props && __codes.MoveNext()) {
+                    yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
+                } else {
+                    yield return cur;
+                    yield return next;
+                }
+            }
+            LocalBuilder raycastOutput = il.DeclareLocal(typeof(EToolBase.RaycastOutput));
+            MethodInfo raycast = AccessTools.Method(typeof(ToolBase), "RayCast");
+            MethodInfo getProp = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
+            MethodInfo setProp = AccessTools.PropertySetter(typeof(InstanceID), nameof(InstanceID.Prop));
+            MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));
+            MethodInfo checkPlacement = AccessTools.Method(typeof(PropTool), nameof(PropTool.CheckPlacementErrors));
+            MethodInfo getInfo = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Info));
+            MethodInfo getPosition = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Position));
+            MethodInfo checkProp = AccessTools.Method(typeof(DefaultTool), "CheckProp");
             var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
+            while(codes.MoveNext()) {
                 var cur = codes.Current;
                 if (cur.opcode == OpCodes.Ldloca_S && (cur.operand as LocalBuilder).LocalIndex == 2 && codes.MoveNext()) {
+reYield:
+                    yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
                     var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == raycast) {
-                        origRaycastOutput = cur.operand as LocalBuilder;
-                        yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EToolBase), nameof(EToolBase.RayCast)));
-                    } else if (next.opcode == OpCodes.Call && next.operand == getPMInstance && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld && next1.operand == m_props && codes.MoveNext()) {
-                            var next2 = codes.Current;
-                            if (next2.opcode == OpCodes.Ldfld && next2.operand == m_buffer) {
-                                yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
-                                yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
-                                yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
-                            }
-                        }
-                    } else if (next.opcode == OpCodes.Ldfld || next.opcode == OpCodes.Ldflda) {
-                        yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
+                    if (next.opcode == OpCodes.Ldfld || next.opcode == OpCodes.Ldflda) {
                         yield return modifyCode(next);
-                    } else if ((next.opcode == OpCodes.Ldc_I4_0 || next.opcode == OpCodes.Ldc_I4) && codes.MoveNext()) {
-                        yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
-                        yield return next;
-                        yield return modifyCode(codes.Current);
+                    } else if (next.opcode == OpCodes.Call && next.operand == raycast) {
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EToolBase), nameof(EToolBase.RayCast)));
                     } else if (next.opcode == OpCodes.Ldloca_S && (next.operand as LocalBuilder).LocalIndex == 2 && codes.MoveNext()) {
-                        yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
-                        yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                        yield return modifyCode(codes.Current);
-                    } else if (next.opcode == OpCodes.Initobj) {
-                        yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
+                        goto reYield;
+                    } else if (next.opcode == OpCodes.Call && next.operand == getPMInstance && codes.MoveNext()) {
+                        foreach (var code in yieldPropBuffer(cur, codes)) yield return code;
+                    } else if (next.opcode == OpCodes.Initobj && next.operand == typeof(ToolBase.RaycastOutput)) {
                         yield return new CodeInstruction(OpCodes.Initobj, typeof(EToolBase.RaycastOutput));
                     } else {
-                        if ((cur.operand as LocalBuilder).LocalIndex == 2) yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
-                        else yield return cur;
                         yield return next;
                     }
-                } else if (cur.opcode == OpCodes.Ldflda && cur.operand == hoverInstance && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == getProp && codes.MoveNext()) {
-                        yield return new CodeInstruction(OpCodes.Ldfld, hoverInstance).WithLabels(cur.labels);
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldelema && next1.operand == typeof(PropInstance)) {
-                            yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
-                        } else {
-                            yield return next1;
-                        }
-                    } else {
-                        yield return cur;
-                        yield return next;
-                    }
+                } else if (cur.opcode == OpCodes.Call && cur.operand == raycast) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EToolBase), nameof(EToolBase.RayCast)));
+                } else if (cur.opcode == OpCodes.Stfld) {
+                    yield return modifyCode(cur);
+                } else if (cur.opcode == OpCodes.Call && cur.operand == getProp) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
                 } else if (cur.opcode == OpCodes.Call && cur.operand == getPMInstance && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld && next1.operand == m_buffer) {
-                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(cur.labels);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
-                        } else {
-                            yield return cur;
-                            yield return next;
-                            yield return next1;
-                        }
-                    } else {
-                        yield return cur;
-                        yield return next;
-                    }
+                    foreach (var code in yieldPropBuffer(cur, codes)) yield return code;
+                } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
+                    yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == getInfo) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Info)));
+                } else if (cur.opcode == OpCodes.Call && cur.operand == checkPlacement) {
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropTool), nameof(EPropTool.CheckPlacementErrors)));
                 } else if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
                     var next = codes.Current;
                     if (next.opcode == OpCodes.Ldloca_S && (next.operand as LocalBuilder).LocalIndex == 2 && codes.MoveNext()) {
@@ -298,12 +392,18 @@ namespace EManagersLib {
                             var next2 = codes.Current;
                             if (next2.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
                                 var next3 = codes.Current;
-                                if (next3.opcode == OpCodes.Callvirt) {
+                                if (next3.opcode == OpCodes.Callvirt && next3.operand == checkProp) {
                                     yield return cur;
                                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_toolController"));
                                     yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
                                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_propInstance)));
                                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.CheckProp)));
+                                } else {
+                                    yield return cur;
+                                    yield return next;
+                                    yield return next1;
+                                    yield return next2;
+                                    yield return next3;
                                 }
                             } else {
                                 yield return cur;
@@ -311,57 +411,10 @@ namespace EManagersLib {
                                 yield return next1;
                                 yield return next2;
                             }
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_treeInstance) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_treeInstance)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_vehicle) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_vehicle)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_parkedVehicle) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_parkedVehicle)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_building) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_building)));
                         } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_hitPos) {
                             yield return cur;
                             yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
                             yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_hitPos)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_currentEditObject) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_currentEditObject)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_netNode) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_netNode)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_netSegment) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_netSegment)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_citizenInstance) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_citizenInstance)));
-                        } else if (next1.opcode == OpCodes.Ldfld && next1.operand == m_disaster) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_disaster)));
-                        } else {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
-                            yield return next1;
-                        }
-                    } else if (next.opcode == OpCodes.Ldflda && next.operand == hoverInstance && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Call && next1.operand == getProp) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_hoverInstance"));
-                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
                         } else {
                             yield return cur;
                             yield return next;
@@ -371,14 +424,6 @@ namespace EManagersLib {
                         yield return cur;
                         yield return next;
                     }
-                } else if (cur.opcode == OpCodes.Call && cur.operand == checkPlacement) {
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropTool), nameof(EPropTool.CheckPlacementErrors)));
-                } else if (cur.opcode == OpCodes.Ldfld || cur.opcode == OpCodes.Ldflda) {
-                    yield return modifyCode(cur);
-                } else if (cur.opcode == OpCodes.Stfld) {
-                    yield return modifyCode(cur);
-                } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
-                    yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
                 } else if (cur.opcode == OpCodes.Call && cur.operand == getPosition) {
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Position)));
                 } else if (cur.opcode == OpCodes.Call && cur.operand == setProp) {
@@ -390,19 +435,18 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            HarmonyMethod replaceUINT16Prop = new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(ReplaceUINT16PropAndGetPropTranspiler)));
             harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndMoving>c__Iterator2", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
                 transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(EndMovingTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndRotating>c__Iterator3", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
                 transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(EndRotatingTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderGeometry)), transpiler: replaceUINT16Prop);
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderOverlay)), transpiler: replaceUINT16Prop);
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), "SetHoverInstance"), transpiler: replaceUINT16Prop);
+            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderGeometry)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(RenderGeometryTranspiler))));
+            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderOverlay)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(RenderOverlayTranspiler))));
+            harmony.Patch(AccessTools.Method(typeof(DefaultTool), "SetHoverInstance"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(SetHoverInstanceTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.SimulationStep)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(SimulationStepTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartMoving>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: replaceUINT16Prop);
+                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(StartMovingRotatingTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartRotating>c__Iterator1", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: replaceUINT16Prop);
+                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(StartMovingRotatingTranspiler))));
         }
 
         internal void Disable(Harmony harmony) {

@@ -8,13 +8,12 @@ namespace EManagersLib {
             Randomizer randomizer = new Randomizer(id);
             float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
             float height = info.m_generatedInfo.m_size.y * scale;
-            float offset = 0.3f;
             Vector2 vector = VectorUtils.XZ(position);
             Quad2 quad = default;
-            quad.a = vector + new Vector2(-offset, -offset);
-            quad.b = vector + new Vector2(-offset, offset);
-            quad.c = vector + new Vector2(offset, offset);
-            quad.d = vector + new Vector2(offset, -offset);
+            quad.a = vector + new Vector2(-0.3f, -0.3f);
+            quad.b = vector + new Vector2(-0.3f, 0.3f);
+            quad.c = vector + new Vector2(0.3f, 0.3f);
+            quad.d = vector + new Vector2(0.3f, -0.3f);
             float y = position.y;
             float maxY = position.y + height;
             ItemClass.CollisionType collisionType = ItemClass.CollisionType.Terrain;

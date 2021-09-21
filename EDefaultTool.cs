@@ -10,7 +10,7 @@ namespace EManagersLib {
         private static readonly Vector2 m_range_maxXminZ = new Vector2(0.5f, -0.5f);
         public static bool CheckProp(ToolController toolController, uint prop) {
             if ((toolController.m_mode & ItemClass.Availability.Editors) != ItemClass.Availability.None) return true;
-            Vector2 a = VectorUtils.XZ(Singleton<PropManager>.instance.m_props.m_buffer[(int)prop].Position);
+            Vector2 a = VectorUtils.XZ(EPropManager.m_props.m_buffer[prop].Position);
             Quad2 quad = default;
             quad.a = a + m_range_minXZ;
             quad.b = a + m_range_minXmaxZ;
@@ -19,44 +19,60 @@ namespace EManagersLib {
             return !Singleton<GameAreaManager>.instance.QuadOutOfArea(quad);
         }
 
-        public static void SetHoverInstance(EInstanceID id, ref InstanceID hoverInstance) {
-            EInstanceID hover = (EInstanceID)hoverInstance;
-            if (id != hover) {
-                uint propID = hover.Prop;
-                uint treeID = hover.Tree;
-                ushort buildingID = hover.Building;
-                ushort disasterID = hover.Disaster;
-                ushort transportID = hover.TransportLine;
-                if (hover.TransportLine != 0u) {
-                    Singleton<TransportManager>.instance.m_lines.m_buffer[hoverInstance.TransportLine].m_flags &= ~TransportLine.Flags.Selected;
-                } else if (propID != 0u) {
-                    EPropInstance[] props = EPropManager.m_props.m_buffer;
-                    if (props[propID].Hidden) {
-                        props[propID].Hidden = false;
-                    }
-                } else if (treeID != 0u) {
-                    TreeInstance[] trees = Singleton<TreeManager>.instance.m_trees.m_buffer;
-                    if (trees[treeID].Hidden) {
-                        trees[treeID].Hidden = false;
-                        Singleton<TreeManager>.instance.UpdateTreeRenderer(treeID, true);
-                    }
-                } else if (buildingID != 0u) {
-                    Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-                    if ((buildings[buildingID].m_flags & Building.Flags.Hidden) != Building.Flags.None) {
-                        buildings[buildingID].m_flags &= ~Building.Flags.Hidden;
-                        Singleton<BuildingManager>.instance.UpdateBuildingRenderer(buildingID, true);
-                    }
-                } else if (disasterID != 0) {
-                    DisasterData[] disasters = Singleton<DisasterManager>.instance.m_disasters.m_buffer;
-                    if ((disasters[disasterID].m_flags & DisasterData.Flags.Hidden) != DisasterData.Flags.None) {
-                        disasters[disasterID].m_flags &= ~DisasterData.Flags.Hidden;
-                    }
-                }
-                hoverInstance = id.OrigID;
-                if (transportID != 0) {
-                    Singleton<TransportManager>.instance.m_lines.m_buffer[transportID].m_flags |= TransportLine.Flags.Selected;
+        public static void RenderPropGeometry(RenderManager.CameraInfo cameraInfo, ref InstanceID hoverInstance, ref Vector3 mousePosition, float angle) {
+            uint propID = InstanceIDExtension.GetProp32ByRef(ref hoverInstance);
+            EPropInstance[] props = EPropManager.m_props.m_buffer;
+            PropInfo info = props[propID].Info;
+            if (!(info is null)) {
+                float scale = props[propID].m_scale;
+                Color color = props[propID].m_color;
+                if (info.m_requireHeightMap) {
+                    Singleton<TerrainManager>.instance.GetHeightMapping(mousePosition, out Texture heightMap, out Vector4 heightMapping, out Vector4 surfaceMapping);
+                    EPropInstance.RenderInstance(cameraInfo, info, hoverInstance, mousePosition, scale, angle * 0.0174532924f, color, RenderManager.DefaultColorLocation, true, heightMap, heightMapping, surfaceMapping);
+                } else {
+                    EPropInstance.RenderInstance(cameraInfo, info, hoverInstance, mousePosition, scale, angle * 0.0174532924f, color, RenderManager.DefaultColorLocation, true);
                 }
             }
+        }
+
+        private static Color GetToolColor(ToolController toolController, bool warning, bool error) {
+            if (Singleton<InfoManager>.instance.CurrentMode != InfoManager.InfoMode.None) {
+                if (error) return toolController.m_errorColorInfo;
+                if (warning) return toolController.m_warningColorInfo;
+                return toolController.m_validColorInfo;
+            } else {
+                if (error) return toolController.m_errorColor;
+                if (warning) return toolController.m_warningColor;
+                return toolController.m_validColor;
+            }
+        }
+
+        public static void RenderPropOverlay(RenderManager.CameraInfo cameraInfo, ToolController toolController, ref InstanceID hoverInstance, ref Vector3 mousePosition, float angle, ToolBase.ToolErrors selectErrors) {
+            uint propID = InstanceIDExtension.GetProp32ByRef(ref hoverInstance);
+            EPropInstance[] props = EPropManager.m_props.m_buffer;
+            PropInfo info = props[propID].Info;
+            if (!(info is null)) {
+                Color toolColor = GetToolColor(toolController, false, selectErrors != ToolBase.ToolErrors.None);
+                toolController.RenderColliding(cameraInfo, toolColor, toolColor, toolColor, toolColor, 0, 0);
+                PropTool.RenderOverlay(cameraInfo, info, mousePosition, props[propID].m_scale, angle, toolColor);
+            }
+        }
+
+        public static void RenderPropTypeOverlay(RenderManager.CameraInfo cameraInfo, ToolController toolController, ref InstanceID hoverInstance, ToolBase.ToolErrors selectErrors) {
+            float range = 1f;
+            uint propID = InstanceIDExtension.GetProp32ByRef(ref hoverInstance);
+            EPropInstance[] props = EPropManager.m_props.m_buffer;
+            PropInfo info = props[propID].Info;
+            Color toolColor = GetToolColor(toolController, false, selectErrors != ToolBase.ToolErrors.None);
+            PropTool.CheckOverlayAlpha(info, props[propID].m_scale, ref range);
+            toolColor *= range;
+            PropTool.RenderOverlay(cameraInfo, info, props[propID].Position, props[propID].m_scale, props[propID].Angle, toolColor);
+        }
+
+        public static void StartMovingRotating(ref float angle, uint propID) {
+            EPropInstance[] props = EPropManager.m_props.m_buffer;
+            angle = props[propID].Angle * 57.29578f;
+            props[propID].Hidden = true;
         }
     }
 }

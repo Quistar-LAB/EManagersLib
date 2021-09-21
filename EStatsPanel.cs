@@ -284,7 +284,7 @@ namespace EManagersLib {
             m_UserPropsValue.name = "UserProps_Value";
         }
 
-        private Color getLimitColor(int count, int limit) {
+        private Color GetLimitColor(int count, int limit) {
             if (count > (limit * 0.9f)) return Color.yellow;
             return Color.green;
         }
@@ -300,37 +300,37 @@ namespace EManagersLib {
             GameAreaManager areaInstance = Singleton<GameAreaManager>.instance;
             DistrictManager districtInstance = Singleton<DistrictManager>.instance;
             TreeManager treeInstance = Singleton<TreeManager>.instance;
-            m_NetSegmentsValue.textColor = getLimitColor((int)netInstance.m_segments.ItemCount() - 1, netInstance.m_segments.m_buffer.Length - 500);
+            m_NetSegmentsValue.textColor = GetLimitColor((int)netInstance.m_segments.ItemCount() - 1, netInstance.m_segments.m_buffer.Length - 500);
             m_NetSegmentsValue.text = "[" + (netInstance.m_segments.ItemCount() - 1) + "]";
-            m_NetNodesValue.textColor = getLimitColor((int)netInstance.m_nodes.ItemCount() - 1, netInstance.m_nodes.m_buffer.Length - 512);
+            m_NetNodesValue.textColor = GetLimitColor((int)netInstance.m_nodes.ItemCount() - 1, netInstance.m_nodes.m_buffer.Length - 512);
             m_NetNodesValue.text = "[" + (netInstance.m_nodes.ItemCount() - 1) + "]";
-            m_NetLanesValue.textColor = getLimitColor((int)netInstance.m_lanes.ItemCount() - 1, netInstance.m_nodes.m_buffer.Length - 4096);
+            m_NetLanesValue.textColor = GetLimitColor((int)netInstance.m_lanes.ItemCount() - 1, netInstance.m_nodes.m_buffer.Length - 4096);
             m_NetLanesValue.text = "[" + (netInstance.m_lanes.ItemCount() - 1) + "]";
-            m_BuildingsValue.textColor = getLimitColor((int)buildingInstance.m_buildings.ItemCount() - 1, buildingInstance.m_buildings.m_buffer.Length - 512);
+            m_BuildingsValue.textColor = GetLimitColor((int)buildingInstance.m_buildings.ItemCount() - 1, buildingInstance.m_buildings.m_buffer.Length - 512);
             m_BuildingsValue.text = "[" + (buildingInstance.m_buildings.ItemCount() - 1) + "]";
-            m_ZonedBlocksValue.textColor = getLimitColor(zoneInstance.m_blockCount, zoneInstance.m_blocks.m_buffer.Length - 512);
+            m_ZonedBlocksValue.textColor = GetLimitColor(zoneInstance.m_blockCount, zoneInstance.m_blocks.m_buffer.Length - 512);
             m_ZonedBlocksValue.text = "[" + (zoneInstance.m_blockCount) + "]";
-            m_VehiclesValue.textColor = getLimitColor((int)vehicleInstance.m_vehicles.ItemCount() - 1, vehicleInstance.m_vehicles.m_buffer.Length);
+            m_VehiclesValue.textColor = GetLimitColor((int)vehicleInstance.m_vehicles.ItemCount() - 1, vehicleInstance.m_vehicles.m_buffer.Length);
             m_VehiclesValue.text = "[" + (vehicleInstance.m_vehicles.ItemCount() - 1) + "]";
-            m_ParkedCarsValue.textColor = getLimitColor(vehicleInstance.m_parkedCount, vehicleInstance.m_parkedVehicles.m_buffer.Length);
+            m_ParkedCarsValue.textColor = GetLimitColor(vehicleInstance.m_parkedCount, vehicleInstance.m_parkedVehicles.m_buffer.Length);
             m_ParkedCarsValue.text = "[" + (vehicleInstance.m_parkedCount) + "]";
-            m_CitizensValue.textColor = getLimitColor(citizenInstance.m_citizenCount, citizenInstance.m_citizens.m_buffer.Length);
+            m_CitizensValue.textColor = GetLimitColor(citizenInstance.m_citizenCount, citizenInstance.m_citizens.m_buffer.Length);
             m_CitizensValue.text = "[" + (citizenInstance.m_citizenCount) + "]";
-            m_CitizenUnitsValue.textColor = getLimitColor(citizenInstance.m_unitCount, citizenInstance.m_units.m_buffer.Length);
+            m_CitizenUnitsValue.textColor = GetLimitColor(citizenInstance.m_unitCount, citizenInstance.m_units.m_buffer.Length);
             m_CitizenUnitsValue.text = "[" + (citizenInstance.m_unitCount) + "]";
-            m_CitizenAgentsValue.textColor = getLimitColor(citizenInstance.m_instanceCount, citizenInstance.m_instances.m_buffer.Length);
+            m_CitizenAgentsValue.textColor = GetLimitColor(citizenInstance.m_instanceCount, citizenInstance.m_instances.m_buffer.Length);
             m_CitizenAgentsValue.text = "[" + (citizenInstance.m_instanceCount) + "]";
-            m_TransportLinesValue.textColor = getLimitColor(transportInstance.m_lineCount, transportInstance.m_lines.m_buffer.Length);
+            m_TransportLinesValue.textColor = GetLimitColor(transportInstance.m_lineCount, transportInstance.m_lines.m_buffer.Length);
             m_TransportLinesValue.text = "[" + (transportInstance.m_lineCount) + "]";
-            m_PathUnitsValue.textColor = getLimitColor(pathInstance.m_pathUnitCount, pathInstance.m_pathUnits.m_buffer.Length);
+            m_PathUnitsValue.textColor = GetLimitColor(pathInstance.m_pathUnitCount, pathInstance.m_pathUnits.m_buffer.Length);
             m_PathUnitsValue.text = "[" + (pathInstance.m_pathUnitCount) + "]";
-            m_AreasValue.textColor = getLimitColor(areaInstance.m_areaCount, areaInstance.m_areaGrid.Length);
+            m_AreasValue.textColor = GetLimitColor(areaInstance.m_areaCount, areaInstance.m_areaGrid.Length);
             m_AreasValue.text = "[" + (areaInstance.m_areaCount) + "]";
-            m_DistrictsValue.textColor = getLimitColor(districtInstance.m_districtCount, districtInstance.m_districts.m_buffer.Length);
+            m_DistrictsValue.textColor = GetLimitColor(districtInstance.m_districtCount, districtInstance.m_districts.m_buffer.Length);
             m_DistrictsValue.text = "[" + (districtInstance.m_districtCount) + "]";
-            m_TreesValue.textColor = getLimitColor(treeInstance.m_treeCount, treeInstance.m_trees.m_buffer.Length - 5);
+            m_TreesValue.textColor = GetLimitColor(treeInstance.m_treeCount, treeInstance.m_trees.m_buffer.Length - 5);
             m_TreesValue.text = "[" + (treeInstance.m_treeCount) + "]";
-            m_UserPropsValue.textColor = getLimitColor((int)EPropManager.m_props.ItemCount() - 1, EPropManager.MAX_GAME_PROPS_LIMIT);
+            m_UserPropsValue.textColor = GetLimitColor((int)EPropManager.m_props.ItemCount() - 1, EPropManager.MAX_GAME_PROPS_LIMIT);
             m_UserPropsValue.text = "[" + (EPropManager.m_props.ItemCount() - 1) + "]";
         }
 
@@ -343,7 +343,7 @@ namespace EManagersLib {
             isInteractive = true;
             BringToFront();
             relativePosition = new Vector3((root.fixedWidth / 2 - 200), (root.fixedHeight / 2 - 350));
-            opacity = 1f;
+            opacity = 0.8f;
             cachedName = cacheName;
             m_dragHandle = AddUIComponent<UIDragHandle>();
             m_dragHandle.target = this;
@@ -364,7 +364,6 @@ namespace EManagersLib {
             CreateText();
             CreateValue();
             Hide();
-            InvokeRepeating("RefreshLimit", 0.2f, 5f);
         }
 
         public override void Update() {

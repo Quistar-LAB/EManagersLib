@@ -125,7 +125,7 @@ namespace EManagersLib {
                 //    } else {
                 //        props[i].m_posY = 0;
                 //    }
-                /// }
+                //}
                 //uShort1.EndRead();
                 EncodedArray.Float @float = EncodedArray.Float.BeginRead(s);
                 for (int i = 1; i < maxLen; i++) {
@@ -230,10 +230,10 @@ namespace EManagersLib {
                         DataSerializer.Deserialize<Data>(stream, DataSerializer.Mode.Memory);
                     }
                 }
+                EUtils.ProcessQueues();
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
-
         }
 
         public void OnSaveData() {

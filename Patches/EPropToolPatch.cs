@@ -11,7 +11,7 @@ using static EManagersLib.EPropManager;
 namespace EManagersLib {
     public class EPropToolPatch {
         public static float CalcSeedPropScale(PropInfo info, ref Randomizer defRandom) {
-            Randomizer randomizer = new Randomizer((int)EPropManager.m_props.NextFreeItem(ref defRandom));
+            Randomizer randomizer = new Randomizer((int)m_props.NextFreeItem(ref defRandom));
             return info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
         }
 
@@ -27,9 +27,7 @@ namespace EManagersLib {
                     if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
                         var next1 = codes.Current;
                         if (next1.opcode == OpCodes.Ldloca_S) {
-                            while (codes.MoveNext()) {
-                                if (codes.Current.opcode == OpCodes.Stloc_S) break;
-                            }
+                            while (codes.MoveNext()) if (codes.Current.opcode == OpCodes.Stloc_S) break;
                             yield return new CodeInstruction(OpCodes.Ldloc_0);
                             yield return next1;
                             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropToolPatch), nameof(CalcSeedPropScale)));
@@ -187,14 +185,6 @@ namespace EManagersLib {
             }
         }
 
-        private static IEnumerable<CodeInstruction> ApplyBrushTranspiler(IEnumerable<CodeInstruction> instructions) {
-            var codes = __ApplyBrushTranspiler(instructions);
-            foreach (var code in codes) {
-                EUtils.ELog($" {code}");
-            }
-            return codes;
-        }
-
         public static void ApplyBrush(PropTool propTool, PropInfo prefabInfo, PropInfo info, ToolController toolController, ref Randomizer randomizer, Vector3 mousePosition, bool mouseLeftDown, bool mouseRightDown) {
             int Max(int a, int b) => (a <= b) ? b : a;
             int Min(int a, int b) => (a >= b) ? b : a;
@@ -206,12 +196,13 @@ namespace EManagersLib {
             float[] brushData = toolController.BrushData;
             float brushSize = propTool.m_brushSize * 0.5f;
             EPropInstance[] buffer = m_props.m_buffer;
+            PropManager pmInstance = Singleton<PropManager>.instance;
             uint[] propGrid = m_propGrid;
             float strength = propTool.m_strength;
-            int startX = Max((int)((mousePosition.x - brushSize) * (1 / PROPGRID_CELL_SIZE) + (PROPGRID_RESOLUTION * 0.5f)), 0);
-            int startZ = Max((int)((mousePosition.z - brushSize) * (1 / PROPGRID_CELL_SIZE) + (PROPGRID_RESOLUTION * 0.5f)), 0);
-            int endX = Min((int)((mousePosition.x + brushSize) * (1 / PROPGRID_CELL_SIZE) + (PROPGRID_RESOLUTION * 0.5f)), PROPGRID_RESOLUTION - 1);
-            int endZ = Min((int)((mousePosition.z + brushSize) * (1 / PROPGRID_CELL_SIZE) + (PROPGRID_RESOLUTION * 0.5f)), PROPGRID_RESOLUTION - 1);
+            int startX = Max((int)((mousePosition.x - brushSize) / PROPGRID_CELL_SIZE + PROPGRID_RESOLUTION * 0.5f), 0);
+            int startZ = Max((int)((mousePosition.z - brushSize) / PROPGRID_CELL_SIZE + PROPGRID_RESOLUTION * 0.5f), 0);
+            int endX = Min((int)((mousePosition.x + brushSize) / PROPGRID_CELL_SIZE + PROPGRID_RESOLUTION * 0.5f), PROPGRID_RESOLUTION - 1);
+            int endZ = Min((int)((mousePosition.z + brushSize) / PROPGRID_CELL_SIZE + PROPGRID_RESOLUTION * 0.5f), PROPGRID_RESOLUTION - 1);
             for (int i = startZ; i <= endZ; i++) {
                 float offsetZ = ((i - PROPGRID_RESOLUTION * 0.5f + 0.5f) * PROPGRID_CELL_SIZE - mousePosition.z + brushSize) / propTool.m_brushSize * PROPGRID_CELL_SIZE - 0.5f;
                 int minOffsetZ = Clamp((int)Math.Floor(offsetZ), 0, 63);
@@ -267,7 +258,7 @@ namespace EManagersLib {
                                             if (!Singleton<BuildingManager>.instance.OverlapQuad(quad, y, maxY, collisionType, propInfo.m_class.m_layer, 0, 0, 0)) {
                                                 if (propInfo.m_requireWaterMap || !Singleton<TerrainManager>.instance.HasWater(vector2)) {
                                                     if (!Singleton<GameAreaManager>.instance.QuadOutOfArea(quad)) {
-                                                        if (Singleton<PropManager>.instance.CreateProp(out uint _, ref randomizer, propInfo, vector, angle, false)) {
+                                                        if (pmInstance.CreateProp(out uint _, ref randomizer, propInfo, vector, angle, false)) {
                                                         }
                                                     }
                                                 }
@@ -281,7 +272,7 @@ namespace EManagersLib {
                         uint propID = propGrid[i * PROPGRID_RESOLUTION + j];
                         while (propID != 0) {
                             if (randomizer.Int32(10000u) < brushStrength) {
-                                Singleton<PropManager>.instance.ReleaseProp(propID);
+                                pmInstance.ReleaseProp(propID);
                             }
                             propID = buffer[propID].m_nextGridProp;
                         }
@@ -290,7 +281,7 @@ namespace EManagersLib {
             }
         }
 
-        private static IEnumerable<CodeInstruction> __ApplyBrushTranspiler(IEnumerable<CodeInstruction> instructions) {
+        private static IEnumerable<CodeInstruction> ApplyBrushTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PropTool), nameof(PropTool.m_prefab)));

@@ -1,9 +1,11 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using System;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace EManagersLib {
+    [StructLayout(LayoutKind.Explicit)]
     public struct EPropInstance {
         public const ushort CREATEDFLAG = 0x0001;
         public const ushort DELETEDFLAG = 0x0002;
@@ -18,7 +20,7 @@ namespace EManagersLib {
         public const ushort BLOCKEDMASK = 0xffbf;
 
         [Flags]
-        public enum Flags {
+        public enum Flags : ushort {
             None = 0x0000,
             Created = 0x0001,
             Deleted = 0x0002,
@@ -29,50 +31,41 @@ namespace EManagersLib {
             Blocked = 0x0040,
             All = 0xffff
         }
-        public uint m_nextGridProp;
-        public short m_posX;
-        public short m_posZ;
-        public ushort m_posY;
-        public ushort m_angle;
-        public ushort m_flags;
-        public ushort m_infoIndex;
-        public float m_scale;
-        public Color m_color;
+        [FieldOffset(0)] public PropInstance propInstance;
+        [FieldOffset(0)] public ushort __old_m_nextGridProp_Placeholder__; /* m_nextGridProp */
+        [FieldOffset(2)] public short m_posX;
+        [FieldOffset(4)] public short m_posZ;
+        [FieldOffset(6)] public ushort m_posY;
+        [FieldOffset(8)] public ushort m_angle;
+        [FieldOffset(10)] public ushort m_flags;
+        [FieldOffset(12)] public ushort m_infoIndex;
+        [FieldOffset(14)] public uint m_nextGridProp;
+        [FieldOffset(18)] public float m_scale;
+        [FieldOffset(22)] public Color m_color;
+
         public PropInfo Info {
             get => PrefabCollection<PropInfo>.GetPrefab(m_infoIndex);
             set => m_infoIndex = (ushort)Mathf.Clamp(value.m_prefabDataIndex, 0, 65535);
         }
         public bool Single {
-            get => (m_flags & SINGLEFLAG) != 0;
-            set {
-                if (value) m_flags |= SINGLEFLAG;
-                else m_flags &= SINGLEMASK;
-            }
+            get => (m_flags & SINGLEFLAG) != 0u;
+            set => m_flags = value ? (ushort)(m_flags | SINGLEFLAG) : (ushort)(m_flags & SINGLEMASK);
         }
         public bool FixedHeight {
-            get => (m_flags & FIXEDHEIGHTFLAG) != 0;
-            set {
-                if (value) m_flags |= FIXEDHEIGHTFLAG;
-                else m_flags &= FIXEDHEIGHTMASK;
-            }
+            get => (m_flags & FIXEDHEIGHTFLAG) != 0u;
+            set => m_flags = value ? (ushort)(m_flags | FIXEDHEIGHTFLAG) : (ushort)(m_flags & FIXEDHEIGHTMASK);
         }
         public bool Blocked {
-            get => (m_flags & BLOCKEDFLAG) != 0;
-            set {
-                if (value) m_flags |= BLOCKEDFLAG;
-                else m_flags &= BLOCKEDMASK;
-            }
+            get => (m_flags & BLOCKEDFLAG) != 0u;
+            set => m_flags = value ? (ushort)(m_flags | BLOCKEDFLAG) : (ushort)(m_flags & BLOCKEDMASK);
         }
         public bool Hidden {
-            get => (m_flags & HIDDENFLAG) != 0;
-            set {
-                if (value) m_flags |= HIDDENFLAG;
-                else m_flags &= HIDDENMASK;
-            }
+            get => (m_flags & HIDDENFLAG) != 0u;
+            set => m_flags = value ? (ushort)(m_flags | HIDDENFLAG) : (ushort)(m_flags & HIDDENMASK);
         }
         public Vector3 Position {
             get {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
+                if (EPropManager.m_mode == ItemClass.Availability.AssetEditor) {
                     Vector3 result;
                     result.x = m_posX * 0.0164794922f;
                     result.y = m_posY * (1 / EPropManager.PROPGRID_CELL_SIZE);
@@ -86,21 +79,26 @@ namespace EManagersLib {
                 return result2;
             }
             set {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    m_posX = (short)Mathf.Clamp(Mathf.RoundToInt(value.x * 60.68148f), -32767, 32767);
-                    m_posZ = (short)Mathf.Clamp(Mathf.RoundToInt(value.z * 60.68148f), -32767, 32767);
-                    m_posY = (ushort)Mathf.Clamp(Mathf.RoundToInt(value.y * 64f), 0, 65535);
+                int Clamp(int val, int min, int max) {
+                    val = (val < min) ? min : val;
+                    return (val > max) ? max : val;
+                }
+                int RoundToInt(float f) => (int)(f + 0.5f);
+                if (EPropManager.m_mode == ItemClass.Availability.AssetEditor) {
+                    m_posX = (short)Clamp(RoundToInt(value.x * 60.68148f), -32767, 32767);
+                    m_posZ = (short)Clamp(RoundToInt(value.z * 60.68148f), -32767, 32767);
+                    m_posY = (ushort)Clamp(RoundToInt(value.y * 64f), 0, 65535);
                 } else {
-                    m_posX = (short)Mathf.Clamp(Mathf.RoundToInt(value.x * 3.79259253f), -32767, 32767);
-                    m_posZ = (short)Mathf.Clamp(Mathf.RoundToInt(value.z * 3.79259253f), -32767, 32767);
-                    m_posY = (ushort)Mathf.Clamp(Mathf.RoundToInt(value.y * 64f), 0, 65535);
+                    m_posX = (short)Clamp(RoundToInt(value.x * 3.79259253f), -32767, 32767);
+                    m_posZ = (short)Clamp(RoundToInt(value.z * 3.79259253f), -32767, 32767);
+                    m_posY = (ushort)Clamp(RoundToInt(value.y * 64f), 0, 65535);
                 }
             }
         }
 
         public float Angle {
             get => m_angle * 9.58738E-05f;
-            set => m_angle = (ushort)Mathf.RoundToInt(value * 10430.3779f);
+            set => m_angle = (ushort)(value * 10430.3779f + 0.5f);
         }
 
         public void RenderInstance(RenderManager.CameraInfo cameraInfo, uint propID, int layerMask) {
@@ -161,7 +159,7 @@ namespace EManagersLib {
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
                         matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = Singleton<PropManager>.instance;
+                        PropManager instance = EPropManager.m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -175,7 +173,7 @@ namespace EManagersLib {
                     } else if (info.m_lodMaterialCombined is null) {
                         Matrix4x4 matrix2 = default;
                         matrix2.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = Singleton<PropManager>.instance;
+                        PropManager instance = EPropManager.m_pmInstance;
                         MaterialPropertyBlock materialBlock2 = instance.m_materialBlock;
                         materialBlock2.Clear();
                         materialBlock2.SetColor(instance.ID_Color, color);
@@ -234,7 +232,7 @@ namespace EManagersLib {
                         }
                     }
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
-                        PropManager instance = Singleton<PropManager>.instance;
+                        PropManager instance = EPropManager.m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -246,7 +244,7 @@ namespace EManagersLib {
                         instance.m_drawCallData.m_defaultCalls++;
                         Graphics.DrawMesh(info.m_mesh, matrix, info.m_material, info.m_prefabDataLayer, null, 0, materialBlock);
                     } else if (info.m_lodMaterialCombined is null) {
-                        PropManager instance = Singleton<PropManager>.instance;
+                        PropManager instance = EPropManager.m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -309,7 +307,7 @@ namespace EManagersLib {
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
                         matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = Singleton<PropManager>.instance;
+                        PropManager instance = EPropManager.m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -383,7 +381,7 @@ namespace EManagersLib {
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
                         matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = Singleton<PropManager>.instance;
+                        PropManager instance = EPropManager.m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -427,7 +425,7 @@ namespace EManagersLib {
         }
 
         public static void RenderLod(RenderManager.CameraInfo cameraInfo, PropInfo info) {
-            PropManager instance = Singleton<PropManager>.instance;
+            PropManager instance = EPropManager.m_pmInstance;
             MaterialPropertyBlock materialBlock = instance.m_materialBlock;
             materialBlock.Clear();
             Mesh mesh;

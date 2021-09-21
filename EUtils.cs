@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -7,8 +8,34 @@ using System.Reflection.Emit;
 using UnityEngine;
 
 namespace EManagersLib {
+    /// <summary>
+    /// This class provides public API to ensure that mods using this library functions correctly
+    /// </summary>
     public static class EUtils {
         private const string m_debugLogFile = "oEManagerDebug.log";
+        private static readonly Queue<Action> queuedActions = new Queue<Action>();
+
+        /// <summary>Make sure to cache the return value of this property before using it in a loop</summary>
+        /// <returns>Returns the maximum prop limit set by Prop Anarchy. If Prop Anarchy is not installed, then returns default prop limit</returns>
+        public static int GetPropMaxLimit => EPropManager.MAX_PROP_LIMIT;
+
+        /// <summary>This library will call the queued action callback late in the initialization to ensure prop buffer points to the correct location</summary>
+        public static void OnEManagersReady(Action action) => queuedActions.Enqueue(action);
+
+        internal static void ProcessQueues() {
+            foreach (var queue in queuedActions) {
+                queue.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Helper API to create delegates to get private or protected field members that would usually be accessed
+        /// using slow reflection codes
+        /// </summary>
+        /// <typeparam name="S">Type of class where the field resides</typeparam>
+        /// <typeparam name="T">Name of the private or protected field</typeparam>
+        /// <param name="field"></param>
+        /// <returns>Returns the delegate for fast getter to private or protected fields</returns>
         public static Func<S, T> CreateGetter<S, T>(FieldInfo field) {
             string methodName = field.ReflectedType.FullName + ".get_" + field.Name;
             DynamicMethod setterMethod = new DynamicMethod(methodName, typeof(T), new Type[1] { typeof(S) }, true);
@@ -23,6 +50,14 @@ namespace EManagersLib {
             return (Func<S, T>)setterMethod.CreateDelegate(typeof(Func<S, T>));
         }
 
+        /// <summary>
+        /// Helper API to create delegates to set private or protected field members that would usually be accessed
+        /// using slow reflection codes
+        /// </summary>
+        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="field"></param>
+        /// <returns>Returns the delegate for fast setter of private or protected fields</returns>
         public static Action<S, T> CreateSetter<S, T>(FieldInfo field) {
             string methodName = field.ReflectedType.FullName + ".set_" + field.Name;
             DynamicMethod setterMethod = new DynamicMethod(methodName, null, new Type[2] { typeof(S), typeof(T) }, true);
@@ -62,7 +97,7 @@ namespace EManagersLib {
             }
         }
 
-        public static void EnablePropPatches() {
+        internal static void EnablePropPatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Enable(harmony);
             new EDefaultToolPatch().Enable(harmony);
@@ -74,7 +109,7 @@ namespace EManagersLib {
             new EBuildingAIPatch().Enable(harmony);
         }
 
-        public static void DisablePropPatches() {
+        internal static void DisablePropPatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Disable(harmony);
             new EDefaultToolPatch().Disable(harmony);
