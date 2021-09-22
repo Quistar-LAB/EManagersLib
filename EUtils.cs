@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     /// <summary>
@@ -13,20 +14,13 @@ namespace EManagersLib {
     /// </summary>
     public static class EUtils {
         private const string m_debugLogFile = "oEManagerDebug.log";
-        private static readonly Queue<Action> queuedActions = new Queue<Action>();
 
         /// <summary>Make sure to cache the return value of this property before using it in a loop</summary>
         /// <returns>Returns the maximum prop limit set by Prop Anarchy. If Prop Anarchy is not installed, then returns default prop limit</returns>
         public static int GetPropMaxLimit => EPropManager.MAX_PROP_LIMIT;
 
         /// <summary>This library will call the queued action callback late in the initialization to ensure prop buffer points to the correct location</summary>
-        public static void OnEManagersReady(Action action) => queuedActions.Enqueue(action);
-
-        internal static void ProcessQueues() {
-            foreach (var queue in queuedActions) {
-                queue.Invoke();
-            }
-        }
+        internal static void ProcessQueues() {}
 
         /// <summary>
         /// Helper API to create delegates to get private or protected field members that would usually be accessed

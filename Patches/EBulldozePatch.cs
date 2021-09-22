@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     public class EBulldozePatch {
@@ -52,8 +53,8 @@ namespace EManagersLib {
                     if (next.opcode == OpCodes.Call && next.operand == get_Prop && codes.MoveNext()) {
                         var next1 = codes.Current;
                         if (next1.opcode == OpCodes.Call) {
-                            yield return new CodeInstruction(OpCodes.Ldloc_1);
-                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
+                            yield return cur;
+                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
                             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EBulldozePatch), nameof(DeleteProp)));
                         } else {
                             yield return cur;

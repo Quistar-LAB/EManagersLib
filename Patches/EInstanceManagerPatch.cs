@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     internal class EInstanceManagerPatch {
@@ -38,8 +39,8 @@ namespace EManagersLib {
                     skipCodes = false;
                     yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(labels);
                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<PropInstance>), nameof(Array32<PropInstance>.m_buffer)));
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32)));
+                    yield return new CodeInstruction(OpCodes.Ldarga_S, 0);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
                     yield return new CodeInstruction(OpCodes.Ldelema, typeof(PropInstance));
                     yield return newStLoc(refPropInstance);
                     yield return new CodeInstruction(OpCodes.Ldarg_1);

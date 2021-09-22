@@ -56,8 +56,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EStatsPanel.cs" />
-    <Compile Include="EPropManager.cs" />
-    <Compile Include="EPropInstance.cs" />
     <Compile Include="EDistrictManager.cs" />
     <Compile Include="EDisasterHelpers.cs" />
     <Compile Include="EPropTool.cs" />
@@ -66,7 +64,7 @@
     <Compile Include="ESerializeableExtension.cs" />
     <Compile Include="EUtils.cs" />
     <Compile Include="EModule.cs" />
-    <Compile Include="EInstanceID.cs" />
+    <Compile Include="IEManagersInit.cs" />
     <Compile Include="Patches\EBuildingAIPatch.cs" />
     <Compile Include="Patches\EPropToolPatch.cs" />
     <Compile Include="Patches\EInstanceManagerPatch.cs" />
@@ -87,6 +85,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="EManagersLib.API\EManagersLib.API.csproj">
+      <Project>{303ac92f-057f-494d-a1fd-40ba1a60a22b}</Project>
+      <Name>EManagersLib.API</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

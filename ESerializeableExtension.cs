@@ -4,7 +4,8 @@ using ICities;
 using System;
 using System.IO;
 using System.Threading;
-using static EManagersLib.EPropManager;
+using EManagersLib.API;
+using static EManagersLib.API.EPropManager;
 
 namespace EManagersLib {
     public class ESerializableData : ISerializableDataExtension {

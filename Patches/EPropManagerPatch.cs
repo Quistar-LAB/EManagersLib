@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using ColossalFramework;
+using ColossalFramework.IO;
+using EManagersLib.API;
+using static EManagersLib.API.EPropManager;
 
 namespace EManagersLib {
     internal class EPropManagerPatch {
@@ -323,6 +327,119 @@ namespace EManagersLib {
             }
         }
 
+        public static bool Deserialize(DataSerializer s) {
+            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginDeserialize(s, "PropManager");
+            PropManager instance = Singleton<PropManager>.instance;
+            EnsureCapacity(instance);
+            EPropInstance[] buffer = m_props.m_buffer;
+            uint[] propGrid = m_propGrid;
+            m_props.ClearUnused();
+            SimulationManager.UpdateMode updateMode = Singleton<SimulationManager>.instance.m_metaData.m_updateMode;
+            bool assetEditor = updateMode == SimulationManager.UpdateMode.NewAsset || updateMode == SimulationManager.UpdateMode.LoadAsset;
+            for (int i = 0; i < propGrid.Length; i++) {
+                propGrid[i] = 0;
+            }
+            EncodedArray.UShort uShort = EncodedArray.UShort.BeginRead(s);
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
+                buffer[i].m_flags = uShort.Read();
+            }
+            uShort.EndRead();
+            PrefabCollection<PropInfo>.BeginDeserialize(s);
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
+                if (buffer[i].m_flags != 0) {
+                    buffer[i].m_infoIndex = (ushort)PrefabCollection<PropInfo>.Deserialize(true);
+                }
+            }
+            PrefabCollection<PropInfo>.EndDeserialize(s);
+            EncodedArray.Short @short = EncodedArray.Short.BeginRead(s);
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
+                if (buffer[i].m_flags != 0) {
+                    buffer[i].m_posX = @short.Read();
+                } else {
+                    buffer[i].m_posX = 0;
+                }
+            }
+            @short.EndRead();
+            EncodedArray.Short short2 = EncodedArray.Short.BeginRead(s);
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
+                if (buffer[i].m_flags != 0) {
+                    buffer[i].m_posZ = short2.Read();
+                } else {
+                    buffer[i].m_posZ = 0;
+                }
+            }
+            short2.EndRead();
+            EncodedArray.UShort uShort2 = EncodedArray.UShort.BeginRead(s);
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
+                if (buffer[i].m_flags != 0) {
+                    buffer[i].m_angle = uShort2.Read();
+                } else {
+                    buffer[i].m_angle = 0;
+                }
+            }
+            uShort2.EndRead();
+            ESerializableData.IntegratedPropDeserialize(buffer);
+            buffer = m_props.m_buffer;
+            int len = buffer.Length;
+            for (int i = 1; i < len; i++) {
+                buffer[i].m_nextGridProp = 0;
+                //if((buffer[i].m_flags & EPropInstance.FIXEDHEIGHTFLAG) == 0) buffer[i].m_posY = 0;
+                buffer[i].m_posY = 0;
+                if (buffer[i].m_flags != 0) {
+                    InitializeProp((uint)i, ref buffer[i], assetEditor);
+                } else {
+                    m_props.ReleaseItem((uint)i);
+                }
+            }
+            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndDeserialize(s, "PropManager");
+            return false;
+        }
+
+        public static bool Serialize(DataSerializer s) {
+            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginSerialize(s, "PropManager");
+            EPropInstance[] buffer = m_props.m_buffer;
+            int num = DEFAULT_PROP_LIMIT;
+            EncodedArray.UShort uShort = EncodedArray.UShort.BeginWrite(s);
+            for (int i = 1; i < num; i++) {
+                uShort.Write(buffer[i].m_flags);
+            }
+            uShort.EndWrite();
+            try {
+                PrefabCollection<PropInfo>.BeginSerialize(s);
+                for (int i = 1; i < num; i++) {
+                    if (buffer[i].m_flags != 0) {
+                        PrefabCollection<PropInfo>.Serialize(buffer[i].m_infoIndex);
+                    }
+                }
+            } finally {
+                PrefabCollection<PropInfo>.EndSerialize(s);
+            }
+            EncodedArray.Short @short = EncodedArray.Short.BeginWrite(s);
+            for (int i = 1; i < num; i++) {
+                if (buffer[i].m_flags != 0) {
+                    @short.Write(buffer[i].m_posX);
+                }
+            }
+            @short.EndWrite();
+            EncodedArray.Short short2 = EncodedArray.Short.BeginWrite(s);
+            for (int i = 1; i < num; i++) {
+                if (buffer[i].m_flags != 0) {
+                    short2.Write(buffer[i].m_posZ);
+                }
+            }
+            short2.EndWrite();
+            EncodedArray.UShort uShort2 = EncodedArray.UShort.BeginWrite(s);
+            for (int i = 1; i < num; i++) {
+                if (buffer[i].m_flags != 0) {
+                    uShort2.Write(buffer[i].m_angle);
+                }
+            }
+            uShort2.EndWrite();
+            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndSerialize(s, "PropManager");
+            return false;
+        }
+
+
         internal void Enable(Harmony harmony) {
             harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AwakeTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.AfterTerrainUpdate)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterTerrainUpdateTranspiler))));
@@ -335,9 +452,9 @@ namespace EManagersLib {
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.TerrainUpdated)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(TerrainUpdatedTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdateDataTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdatePropsTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Deserialize))));
+            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize))));
             harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserializeTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Serialize))));
+            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize))));
         }
 
         internal void Disable(Harmony harmony) {

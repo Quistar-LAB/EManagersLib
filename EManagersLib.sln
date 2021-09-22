@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EManagersLib.API", "EManagersLib.API\EManagersLib.API.csproj", "{303AC92F-057F-494D-A1FD-40BA1A60A22B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{FE9A8B10-0A95-422D-BB19-300A8E9D5631}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE9A8B10-0A95-422D-BB19-300A8E9D5631}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE9A8B10-0A95-422D-BB19-300A8E9D5631}.Release|Any CPU.Build.0 = Release|Any CPU
+		{303AC92F-057F-494D-A1FD-40BA1A60A22B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{303AC92F-057F-494D-A1FD-40BA1A60A22B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{303AC92F-057F-494D-A1FD-40BA1A60A22B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{303AC92F-057F-494D-A1FD-40BA1A60A22B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

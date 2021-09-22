@@ -1,6 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     public class EStatsPanel : UIPanel {
