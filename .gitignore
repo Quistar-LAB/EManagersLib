@@ -2,8 +2,11 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+/bin
 /bin/Release
 /.vs/EManagersLib/v16
 /obj
 /packages
 /packages.config
+/EManagersLib.API/bin
+/EManagersLib.API/obj
