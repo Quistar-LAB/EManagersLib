@@ -4,19 +4,15 @@ using UnityEngine;
 using EManagersLib.API;
 
 namespace EManagersLib {
-    public static class EDefaultTool {
-        private static readonly Vector2 m_range_minXZ = new Vector2(-0.5f, -0.5f);
-        private static readonly Vector2 m_range_minXmaxZ = new Vector2(-0.5f, 0.5f);
-        private static readonly Vector2 m_range_maxXZ = new Vector2(0.5f, 0.5f);
-        private static readonly Vector2 m_range_maxXminZ = new Vector2(0.5f, -0.5f);
+    public static class EDefaultToolExtension {
         public static bool CheckProp(ToolController toolController, uint prop) {
             if ((toolController.m_mode & ItemClass.Availability.Editors) != ItemClass.Availability.None) return true;
             Vector2 a = VectorUtils.XZ(EPropManager.m_props.m_buffer[prop].Position);
             Quad2 quad = default;
-            quad.a = a + m_range_minXZ;
-            quad.b = a + m_range_minXmaxZ;
-            quad.c = a + m_range_maxXZ;
-            quad.d = a + m_range_maxXminZ;
+            quad.a = a + new Vector2(-0.5f, -0.5f);
+            quad.b = a + new Vector2(-0.5f, 0.5f);
+            quad.c = a + new Vector2(0.5f, 0.5f);
+            quad.d = a + new Vector2(0.5f, -0.5f);
             return !Singleton<GameAreaManager>.instance.QuadOutOfArea(quad);
         }
 

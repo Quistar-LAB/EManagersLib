@@ -3,6 +3,7 @@ using ColossalFramework.Math;
 using System;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using static EManagersLib.API.EPropManager;
 
 namespace EManagersLib.API {
     [StructLayout(LayoutKind.Explicit)]
@@ -65,16 +66,16 @@ namespace EManagersLib.API {
         }
         public Vector3 Position {
             get {
-                if (EPropManager.m_mode == ItemClass.Availability.AssetEditor) {
+                if (m_mode == ItemClass.Availability.AssetEditor) {
                     Vector3 result;
                     result.x = m_posX * 0.0164794922f;
-                    result.y = m_posY * (1 / EPropManager.PROPGRID_CELL_SIZE);
+                    result.y = m_posY * (1f / PROPGRID_CELL_SIZE);
                     result.z = m_posZ * 0.0164794922f;
                     return result;
                 }
                 Vector3 result2;
                 result2.x = m_posX * 0.263671875f;
-                result2.y = m_posY * (1 / EPropManager.PROPGRID_CELL_SIZE);
+                result2.y = m_posY * (1f / PROPGRID_CELL_SIZE);
                 result2.z = m_posZ * 0.263671875f;
                 return result2;
             }
@@ -84,7 +85,7 @@ namespace EManagersLib.API {
                     return (val > max) ? max : val;
                 }
                 int RoundToInt(float f) => (int)(f + 0.5f);
-                if (EPropManager.m_mode == ItemClass.Availability.AssetEditor) {
+                if (m_mode == ItemClass.Availability.AssetEditor) {
                     m_posX = (short)Clamp(RoundToInt(value.x * 60.68148f), -32767, 32767);
                     m_posZ = (short)Clamp(RoundToInt(value.z * 60.68148f), -32767, 32767);
                     m_posY = (ushort)Clamp(RoundToInt(value.y * 64f), 0, 65535);
@@ -552,8 +553,7 @@ namespace EManagersLib.API {
                 Vector3 c;
                 Vector3 d;
                 if (info.m_isDecal) {
-                    Randomizer randomizer = new Randomizer(propID);
-                    float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
+                    float scale = m_props.m_buffer[propID].m_scale;
                     Vector3 b = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * (info.m_generatedInfo.m_size.x * scale * 0.5f + 2.5f);
                     Vector3 b2 = new Vector3(-Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * (info.m_generatedInfo.m_size.z * scale * 0.5f + 2.5f);
                     a = position - b - b2;
@@ -603,8 +603,6 @@ namespace EManagersLib.API {
                 return false;
             }
             PropInfo info = Info;
-            //Randomizer randomizer = new Randomizer(propID);
-            //float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
             float height = info.m_generatedInfo.m_size.y * m_scale;
             ItemClass.CollisionType collisionType2 = ItemClass.CollisionType.Terrain;
             if ((m_flags & FIXEDHEIGHTFLAG) != 0) collisionType2 = ItemClass.CollisionType.Elevated;
@@ -627,8 +625,6 @@ namespace EManagersLib.API {
             targetSqr = 0f;
             if (Blocked) return false;
             PropInfo info = Info;
-            //Randomizer randomizer = new Randomizer(propID);
-            //float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
             float scale = m_scale;
             float height = info.m_generatedInfo.m_size.y * scale;
             float maxRadius = Mathf.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
@@ -685,11 +681,9 @@ namespace EManagersLib.API {
             PropInfo info = Info;
             if (info.m_prefabDataLayer == layer || info.m_effectLayer == layer) {
                 Vector3 position = Position;
-                Randomizer randomizer = new Randomizer(propID);
-                Color color = info.GetColor(ref randomizer);
                 EInstanceID id = default;
                 id.Prop = propID;
-                PopulateGroupData(info, layer, id, position, m_scale, Angle, color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                PopulateGroupData(info, layer, id, position, m_scale, Angle, m_color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
             }
         }
 

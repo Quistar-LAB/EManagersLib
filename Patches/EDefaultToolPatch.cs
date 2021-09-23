@@ -150,7 +150,7 @@ namespace EManagersLib {
                     yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(DefaultTool), "m_mousePosition"));
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_angle"));
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.RenderPropGeometry)));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultToolExtension), nameof(EDefaultToolExtension.RenderPropGeometry)));
                 } else {
                     yield return cur;
                 }
@@ -191,7 +191,7 @@ namespace EManagersLib {
                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_angle"));
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_selectErrors"));
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.RenderPropOverlay)));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultToolExtension), nameof(EDefaultToolExtension.RenderPropOverlay)));
                 } else if (firstSig && cur.opcode == OpCodes.Call && cur.operand == getPMInstance) {
                     while (codes.MoveNext()) if (codes.Current.opcode == OpCodes.Call && codes.Current.operand == renderOverlay) break;
                     yield return new CodeInstruction(OpCodes.Ldarg_1).WithLabels(labels);
@@ -200,7 +200,7 @@ namespace EManagersLib {
                     yield return new CodeInstruction(OpCodes.Ldloca_S, 0);
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_selectErrors"));
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.RenderPropTypeOverlay)));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultToolExtension), nameof(EDefaultToolExtension.RenderPropTypeOverlay)));
                 } else {
                     yield return cur;
                 }
@@ -289,7 +289,7 @@ namespace EManagersLib {
                     while (codes.MoveNext()) if (codes.Current.opcode == OpCodes.Call && codes.Current.operand == setHidden) break;
                     yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(DefaultTool), "m_angle"));
                     yield return newLdLoc(prop32);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.StartMovingRotating)));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultToolExtension), nameof(EDefaultToolExtension.StartMovingRotating)));
                 } else {
                     yield return cur;
                 }
@@ -398,7 +398,7 @@ reYield:
                                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DefaultTool), "m_toolController"));
                                     yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput);
                                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_propInstance)));
-                                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultTool), nameof(EDefaultTool.CheckProp)));
+                                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultToolExtension), nameof(EDefaultToolExtension.CheckProp)));
                                 } else {
                                     yield return cur;
                                     yield return next;

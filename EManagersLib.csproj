@@ -59,8 +59,7 @@
     <Compile Include="EDistrictManager.cs" />
     <Compile Include="EDisasterHelpers.cs" />
     <Compile Include="EPropTool.cs" />
-    <Compile Include="EToolBase.cs" />
-    <Compile Include="EDefaultTool.cs" />
+    <Compile Include="EDefaultToolExtension.cs" />
     <Compile Include="ESerializeableExtension.cs" />
     <Compile Include="EUtils.cs" />
     <Compile Include="EModule.cs" />

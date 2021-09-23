@@ -1,9 +1,8 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using UnityEngine;
-using EManagersLib.API;
 
-namespace EManagersLib {
+namespace EManagersLib.API {
     public static class EToolBase {
         public struct RaycastOutput {
             public Vector3 m_hitPos;

@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="EPropInstance.cs" />
     <Compile Include="EPropManager.cs" />
+    <Compile Include="EToolBase.cs" />
     <Compile Include="PropAPI.cs" />
     <Compile Include="EInstanceID.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
