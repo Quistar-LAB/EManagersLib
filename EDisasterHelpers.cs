@@ -2,6 +2,7 @@
 using ColossalFramework.Math;
 using UnityEngine;
 using EManagersLib.API;
+using static EManagersLib.API.EPropManager;
 
 namespace EManagersLib {
     public static class EDisasterHelpers {
@@ -12,15 +13,15 @@ namespace EManagersLib {
             int Min(int a, int b) => (a < b) ? a : b;
             float Minf(float a, float b) => (a < b) ? a : b;
             float radius = Minf(totalRadius, removeRadius);
-            int startX = Max((int)((position.x - radius) / EPropManager.PROPGRID_CELL_SIZE + 135f), 0);
-            int startZ = Max((int)((position.z - radius) / EPropManager.PROPGRID_CELL_SIZE + 135f), 0);
-            int endX = Min((int)((position.x + radius) / EPropManager.PROPGRID_CELL_SIZE + 135f), 269);
-            int endZ = Min((int)((position.z + radius) / EPropManager.PROPGRID_CELL_SIZE + 135f), 269);
-            EPropInstance[] props = EPropManager.m_props.m_buffer;
-            uint[] propGrid = EPropManager.m_propGrid;
+            int startX = Max((int)((position.x - radius) / PROPGRID_CELL_SIZE + 135f), 0);
+            int startZ = Max((int)((position.z - radius) / PROPGRID_CELL_SIZE + 135f), 0);
+            int endX = Min((int)((position.x + radius) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int endZ = Min((int)((position.z + radius) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            EPropInstance[] props = m_props.m_buffer;
+            uint[] propGrid = m_propGrid;
             for (int i = startZ; i <= endZ; i++) {
                 for (int j = startX; j <= endX; j++) {
-                    uint propID = propGrid[i * EPropManager.PROPGRID_RESOLUTION + j];
+                    uint propID = propGrid[i * PROPGRID_RESOLUTION + j];
                     while (propID != 0) {
                         if ((props[propID].m_flags & CreatedOrDeleted) == Created) {
                             if (VectorUtils.LengthXZ(props[propID].Position - position) < radius) {
