@@ -42,7 +42,9 @@ namespace EManagersLib.API {
         [FieldOffset(12)] public ushort m_infoIndex;
         [FieldOffset(14)] public uint m_nextGridProp;
         [FieldOffset(18)] public float m_scale;
-        [FieldOffset(22)] public Color m_color;
+        [FieldOffset(22)] public float m_preciseX;
+        [FieldOffset(26)] public float m_preciseZ;
+        [FieldOffset(30)] public Color m_color;
 
         public PropInfo Info {
             get => PrefabCollection<PropInfo>.GetPrefab(m_infoIndex);
@@ -58,7 +60,7 @@ namespace EManagersLib.API {
         }
         public bool Blocked {
             get => (m_flags & BLOCKEDFLAG) != 0u;
-            set => m_flags = value ? (ushort)(m_flags | BLOCKEDFLAG) : (ushort)(m_flags & BLOCKEDMASK);
+            set => m_flags = value ? (UsePropAnarchy ? m_flags : (ushort)(m_flags | BLOCKEDFLAG)) : (ushort)(m_flags & BLOCKEDMASK);
         }
         public bool Hidden {
             get => (m_flags & HIDDENFLAG) != 0u;
@@ -66,18 +68,17 @@ namespace EManagersLib.API {
         }
         public Vector3 Position {
             get {
+                Vector3 result;
                 if (m_mode == ItemClass.Availability.AssetEditor) {
-                    Vector3 result;
                     result.x = m_posX * 0.0164794922f;
-                    result.y = m_posY * (1f / PROPGRID_CELL_SIZE);
+                    result.y = m_posY / PROPGRID_CELL_SIZE;
                     result.z = m_posZ * 0.0164794922f;
                     return result;
                 }
-                Vector3 result2;
-                result2.x = m_posX * 0.263671875f;
-                result2.y = m_posY * (1f / PROPGRID_CELL_SIZE);
-                result2.z = m_posZ * 0.263671875f;
-                return result2;
+                result.x = (m_posX + m_preciseX) * 0.263671875f;
+                result.y = m_posY / PROPGRID_CELL_SIZE;
+                result.z = (m_posZ + m_preciseZ) * 0.263671875f;
+                return result;
             }
             set {
                 int Clamp(int val, int min, int max) {
@@ -93,6 +94,8 @@ namespace EManagersLib.API {
                     m_posX = (short)Clamp(RoundToInt(value.x * 3.79259253f), -32767, 32767);
                     m_posZ = (short)Clamp(RoundToInt(value.z * 3.79259253f), -32767, 32767);
                     m_posY = (ushort)Clamp(RoundToInt(value.y * 64f), 0, 65535);
+                    m_preciseX = value.x * 3.79259253f - m_posX;
+                    m_preciseZ = value.z * 3.79259253f - m_posZ;
                 }
             }
         }
@@ -160,7 +163,7 @@ namespace EManagersLib.API {
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
                         matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = EPropManager.m_pmInstance;
+                        PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -174,7 +177,7 @@ namespace EManagersLib.API {
                     } else if (info.m_lodMaterialCombined is null) {
                         Matrix4x4 matrix2 = default;
                         matrix2.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = EPropManager.m_pmInstance;
+                        PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock2 = instance.m_materialBlock;
                         materialBlock2.Clear();
                         materialBlock2.SetColor(instance.ID_Color, color);
@@ -233,7 +236,7 @@ namespace EManagersLib.API {
                         }
                     }
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
-                        PropManager instance = EPropManager.m_pmInstance;
+                        PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -245,7 +248,7 @@ namespace EManagersLib.API {
                         instance.m_drawCallData.m_defaultCalls++;
                         Graphics.DrawMesh(info.m_mesh, matrix, info.m_material, info.m_prefabDataLayer, null, 0, materialBlock);
                     } else if (info.m_lodMaterialCombined is null) {
-                        PropManager instance = EPropManager.m_pmInstance;
+                        PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -308,7 +311,7 @@ namespace EManagersLib.API {
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
                         matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = EPropManager.m_pmInstance;
+                        PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -382,7 +385,7 @@ namespace EManagersLib.API {
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
                         matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
-                        PropManager instance = EPropManager.m_pmInstance;
+                        PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(instance.ID_Color, color);
@@ -426,7 +429,7 @@ namespace EManagersLib.API {
         }
 
         public static void RenderLod(RenderManager.CameraInfo cameraInfo, PropInfo info) {
-            PropManager instance = EPropManager.m_pmInstance;
+            PropManager instance = m_pmInstance;
             MaterialPropertyBlock materialBlock = instance.m_materialBlock;
             materialBlock.Clear();
             Mesh mesh;
@@ -479,19 +482,46 @@ namespace EManagersLib.API {
             info.m_lodCount = 0;
         }
 
+        private bool GetSnappingState() {
+            if (Singleton<LoadingManager>.instance.m_currentlyLoading) return false;
+            if (UsePropSnapping) return true;
+            return false;
+        }
+
         public void CalculateProp(uint propID) {
+            int Clamp(int value, int min, int max) {
+                value = (value < min) ? min : value;
+                return (value > max) ? max : value;
+            }
+            int RoundToInt(float f) => (int)(f + 0.5f);
+            if (GetSnappingState()) return;
             if ((m_flags & (CREATEDFLAG | DELETEDFLAG)) != CREATEDFLAG) return;
             if ((m_flags & FIXEDHEIGHTFLAG) == 0) {
                 Vector3 position = Position;
                 position.y = Singleton<TerrainManager>.instance.SampleDetailHeight(position);
-                m_posY = (ushort)Mathf.Clamp(Mathf.RoundToInt(position.y * 64f), 0, 65535);
+                m_posY = (ushort)Clamp(RoundToInt(position.y * 64f), 0, 65535);
             }
             CheckOverlap(propID);
         }
 
+        public bool CheckOverlapWithAnarchy() {
+            if (Singleton<LoadingManager>.instance.m_currentlyLoading) {
+                return true;
+            } else if (UsePropAnarchy) {
+                if (Blocked) {
+                    Blocked = false;
+                    DistrictManager instance = Singleton<DistrictManager>.instance;
+                    byte park = instance.GetPark(Position);
+                    instance.m_parks.m_buffer[park].m_propCount--;
+                }
+                return true;
+            }
+            return false;
+        }
+
         private void CheckOverlap(uint propID) {
             PropInfo info = Info;
-            if (info is null) return;
+            if (info is null || CheckOverlapWithAnarchy()) return;
             ItemClass.CollisionType collisionType;
             if ((m_flags & FIXEDHEIGHTFLAG) == 0) collisionType = ItemClass.CollisionType.Terrain;
             else collisionType = ItemClass.CollisionType.Elevated;
@@ -521,6 +551,7 @@ namespace EManagersLib.API {
         }
 
         public void UpdateProp(uint propID) {
+            float Max(float a, float b) => (a <= b) ? b : a;
             if ((m_flags & CREATEDFLAG) == 0) return;
             PropInfo info = Info;
             if (info is null) return;
@@ -528,9 +559,7 @@ namespace EManagersLib.API {
                 Vector3 position = Position;
                 float range = 4.5f;
                 if (info.m_isDecal) {
-                    //Randomizer randomizer = new Randomizer((int)propID);
-                    //float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
-                    range = Mathf.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * m_scale * 0.5f + 2.5f;
+                    range = Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * m_scale * 0.5f + 2.5f;
                 }
                 float minX = position.x - range;
                 float minZ = position.z - range;
@@ -574,14 +603,19 @@ namespace EManagersLib.API {
         }
 
         public void AfterTerrainUpdated(uint propID, float minX, float minZ, float maxX, float maxZ) {
+            int Clamp(int value, int min, int max) {
+                value = (value < min) ? min : value;
+                return (value > max) ? max : value;
+            }
+            int RoundToInt(float f) => (int)(f + 0.5f);
             if ((m_flags & (CREATEDFLAG | DELETEDFLAG)) != CREATEDFLAG) return;
             if ((m_flags & FIXEDHEIGHTFLAG) == 0) {
                 Vector3 position = Position;
                 position.y = Singleton<TerrainManager>.instance.SampleDetailHeight(position);
-                ushort posY = (ushort)Mathf.Clamp(Mathf.RoundToInt(position.y * 64f), 0, 65535);
+                ushort posY = (ushort)Clamp(RoundToInt(position.y * 64f), 0, 65535);
                 if (posY != m_posY) {
                     bool blocked = Blocked;
-                    m_posY = posY;
+                    if (!UsePropSnapping || Singleton<LoadingManager>.instance.m_currentlyLoading) m_posY = posY;
                     CheckOverlap(propID);
                     bool blocked2 = Blocked;
                     if (blocked2 != blocked) EPropManager.UpdateProp(propID);
@@ -621,18 +655,20 @@ namespace EManagersLib.API {
         }
 
         public bool RayCast(uint propID, Segment3 ray, out float t, out float targetSqr) {
+            float Max(float a, float b) => (a <= b) ? b : a;
+            float Min(float a, float b) => (a >= b) ? b : a;
             t = 2f;
             targetSqr = 0f;
             if (Blocked) return false;
             PropInfo info = Info;
             float scale = m_scale;
             float height = info.m_generatedInfo.m_size.y * scale;
-            float maxRadius = Mathf.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
+            float maxRadius = Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
             Vector3 position = Position;
             Bounds bounds = new Bounds(new Vector3(position.x, position.y + height * 0.5f, position.z), new Vector3(maxRadius, height, maxRadius));
             if (!bounds.IntersectRay(new Ray(ray.a, ray.b - ray.a))) return false;
             float radius = (info.m_generatedInfo.m_size.x + info.m_generatedInfo.m_size.z) * scale * 0.125f;
-            float minHeight = Mathf.Min(radius, height * 0.45f);
+            float minHeight = Min(radius, height * 0.45f);
             Segment3 segment = new Segment3(position, position);
             segment.a.y += minHeight;
             segment.b.y += (height - minHeight);
@@ -688,14 +724,16 @@ namespace EManagersLib.API {
         }
 
         public static void PopulateGroupData(PropInfo info, int layer, EInstanceID id, Vector3 position, float scale, float angle, Color color, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
+            float Max(float a, float b) => (a <= b) ? b : a;
+            //float Min(float a, float b) => (a >= b) ? b : a;
             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
             if (info.m_prefabDataLayer == layer) {
                 float y = info.m_generatedInfo.m_size.y * scale;
-                float maxRadius = Mathf.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
+                float maxRadius = Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
                 min = Vector3.Min(min, position - new Vector3(maxRadius, 0f, maxRadius));
                 max = Vector3.Max(max, position + new Vector3(maxRadius, y, maxRadius));
-                maxRenderDistance = Mathf.Max(maxRenderDistance, info.m_maxRenderDistance);
-                maxInstanceDistance = Mathf.Max(maxInstanceDistance, info.m_maxRenderDistance);
+                maxRenderDistance = Max(maxRenderDistance, info.m_maxRenderDistance);
+                maxInstanceDistance = Max(maxInstanceDistance, info.m_maxRenderDistance);
             } else if (info.m_effectLayer == layer || (info.m_effectLayer == lightSystem.m_lightLayer && layer == lightSystem.m_lightLayerFloating)) {
                 Matrix4x4 matrix4x = default;
                 matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));

@@ -1,5 +1,4 @@
 ﻿using ColossalFramework;
-using ColossalFramework.IO;
 using ColossalFramework.Math;
 using System;
 using System.Threading;
@@ -32,6 +31,9 @@ namespace EManagersLib.API {
         public static int MAX_UPDATEDPROP_LIMIT => (int)(DEFAULT_UPDATEDPROP_LIMIT * PROP_LIMIT_SCALE);
         public static int MAX_MAP_PROPS_LIMIT => MAX_PROP_LIMIT - 15536;
         public static int MAX_GAME_PROPS_LIMIT => MAX_PROP_LIMIT - 5;
+        /* Custom functionality */
+        public static bool UsePropAnarchy;
+        public static bool UsePropSnapping;
 
         public static void Awake(PropManager instance) {
             m_pmInstance = instance;
