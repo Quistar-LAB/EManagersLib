@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using EManagersLib.API;
 using HarmonyLib;
 using System;
 using System.Collections;
@@ -6,7 +7,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using EManagersLib.API;
 
 namespace EManagersLib {
     public class EBulldozePatch {
@@ -45,28 +45,29 @@ namespace EManagersLib {
 
         private static IEnumerable<CodeInstruction> BulldozeOnToolGUITranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo get_Prop = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
-            var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
-                var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == get_Prop && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Call) {
-                            yield return cur;
-                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
-                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EBulldozePatch), nameof(DeleteProp)));
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Call && next.operand == get_Prop && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Call) {
+                                yield return cur;
+                                yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef)));
+                                yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EBulldozePatch), nameof(DeleteProp)));
+                            } else {
+                                yield return cur;
+                                yield return next;
+                                yield return next1;
+                            }
                         } else {
                             yield return cur;
                             yield return next;
-                            yield return next1;
                         }
                     } else {
                         yield return cur;
-                        yield return next;
                     }
-                } else {
-                    yield return cur;
                 }
             }
         }

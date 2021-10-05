@@ -1,60 +1,62 @@
-﻿using HarmonyLib;
+﻿using ColossalFramework;
+using ColossalFramework.IO;
+using ColossalFramework.Math;
+using EManagersLib.API;
+using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using ColossalFramework;
-using ColossalFramework.IO;
-using EManagersLib.API;
 using static EManagersLib.API.EPropManager;
 
 namespace EManagersLib {
     internal class EPropManagerPatch {
         private static IEnumerable<CodeInstruction> AwakeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
-                var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.LoadsConstant(EPropManager.DEFAULT_PROP_LIMIT) && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Newobj && codes.MoveNext()) {
-                            codes.MoveNext(); /* LDARG_0 */
-                            codes.MoveNext(); /* LDC_I4 */
-                            codes.MoveNext(); /* NEWARR */
-                            codes.MoveNext(); /* STFLD m_updatedProp */
-                            codes.MoveNext(); /* LDARG_0 */
-                            codes.MoveNext(); /* LDC_I4 */
-                            codes.MoveNext(); /* NEWARR */
-                            codes.MoveNext(); /* STFLD */
-                        } else {
-                            yield return cur;
-                            yield return next;
-                            yield return next1;
-                        }
-                    } else if (next.opcode == OpCodes.Ldfld && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
-                            var next2 = codes.Current;
-                            if (next2.opcode == OpCodes.Callvirt && codes.MoveNext()) {
-                                yield return new CodeInstruction(OpCodes.Ldarg_0);
-                                yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Awake)));
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.LoadsConstant(EPropManager.DEFAULT_PROP_LIMIT) && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Newobj && codes.MoveNext()) {
+                                codes.MoveNext(); /* LDARG_0 */
+                                codes.MoveNext(); /* LDC_I4 */
+                                codes.MoveNext(); /* NEWARR */
+                                codes.MoveNext(); /* STFLD m_updatedProp */
+                                codes.MoveNext(); /* LDARG_0 */
+                                codes.MoveNext(); /* LDC_I4 */
+                                codes.MoveNext(); /* NEWARR */
+                                codes.MoveNext(); /* STFLD */
                             } else {
                                 yield return cur;
                                 yield return next;
                                 yield return next1;
-                                yield return next2;
+                            }
+                        } else if (next.opcode == OpCodes.Ldfld && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
+                                var next2 = codes.Current;
+                                if (next2.opcode == OpCodes.Callvirt && codes.MoveNext()) {
+                                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Awake)));
+                                } else {
+                                    yield return cur;
+                                    yield return next;
+                                    yield return next1;
+                                    yield return next2;
+                                }
+                            } else {
+                                yield return cur;
+                                yield return next;
+                                yield return next1;
                             }
                         } else {
                             yield return cur;
                             yield return next;
-                            yield return next1;
                         }
                     } else {
                         yield return cur;
-                        yield return next;
                     }
-                } else {
-                    yield return cur;
                 }
             }
         }
@@ -155,54 +157,55 @@ namespace EManagersLib {
             MethodInfo beginLoading = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginLoading));
             MethodInfo releaseProp = AccessTools.Method(typeof(PropManager), nameof(PropManager.ReleaseProp));
             LocalBuilder props = il.DeclareLocal(typeof(PropInstance[]));
-            var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
-                var cur = codes.Current;
-                if (cur.opcode == OpCodes.Callvirt && cur.operand == beginLoading) {
-                    yield return cur;
-                    yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
-                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
-                    yield return newStLoc(props);
-                } else if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Ldfld && next.operand == propsArray && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld && next1.operand == propsBuffer) {
-                            yield return newLdLoc(props).WithLabels(cur.labels);
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Callvirt && cur.operand == beginLoading) {
+                        yield return cur;
+                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
+                        yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
+                        yield return newStLoc(props);
+                    } else if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Ldfld && next.operand == propsArray && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Ldfld && next1.operand == propsBuffer) {
+                                yield return newLdLoc(props).WithLabels(cur.labels);
+                            } else {
+                                yield return cur;
+                                yield return next;
+                                yield return next1;
+                            }
                         } else {
                             yield return cur;
                             yield return next;
-                            yield return next1;
+                        }
+                    } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
+                        yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                    } else if (cur.opcode == OpCodes.Conv_U2 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Call && next.operand == releaseProp) {
+                            yield return new CodeInstruction(OpCodes.Conv_U4);
+                            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.ReleaseProp)));
+                        } else {
+                            yield return cur;
+                            yield return next;
+                        }
+                    } else if (cur.LoadsConstant(EPropManager.DEFAULT_PROP_LIMIT) && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Blt) {
+                            //yield return new CodeInstruction(newLdLoc(props));
+                            //yield return new CodeInstruction(OpCodes.Ldlen);
+                            //yield return new CodeInstruction(OpCodes.Conv_I4);
+                            yield return new CodeInstruction(OpCodes.Ldc_I4, EPropManager.MAX_PROP_LIMIT);
+                            yield return next;
+                        } else {
+                            yield return cur;
+                            yield return next;
                         }
                     } else {
                         yield return cur;
-                        yield return next;
                     }
-                } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
-                    yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
-                } else if (cur.opcode == OpCodes.Conv_U2 && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Call && next.operand == releaseProp) {
-                        yield return new CodeInstruction(OpCodes.Conv_U4);
-                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.ReleaseProp)));
-                    } else {
-                        yield return cur;
-                        yield return next;
-                    }
-                } else if (cur.LoadsConstant(EPropManager.DEFAULT_PROP_LIMIT) && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Blt) {
-                        //yield return new CodeInstruction(newLdLoc(props));
-                        //yield return new CodeInstruction(OpCodes.Ldlen);
-                        //yield return new CodeInstruction(OpCodes.Conv_I4);
-                        yield return new CodeInstruction(OpCodes.Ldc_I4, EPropManager.MAX_PROP_LIMIT);
-                        yield return next;
-                    } else {
-                        yield return cur;
-                        yield return next;
-                    }
-                } else {
-                    yield return cur;
                 }
             }
         }
@@ -215,6 +218,14 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ldarg_S, 4);
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.UpdateProps)));
             yield return new CodeInstruction(OpCodes.Ret);
+        }
+
+        public static void SetPropScaleColor(uint id, ref EPropInstance prop, PropInfo info) {
+            if (prop.m_scale == 0f) {
+                Randomizer rand = new Randomizer((int)id);
+                prop.m_scale = info.m_minScale + rand.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
+                prop.m_color = info.GetColor(ref rand);
+            }
         }
 
         private static IEnumerable<CodeInstruction> AfterDeserializeTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
@@ -239,90 +250,106 @@ namespace EManagersLib {
             LocalBuilder buffer = il.DeclareLocal(typeof(EPropInstance[]));
             FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
             FieldInfo m_buffer = AccessTools.Field(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.m_buffer));
+            FieldInfo m_infoIndex = AccessTools.Field(typeof(PropInstance), nameof(PropInstance.m_infoIndex));
+            FieldInfo m_flags = AccessTools.Field(typeof(PropInstance), nameof(PropInstance.m_flags));
+            FieldInfo m_propCount = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_propCount));
             MethodInfo getInfo = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Info));
             MethodInfo getBlocked = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Blocked));
             MethodInfo getPosition = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Position));
             MethodInfo getItemCount = AccessTools.Method(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.ItemCount));
-            var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
-                var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld && next1.operand == m_buffer && codes.MoveNext()) {
-                            var next2 = codes.Current;
-                            if (next2.opcode == OpCodes.Stloc_1) {
-                                yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
-                                yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
-                                yield return newStLoc(buffer);
-                                codes.MoveNext(); /* ldloc1 */
-                                codes.MoveNext(); /* ldlen */
-                                codes.MoveNext(); /* convi4 */
-                                yield return new CodeInstruction(OpCodes.Ldc_I4, EPropManager.MAX_PROP_LIMIT);
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Ldfld && next1.operand == m_buffer && codes.MoveNext()) {
+                                var next2 = codes.Current;
+                                if (next2.opcode == OpCodes.Stloc_1) {
+                                    yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
+                                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
+                                    yield return newStLoc(buffer);
+                                    codes.MoveNext(); /* ldloc1 */
+                                    codes.MoveNext(); /* ldlen */
+                                    codes.MoveNext(); /* convi4 */
+                                    yield return new CodeInstruction(OpCodes.Ldc_I4, EPropManager.MAX_PROP_LIMIT);
+                                } else {
+                                    yield return cur;
+                                    yield return next;
+                                    yield return next1;
+                                    yield return next2;
+                                }
                             } else {
                                 yield return cur;
                                 yield return next;
                                 yield return next1;
-                                yield return next2;
                             }
-                        } else {
-                            yield return cur;
-                            yield return next;
-                            yield return next1;
-                        }
-                    } else if (next.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldfld && next1.operand == m_props && codes.MoveNext()) {
-                            var next2 = codes.Current;
-                            if (next2.opcode == OpCodes.Callvirt && next2.operand == getItemCount) {
-                                yield return cur;
-                                yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
-                                yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.ItemCount)));
+                        } else if (next.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Ldfld && next1.operand == m_props && codes.MoveNext()) {
+                                var next2 = codes.Current;
+                                if (next2.opcode == OpCodes.Callvirt && next2.operand == getItemCount) {
+                                    yield return cur;
+                                    yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props)));
+                                    yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.ItemCount)));
+                                } else {
+                                    yield return cur;
+                                    yield return next;
+                                    yield return next1;
+                                    yield return next2;
+                                }
                             } else {
                                 yield return cur;
                                 yield return next;
                                 yield return next1;
-                                yield return next2;
                             }
                         } else {
                             yield return cur;
                             yield return next;
-                            yield return next1;
                         }
-                    } else {
-                        yield return cur;
-                        yield return next;
-                    }
-                } else if (cur.opcode == OpCodes.Ldloc_1 && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Ldloc_3 && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Ldelema && codes.MoveNext()) {
-                            var next2 = codes.Current;
-                            yield return newLdLoc(buffer).WithLabels(cur.labels);
-                            yield return next;
-                            yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
-                            if (next2.opcode == OpCodes.Call && next2.operand == getInfo) {
-                                yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Info)));
-                            } else if (next2.opcode == OpCodes.Call && next2.operand == getBlocked) {
-                                yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Blocked)));
-                            } else if (next2.opcode == OpCodes.Call && next2.operand == getPosition) {
-                                yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Position)));
+                    } else if (cur.opcode == OpCodes.Ldloc_1 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Ldloc_3 && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Ldelema && codes.MoveNext()) {
+                                var next2 = codes.Current;
+                                yield return newLdLoc(buffer).WithLabels(cur.labels);
+                                yield return next;
+                                yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                                if (next2.opcode == OpCodes.Call && next2.operand == getInfo) {
+                                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Info)));
+                                } else if (next2.opcode == OpCodes.Call && next2.operand == getBlocked) {
+                                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Blocked)));
+                                } else if (next2.opcode == OpCodes.Call && next2.operand == getPosition) {
+                                    yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Position)));
+                                } else if (next2.opcode == OpCodes.Ldfld && next2.operand == m_flags) {
+                                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EPropInstance), nameof(EPropInstance.m_flags)));
+                                } else {
+                                    yield return next2;
+                                }
                             } else {
-                                yield return next2;
+                                yield return cur;
+                                yield return next;
+                                yield return next1;
                             }
                         } else {
                             yield return cur;
                             yield return next;
-                            yield return next1;
                         }
+                    } else if (cur.opcode == OpCodes.Stfld && cur.operand == m_infoIndex) {
+                        yield return new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(EPropInstance), nameof(EPropInstance.m_infoIndex)));
+                        yield return new CodeInstruction(OpCodes.Ldloc_3);
+                        yield return newLdLoc(buffer);
+                        yield return new CodeInstruction(OpCodes.Ldloc_3);
+                        yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                        yield return new CodeInstruction(OpCodes.Ldloc_S, 4);
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(SetPropScaleColor)));
+                    } else if (cur.opcode == OpCodes.Ldfld && cur.operand == m_flags) {
+                        yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(EPropInstance), nameof(EPropInstance.m_flags)));
                     } else {
                         yield return cur;
-                        yield return next;
                     }
-                } else {
-                    yield return cur;
                 }
             }
         }
@@ -383,8 +410,6 @@ namespace EManagersLib {
             int len = buffer.Length;
             for (int i = 1; i < len; i++) {
                 buffer[i].m_nextGridProp = 0;
-                //if((buffer[i].m_flags & EPropInstance.FIXEDHEIGHTFLAG) == 0) buffer[i].m_posY = 0;
-                buffer[i].m_posY = 0;
                 if (buffer[i].m_flags != 0) {
                     InitializeProp((uint)i, ref buffer[i], assetEditor);
                 } else {

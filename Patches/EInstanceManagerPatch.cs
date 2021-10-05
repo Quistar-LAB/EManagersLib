@@ -1,10 +1,10 @@
 ﻿using ColossalFramework;
+using EManagersLib.API;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using EManagersLib.API;
 
 namespace EManagersLib {
     internal class EInstanceManagerPatch {
@@ -60,13 +60,14 @@ namespace EManagersLib {
                 }
                 if (!skipCodes) yield return code;
             }
-            var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
-                var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldarg_0) {
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldarg_0) {
 
-                } else {
-                    yield return cur;
+                    } else {
+                        yield return cur;
+                    }
                 }
             }
         }

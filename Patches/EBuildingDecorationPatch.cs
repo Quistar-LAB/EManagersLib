@@ -1,10 +1,10 @@
 ﻿using ColossalFramework;
+using EManagersLib.API;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using EManagersLib.API;
 
 namespace EManagersLib {
     internal class EBuildingDecorationPatch {
@@ -92,69 +92,70 @@ namespace EManagersLib {
             MethodInfo muliplyPoint = AccessTools.Method(typeof(Matrix4x4), nameof(Matrix4x4.MultiplyPoint));
             FieldInfo m_finalProp = AccessTools.Field(typeof(BuildingInfo.Prop), nameof(BuildingInfo.Prop.m_finalProp));
             FieldInfo m_angle = AccessTools.Field(typeof(BuildingInfo.Prop), nameof(BuildingInfo.Prop.m_angle));
-            var codes = instructions.GetEnumerator();
-            while (codes.MoveNext()) {
-                var cur = codes.Current;
-                if (cur.opcode == OpCodes.Ldc_I4_0 && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Stloc_S) {
-                        index = next.operand as LocalBuilder;
-                    }
-                    yield return cur;
-                    yield return next;
-                } else if (cur.opcode == OpCodes.Ldfld && cur.operand == m_finalProp && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Stloc_S) {
-                        finalProp = next.operand as LocalBuilder;
-                    }
-                    yield return cur;
-                    yield return next;
-                } else if (cur.opcode == OpCodes.Call && cur.operand == muliplyPoint && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Stloc_S) {
-                        vector = next.operand as LocalBuilder;
-                    }
-                    yield return cur;
-                    yield return next;
-                } else if (cur.opcode == OpCodes.Ldfld && cur.operand == m_angle && codes.MoveNext()) {
-                    var next = codes.Current;
-                    if (next.opcode == OpCodes.Mul && codes.MoveNext()) {
-                        var next1 = codes.Current;
-                        if (next1.opcode == OpCodes.Add && codes.MoveNext()) {
-                            var next2 = codes.Current;
-                            if (next2.opcode == OpCodes.Stloc_S) {
-                                angle = next2.operand as LocalBuilder;
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldc_I4_0 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Stloc_S) {
+                            index = next.operand as LocalBuilder;
+                        }
+                        yield return cur;
+                        yield return next;
+                    } else if (cur.opcode == OpCodes.Ldfld && cur.operand == m_finalProp && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Stloc_S) {
+                            finalProp = next.operand as LocalBuilder;
+                        }
+                        yield return cur;
+                        yield return next;
+                    } else if (cur.opcode == OpCodes.Call && cur.operand == muliplyPoint && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Stloc_S) {
+                            vector = next.operand as LocalBuilder;
+                        }
+                        yield return cur;
+                        yield return next;
+                    } else if (cur.opcode == OpCodes.Ldfld && cur.operand == m_angle && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Mul && codes.MoveNext()) {
+                            var next1 = codes.Current;
+                            if (next1.opcode == OpCodes.Add && codes.MoveNext()) {
+                                var next2 = codes.Current;
+                                if (next2.opcode == OpCodes.Stloc_S) {
+                                    angle = next2.operand as LocalBuilder;
+                                }
+                                yield return cur;
+                                yield return next;
+                                yield return next1;
+                                yield return next2;
+                            } else {
+                                yield return cur;
+                                yield return next;
+                                yield return next1;
                             }
-                            yield return cur;
-                            yield return next;
-                            yield return next1;
-                            yield return next2;
                         } else {
                             yield return cur;
                             yield return next;
-                            yield return next1;
                         }
+                    } else if (cur.opcode == OpCodes.Ldloc_3) {
+                        yield return cur;
+                        while (codes.MoveNext()) {
+                            var skipCode = codes.Current;
+                            if (skipCode.opcode == OpCodes.Call && skipCode.operand == setFixedHeight) break;
+                        }
+                        yield return new CodeInstruction(OpCodes.Ldloc_S, finalProp);
+                        yield return new CodeInstruction(OpCodes.Ldarg_0);
+                        yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BuildingInfo), nameof(BuildingInfo.m_props)));
+                        yield return new CodeInstruction(OpCodes.Ldloc_S, index);
+                        yield return new CodeInstruction(OpCodes.Ldelem_Ref);
+                        yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BuildingInfo.Prop), nameof(BuildingInfo.Prop.m_fixedHeight)));
+                        yield return new CodeInstruction(OpCodes.Ldloc_S, vector);
+                        yield return new CodeInstruction(OpCodes.Ldloc_S, angle);
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(LoadBuildingProps)));
                     } else {
                         yield return cur;
-                        yield return next;
                     }
-                } else if (cur.opcode == OpCodes.Ldloc_3) {
-                    yield return cur;
-                    while (codes.MoveNext()) {
-                        var skipCode = codes.Current;
-                        if (skipCode.opcode == OpCodes.Call && skipCode.operand == setFixedHeight) break;
-                    }
-                    yield return new CodeInstruction(OpCodes.Ldloc_S, finalProp);
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BuildingInfo), nameof(BuildingInfo.m_props)));
-                    yield return new CodeInstruction(OpCodes.Ldloc_S, index);
-                    yield return new CodeInstruction(OpCodes.Ldelem_Ref);
-                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BuildingInfo.Prop), nameof(BuildingInfo.Prop.m_fixedHeight)));
-                    yield return new CodeInstruction(OpCodes.Ldloc_S, vector);
-                    yield return new CodeInstruction(OpCodes.Ldloc_S, angle);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(LoadBuildingProps)));
-                } else {
-                    yield return cur;
                 }
             }
         }
