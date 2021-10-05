@@ -1,7 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using UnityEngine;
 using EManagersLib.API;
+using UnityEngine;
 
 namespace EManagersLib {
     public static class EDefaultToolExtension {

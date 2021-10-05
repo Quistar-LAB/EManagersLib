@@ -1,12 +1,11 @@
-﻿using HarmonyLib;
+﻿using EManagersLib.API;
+using HarmonyLib;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using EManagersLib.API;
 
 namespace EManagersLib {
     /// <summary>
@@ -20,7 +19,7 @@ namespace EManagersLib {
         public static int GetPropMaxLimit => EPropManager.MAX_PROP_LIMIT;
 
         /// <summary>This library will call the queued action callback late in the initialization to ensure prop buffer points to the correct location</summary>
-        internal static void ProcessQueues() {}
+        internal static void ProcessQueues() { }
 
         /// <summary>
         /// Helper API to create delegates to get private or protected field members that would usually be accessed
@@ -101,6 +100,7 @@ namespace EManagersLib {
             new EInstanceManagerPatch().Enable(harmony);
             new EPropToolPatch().Enable(harmony);
             new EBuildingAIPatch().Enable(harmony);
+            new EToolBaseCompatPatch().Enable(harmony);
         }
 
         internal static void DisablePropPatches() {
@@ -113,6 +113,7 @@ namespace EManagersLib {
             new EInstanceManagerPatch().Disable(harmony);
             new EPropToolPatch().Disable(harmony);
             new EBuildingAIPatch().Disable(harmony);
+            new EToolBaseCompatPatch().Disable(harmony);
         }
     }
 }

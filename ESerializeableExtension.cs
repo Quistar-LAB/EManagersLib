@@ -1,10 +1,10 @@
 ﻿using ColossalFramework;
 using ColossalFramework.IO;
+using EManagersLib.API;
 using ICities;
 using System;
 using System.IO;
 using System.Threading;
-using EManagersLib.API;
 using static EManagersLib.API.EPropManager;
 
 namespace EManagersLib {
@@ -12,7 +12,8 @@ namespace EManagersLib {
         private const string EMANAGER_PROP_KEY = @"EManagers/PropAnarchy";
         private enum Format : uint {
             Version1 = 1,
-            Version2 = 2
+            Version2 = 2,
+            Version3 = 3
         }
 
         private class Data : IDataContainer {
@@ -77,7 +78,6 @@ namespace EManagersLib {
             public void Deserialize(DataSerializer s) {
                 int maxLen = s.ReadInt32(); // Read in Max limit
                 int propCount = 0;
-                EUtils.ELog($"max length={maxLen}");
                 EnsureCapacity(maxLen, out Array32<EPropInstance> newBuffer, out EPropInstance[] props);
                 EncodedArray.UShort uShort = EncodedArray.UShort.BeginRead(s);
                 for (int i = DEFAULT_PROP_LIMIT; i < maxLen; i++) {
@@ -119,19 +119,39 @@ namespace EManagersLib {
                     }
                 }
                 uShort2.EndRead();
-                //EncodedArray.UShort uShort1 = EncodedArray.UShort.BeginRead(s);
-                //for (int i = 1; i < maxLen; i++) {
-                //    if ((props[i].m_flags & EPropInstance.FIXEDHEIGHTFLAG) != 0) {
-                //        props[i].m_posY = uShort1.Read();
-                //    } else {
-                //        props[i].m_posY = 0;
-                //    }
-                //}
-                //uShort1.EndRead();
+                EncodedArray.UShort uShortPosY = EncodedArray.UShort.BeginRead(s);
+                for (int i = 1; i < maxLen; i++) {
+                    if ((props[i].m_flags & EPropInstance.FIXEDHEIGHTFLAG) != 0) {
+                        props[i].m_posY = uShortPosY.Read();
+                    } else {
+                        props[i].m_posY = 0;
+                    }
+                }
+                uShortPosY.EndRead();
+                EncodedArray.Float @floatPreciseX = EncodedArray.Float.BeginRead(s);
+                for (int i = 1; i < maxLen; i++) {
+                    if (props[i].m_flags != 0) {
+                        props[i].m_preciseX = floatPreciseX.Read();
+                    } else {
+                        props[i].m_preciseX = 0f;
+                    }
+                }
+                floatPreciseX.EndRead();
+                EncodedArray.Float @floatPreciseZ = EncodedArray.Float.BeginRead(s);
+                for (int i = 1; i < maxLen; i++) {
+                    if (props[i].m_flags != 0) {
+                        props[i].m_preciseZ = floatPreciseZ.Read();
+                    } else {
+                        props[i].m_preciseZ = 0f;
+                    }
+                }
+                floatPreciseZ.EndRead();
                 EncodedArray.Float @float = EncodedArray.Float.BeginRead(s);
                 for (int i = 1; i < maxLen; i++) {
                     if (props[i].m_flags != 0) {
                         props[i].m_scale = @float.Read();
+                    } else {
+                        props[i].m_scale = 0f;
                     }
                 }
                 @float.EndRead();
@@ -193,13 +213,27 @@ namespace EManagersLib {
                     }
                 }
                 uShort1.EndWrite();
-                //EncodedArray.UShort uShort2 = EncodedArray.UShort.BeginWrite(s);
-                //for (int i = 1; i < propLimit; i++) {
-                //    if ((buffer[i].m_flags & EPropInstance.FIXEDHEIGHTFLAG) != 0) {
-                //        uShort1.Write(buffer[i].m_posY);
-                //    }
-                //}
-                //uShort2.EndWrite();
+                EncodedArray.UShort uShort2 = EncodedArray.UShort.BeginWrite(s);
+                for (int i = 1; i < propLimit; i++) {
+                    if ((buffer[i].m_flags & EPropInstance.FIXEDHEIGHTFLAG) != 0) {
+                        uShort2.Write(buffer[i].m_posY);
+                    }
+                }
+                uShort2.EndWrite();
+                EncodedArray.Float @floatPreciseX = EncodedArray.Float.BeginWrite(s);
+                for (int i = 1; i < propLimit; i++) {
+                    if (buffer[i].m_flags != 0) {
+                        @floatPreciseX.Write(buffer[i].m_preciseX);
+                    }
+                }
+                floatPreciseX.EndWrite();
+                EncodedArray.Float @floatPreciseZ = EncodedArray.Float.BeginWrite(s);
+                for (int i = 1; i < propLimit; i++) {
+                    if (buffer[i].m_flags != 0) {
+                        @floatPreciseZ.Write(buffer[i].m_preciseZ);
+                    }
+                }
+                floatPreciseZ.EndWrite();
                 EncodedArray.Float @float = EncodedArray.Float.BeginWrite(s);
                 for (int i = 1; i < propLimit; i++) {
                     if (buffer[i].m_flags != 0) {
@@ -221,6 +255,7 @@ namespace EManagersLib {
         }
 
         public static void IntegratedPropDeserialize(EPropInstance[] props) {
+            if (MAX_PROP_LIMIT <= DEFAULT_PROP_LIMIT) return;
             try {
                 if (Singleton<SimulationManager>.instance.m_serializableDataStorage.TryGetValue(EMANAGER_PROP_KEY, out byte[] data)) {
                     if (data is null) {
@@ -238,10 +273,11 @@ namespace EManagersLib {
         }
 
         public void OnSaveData() {
+            if (MAX_PROP_LIMIT <= DEFAULT_PROP_LIMIT) return;
             try {
                 byte[] data;
                 using (var stream = new MemoryStream()) {
-                    DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, (uint)Format.Version1, new Data());
+                    DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, (uint)Format.Version3, new Data());
                     data = stream.ToArray();
                 }
                 SaveData(EMANAGER_PROP_KEY, data);

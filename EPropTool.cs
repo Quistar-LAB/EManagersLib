@@ -1,11 +1,12 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
-using UnityEngine;
 using EManagersLib.API;
+using UnityEngine;
 
 namespace EManagersLib {
     public static class EPropTool {
         public static ToolBase.ToolErrors CheckPlacementErrors(PropInfo info, Vector3 position, bool fixedHeight, uint id, ulong[] collidingSegmentBuffer, ulong[] collidingBuildingBuffer) {
+            if (EPropManager.UsePropAnarchy) return ToolBase.ToolErrors.None;
             Randomizer randomizer = new Randomizer(id);
             float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
             float height = info.m_generatedInfo.m_size.y * scale;
