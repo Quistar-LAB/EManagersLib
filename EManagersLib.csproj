@@ -55,6 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EKeyBinding.cs" />
     <Compile Include="EStatsPanel.cs" />
     <Compile Include="EDistrictManager.cs" />
     <Compile Include="EDisasterHelpers.cs" />

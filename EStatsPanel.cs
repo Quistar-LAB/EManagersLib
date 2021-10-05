@@ -1,7 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
-using UnityEngine;
 using EManagersLib.API;
+using UnityEngine;
 
 namespace EManagersLib {
     public class EStatsPanel : UIPanel {
@@ -368,7 +368,7 @@ namespace EManagersLib {
         }
 
         public override void Update() {
-            if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.L)) {
+            if (EKeyBinding.m_toggleStatsPanel.IsPressed(Event.current)) {
                 if (isVisible) {
                     CancelInvoke("RefreshLimit");
                     Hide();
