@@ -717,13 +717,13 @@ namespace EManagersLib.API {
             PropInfo info = Info;
             if (info.m_prefabDataLayer == layer || info.m_effectLayer == layer) {
                 Vector3 position = Position;
-                EInstanceID id = default;
-                id.Prop = propID;
+                InstanceID id = default;
+                InstanceIDExtension.SetProp32ByRef(ref id, propID);
                 PopulateGroupData(info, layer, id, position, m_scale, Angle, m_color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
             }
         }
 
-        public static void PopulateGroupData(PropInfo info, int layer, EInstanceID id, Vector3 position, float scale, float angle, Color color, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
+        public static void PopulateGroupData(PropInfo info, int layer, InstanceID id, Vector3 position, float scale, float angle, Color color, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
             float Max(float a, float b) => (a <= b) ? b : a;
             //float Min(float a, float b) => (a >= b) ? b : a;
             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
@@ -740,7 +740,7 @@ namespace EManagersLib.API {
                 for (int i = 0; i < info.m_effects.Length; i++) {
                     Vector3 pos = matrix4x.MultiplyPoint(info.m_effects[i].m_position);
                     Vector3 dir = matrix4x.MultiplyVector(info.m_effects[i].m_direction);
-                    info.m_effects[i].m_effect.PopulateGroupData(layer, id.OrigID, pos, dir, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                    info.m_effects[i].m_effect.PopulateGroupData(layer, id, pos, dir, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                 }
             }
         }

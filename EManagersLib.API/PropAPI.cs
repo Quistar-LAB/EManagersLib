@@ -6,7 +6,6 @@ using UnityEngine;
 namespace EManagersLib.API {
     public static class PropAPI {
         private static bool m_isEMLInstalled = false;
-        private static PropManager m_pmInstance;
         public static IPropWrapper Manager;
         public struct PropWrapper : IProp {
             private readonly ushort m_index;
@@ -42,14 +41,14 @@ namespace EManagersLib.API {
             }
         }
         public class OrigPropManager : IPropWrapper {
-            public PropInfo GetInfo(InstanceID id) => m_pmInstance.m_props.m_buffer[id.Prop].Info;
-            public IProp Buffer(uint id) => new PropWrapper((ushort)id, m_pmInstance);
-            public IProp Buffer(InstanceID id) => new PropWrapper(id.Prop, m_pmInstance);
+            public PropInfo GetInfo(InstanceID id) => Singleton<PropManager>.instance.m_props.m_buffer[id.Prop].Info;
+            public IProp Buffer(uint id) => new PropWrapper((ushort)id, Singleton<PropManager>.instance);
+            public IProp Buffer(InstanceID id) => new PropWrapper(id.Prop, Singleton<PropManager>.instance);
             public InstanceID SetProp(InstanceID id, uint i) => new InstanceID { Prop = (ushort)i };
-            public void UpdateProps(float minX, float minZ, float maxX, float maxZ) => m_pmInstance.UpdateProps(minX, minZ, maxX, maxZ);
-            public void UpdateProp(uint id) => m_pmInstance.UpdateProp((ushort)id);
+            public void UpdateProps(float minX, float minZ, float maxX, float maxZ) => Singleton<PropManager>.instance.UpdateProps(minX, minZ, maxX, maxZ);
+            public void UpdateProp(uint id) => Singleton<PropManager>.instance.UpdateProp((ushort)id);
             public bool CreateProp(out uint clone, PropInfo info, Vector3 position, float angle, bool single) {
-                bool result = m_pmInstance.CreateProp(out ushort propID, ref Singleton<SimulationManager>.instance.m_randomizer, info, position, angle, single);
+                bool result = Singleton<PropManager>.instance.CreateProp(out ushort propID, ref Singleton<SimulationManager>.instance.m_randomizer, info, position, angle, single);
                 clone = propID;
                 return result;
             }
@@ -80,9 +79,9 @@ namespace EManagersLib.API {
                 set => m_buffer[m_index].m_flags = value;
             }
             public PropInfo Info => m_buffer[m_index].Info;
-            public void MoveProp(Vector3 position) => m_pmInstance.MoveProp(m_index, position);
-            public void UpdatePropRenderer(bool updateGroup) => m_pmInstance.UpdatePropRenderer(m_index, updateGroup);
-            public void ReleaseProp() => m_pmInstance.ReleaseProp(m_index);
+            public void MoveProp(Vector3 position) => Singleton<PropManager>.instance.MoveProp(m_index, position);
+            public void UpdatePropRenderer(bool updateGroup) => Singleton<PropManager>.instance.UpdatePropRenderer(m_index, updateGroup);
+            public void ReleaseProp() => Singleton<PropManager>.instance.ReleaseProp(m_index);
             public ExtendedPropWrapper(uint i) {
                 m_buffer = EPropManager.m_props.m_buffer;
                 m_index = i;
@@ -104,7 +103,7 @@ namespace EManagersLib.API {
             public void UpdateProps(float minX, float minZ, float maxX, float maxZ) => EPropManager.UpdateProps(Singleton<PropManager>.instance, minX, minZ, maxX, maxZ);
             public void UpdateProp(uint id) => EPropManager.UpdateProp(id);
             public bool CreateProp(out uint clone, PropInfo info, Vector3 position, float angle, bool single) =>
-                m_pmInstance.CreateProp(out clone, ref Singleton<SimulationManager>.instance.m_randomizer, info, position, angle, single);
+                Singleton<PropManager>.instance.CreateProp(out clone, ref Singleton<SimulationManager>.instance.m_randomizer, info, position, angle, single);
             public InstanceID StepOver(uint id) {
                 InstanceID result = default;
                 InstanceIDExtension.SetProp32ByRef(ref result, id);
@@ -126,7 +125,6 @@ namespace EManagersLib.API {
                     }
                 }
             }
-            m_pmInstance = Singleton<PropManager>.instance;
             if (m_isEMLInstalled) {
                 Manager = new ExtendedPropManager();
             } else {
