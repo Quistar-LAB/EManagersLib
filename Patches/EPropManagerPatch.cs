@@ -210,6 +210,56 @@ namespace EManagersLib {
             }
         }
 
+        private static IEnumerable<CodeInstruction> OverlapQuadTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
+            var codes = __OverlapQuadTranspiler(instructions, il);
+            foreach(var code in codes) {
+                EUtils.ELog(code.ToString());
+            }
+            return codes;
+        }
+
+        private static IEnumerable<CodeInstruction> __OverlapQuadTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
+            LocalBuilder propID = il.DeclareLocal(typeof(uint));
+            FieldInfo propGrid = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_propGrid));
+            FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
+            FieldInfo m_buffer = AccessTools.Field(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.m_buffer));
+            MethodInfo getPosition = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Position));
+            MethodInfo overlapQuad = AccessTools.Method(typeof(PropInstance), nameof(PropInstance.OverlapQuad));
+            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+                while(codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        if (next.opcode == OpCodes.Ldfld && next.operand == propGrid) {
+                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(m_propGrid))).WithLabels(cur.labels);
+                        } else if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
+                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(EPropManager.m_props))).WithLabels(cur.labels);
+                            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.m_buffer)));
+                        } else if ((next.opcode == OpCodes.Stloc_S || next.opcode == OpCodes.Ldloc_S) && (next.operand as LocalBuilder).LocalType == typeof(ushort)) {
+                            yield return new CodeInstruction(next.opcode, propID).WithLabels(cur.labels);
+                        } else {
+                            yield return cur;
+                            yield return next;
+                        }
+                    } else if ((cur.opcode == OpCodes.Stloc_S || cur.opcode == OpCodes.Ldloc_S) && (cur.operand as LocalBuilder).LocalType == typeof(ushort)) {
+                        yield return new CodeInstruction(cur.opcode, propID).WithLabels(cur.labels);
+                    } else if (cur.opcode == OpCodes.Ldelem_U2) {
+                        yield return new CodeInstruction(OpCodes.Ldelem_U4);
+                    } else if (cur.opcode == OpCodes.Ldelema && cur.operand == typeof(PropInstance)) {
+                        yield return new CodeInstruction(OpCodes.Ldelema, typeof(EPropInstance));
+                    } else if (cur.opcode == OpCodes.Call && cur.operand == getPosition) {
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.PropertyGetter(typeof(EPropInstance), nameof(EPropInstance.Position)));
+                    } else if (cur.opcode == OpCodes.Call && cur.operand == overlapQuad) {
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropInstance), nameof(EPropInstance.OverlapQuad)));
+                    } else if (cur.opcode == OpCodes.Ldfld && cur.operand == propGrid) {
+                        yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(m_propGrid))).WithLabels(cur.labels);
+                    } else {
+                        yield return cur;
+                    }
+                }
+            }
+        }
+
         private static IEnumerable<CodeInstruction> UpdatePropsTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_1);
@@ -465,12 +515,14 @@ namespace EManagersLib {
         }
 
 
+
         internal void Enable(Harmony harmony) {
             harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AwakeTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.AfterTerrainUpdate)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterTerrainUpdateTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CalculateGroupData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(CalculateGroupDataTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CheckLimits)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(CheckLimitsTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), "EndRenderingImpl"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(EndRenderingImplTranspiler))));
+            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.OverlapQuad)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(OverlapQuadTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.PopulateGroupData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(PopulateGroupDataTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.SampleSmoothHeight)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SampleSmoothHeightTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), "SimulationStepImpl"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SimulationStepImplTranspiler))));
@@ -488,6 +540,7 @@ namespace EManagersLib {
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CalculateGroupData)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CheckLimits)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), "EndRenderingImpl"), HarmonyPatchType.Transpiler, EModule.HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.OverlapQuad)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.PopulateGroupData)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.SampleSmoothHeight)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), "SimulationStepImpl"), HarmonyPatchType.Transpiler, EModule.HARMONYID);
