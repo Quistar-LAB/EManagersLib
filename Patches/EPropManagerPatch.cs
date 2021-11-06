@@ -212,7 +212,7 @@ namespace EManagersLib {
 
         private static IEnumerable<CodeInstruction> OverlapQuadTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
             var codes = __OverlapQuadTranspiler(instructions, il);
-            foreach(var code in codes) {
+            foreach (var code in codes) {
                 EUtils.ELog(code.ToString());
             }
             return codes;
@@ -226,7 +226,7 @@ namespace EManagersLib {
             MethodInfo getPosition = AccessTools.PropertyGetter(typeof(PropInstance), nameof(PropInstance.Position));
             MethodInfo overlapQuad = AccessTools.Method(typeof(PropInstance), nameof(PropInstance.OverlapQuad));
             using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
-                while(codes.MoveNext()) {
+                while (codes.MoveNext()) {
                     var cur = codes.Current;
                     if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
                         var next = codes.Current;
@@ -464,6 +464,18 @@ namespace EManagersLib {
             }
         }
 
+        private static IEnumerable<CodeInstruction> DeserializeTranspiler(IEnumerable<CodeInstruction> instructions) {
+            yield return new CodeInstruction(OpCodes.Ldarg_1);
+            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize)));
+            yield return new CodeInstruction(OpCodes.Ret);
+        }
+
+        private static IEnumerable<CodeInstruction> SerializeTranspiler(IEnumerable<CodeInstruction> instructions) {
+            yield return new CodeInstruction(OpCodes.Ldarg_1);
+            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize)));
+            yield return new CodeInstruction(OpCodes.Ret);
+        }
+
         public static bool Deserialize(DataSerializer s) {
             Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginDeserialize(s, "PropManager");
             PropManager instance = Singleton<PropManager>.instance;
@@ -590,9 +602,9 @@ namespace EManagersLib {
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.TerrainUpdated)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(TerrainUpdatedTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdateDataTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdatePropsTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize))));
+            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(DeserializeTranspiler))));
             harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserializeTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), prefix: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize))));
+            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SerializeTranspiler))));
         }
 
         internal void Disable(Harmony harmony) {
@@ -609,9 +621,9 @@ namespace EManagersLib {
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.TerrainUpdated)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateData)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
-            harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), HarmonyPatchType.Prefix, EModule.HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
-            harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), HarmonyPatchType.Prefix, EModule.HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
         }
     }
 }
