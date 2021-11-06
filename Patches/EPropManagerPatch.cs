@@ -476,7 +476,7 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
-        public static bool Deserialize(DataSerializer s) {
+        public static void Deserialize(DataSerializer s) {
             Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginDeserialize(s, "PropManager");
             PropManager instance = Singleton<PropManager>.instance;
             EnsureCapacity(instance);
@@ -539,10 +539,9 @@ namespace EManagersLib {
                 }
             }
             Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndDeserialize(s, "PropManager");
-            return false;
         }
 
-        public static bool Serialize(DataSerializer s) {
+        public static void Serialize(DataSerializer s) {
             Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginSerialize(s, "PropManager");
             EPropInstance[] buffer = m_props.m_buffer;
             int num = DEFAULT_PROP_LIMIT;
@@ -583,7 +582,6 @@ namespace EManagersLib {
             }
             uShort2.EndWrite();
             Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndSerialize(s, "PropManager");
-            return false;
         }
 
 
