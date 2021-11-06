@@ -1,27 +1,34 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace EManagersLib.API {
     public static class EToolBase {
+        [StructLayout(LayoutKind.Explicit)]
         public struct RaycastOutput {
-            public Vector3 m_hitPos;
-            public int m_transportStopIndex;
-            public int m_transportSegmentIndex;
-            public int m_overlayButtonIndex;
-            public uint m_treeInstance;
-            public uint m_propInstance;
-            public ushort m_netNode;
-            public ushort m_netSegment;
-            public ushort m_building;
-            public ushort m_vehicle;
-            public ushort m_parkedVehicle;
-            public ushort m_citizenInstance;
-            public ushort m_transportLine;
-            public ushort m_disaster;
-            public byte m_district;
-            public byte m_park;
-            public bool m_currentEditObject;
+            [FieldOffset(0)] public ToolBase.RaycastOutput m_raycastOutput;
+            [FieldOffset(0)] public Vector3 m_hitPos;
+            [FieldOffset(12)] public int m_transportStopIndex;
+            [FieldOffset(16)] public int m_transportSegmentIndex;
+            [FieldOffset(20)] public int m_overlayButtonIndex;
+            [FieldOffset(24)] public uint m_treeInstance;
+            [FieldOffset(28)] public ushort __oldnetNode; /* original m_netNode placeholder */
+            [FieldOffset(30)] public ushort __oldnetSegment; /* original m_netSegment placeholder */
+            [FieldOffset(32)] public ushort __oldbuilding; /* original m_building placeholder */
+            [FieldOffset(34)] public ushort __oldpropInstance; /* original m_propInstance placeholder */
+            [FieldOffset(36)] public ushort m_vehicle;
+            [FieldOffset(38)] public ushort m_parkedVehicle;
+            [FieldOffset(40)] public ushort m_citizenInstance;
+            [FieldOffset(42)] public ushort m_transportLine;
+            [FieldOffset(44)] public ushort m_disaster;
+            [FieldOffset(46)] public byte m_district;
+            [FieldOffset(47)] public byte m_park;
+            [FieldOffset(48)] public bool m_currentEditObject;
+            [FieldOffset(52)] public uint m_propInstance;
+            [FieldOffset(56)] public uint m_netNode;
+            [FieldOffset(60)] public uint m_netSegment;
+            [FieldOffset(64)] public uint m_building;
         }
 
         public static bool RayCast(ToolBase.RaycastInput input, out RaycastOutput output) {
@@ -29,8 +36,13 @@ namespace EManagersLib.API {
             Vector3 normalized = input.m_ray.direction.normalized;
             Vector3 vector = input.m_ray.origin + normalized * input.m_length;
             Segment3 ray = new Segment3(origin, vector);
+            output.m_raycastOutput = default;
             output.m_hitPos = vector;
             output.m_overlayButtonIndex = 0;
+            output.__oldnetNode = 0;
+            output.__oldnetSegment = 0;
+            output.__oldpropInstance = 0;
+            output.__oldbuilding = 0;
             output.m_netNode = 0;
             output.m_netSegment = 0;
             output.m_building = 0;
@@ -56,26 +68,34 @@ namespace EManagersLib.API {
                     num = num2;
                 }
             }
-            if ((input.m_ignoreNodeFlags != NetNode.Flags.All || input.m_ignoreSegmentFlags != NetSegment.Flags.All) && Singleton<NetManager>.instance.RayCast(input.m_buildObject as NetInfo, ray, input.m_netSnap, input.m_segmentNameOnly, input.m_netService.m_service, input.m_netService2.m_service, input.m_netService.m_subService, input.m_netService2.m_subService, input.m_netService.m_itemLayers, input.m_netService2.m_itemLayers, input.m_ignoreNodeFlags, input.m_ignoreSegmentFlags, out vector2, out output.m_netNode, out output.m_netSegment)) {
+            if ((input.m_ignoreNodeFlags != NetNode.Flags.All || input.m_ignoreSegmentFlags != NetSegment.Flags.All) && Singleton<NetManager>.instance.RayCast(input.m_buildObject as NetInfo, ray, input.m_netSnap, input.m_segmentNameOnly, input.m_netService.m_service, input.m_netService2.m_service, input.m_netService.m_subService, input.m_netService2.m_subService, input.m_netService.m_itemLayers, input.m_netService2.m_itemLayers, input.m_ignoreNodeFlags, input.m_ignoreSegmentFlags, out vector2, out output.__oldnetNode, out output.__oldnetSegment)) {
                 float num3 = Vector3.Distance(vector2, origin);
                 if (num3 < num) {
+                    output.m_netNode = output.__oldnetNode;
+                    output.m_netSegment = output.__oldnetSegment;
                     output.m_hitPos = vector2;
                     result = true;
                     num = num3;
                 } else {
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                 }
             }
-            if (input.m_ignoreBuildingFlags != Building.Flags.All && Singleton<BuildingManager>.instance.RayCast(ray, input.m_buildingService.m_service, input.m_buildingService.m_subService, input.m_buildingService.m_itemLayers, input.m_ignoreBuildingFlags, out vector2, out output.m_building)) {
+            if (input.m_ignoreBuildingFlags != Building.Flags.All && Singleton<BuildingManager>.instance.RayCast(ray, input.m_buildingService.m_service, input.m_buildingService.m_subService, input.m_buildingService.m_itemLayers, input.m_ignoreBuildingFlags, out vector2, out output.__oldbuilding)) {
                 float num4 = Vector3.Distance(vector2, origin);
                 if (num4 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
+                    output.m_building = output.__oldbuilding;
                     result = true;
                     num = num4;
                 } else {
+                    output.__oldbuilding = 0;
                     output.m_building = 0;
                 }
             }
@@ -83,6 +103,9 @@ namespace EManagersLib.API {
                 float num5 = Vector3.Distance(vector2, origin);
                 if (num5 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -96,6 +119,9 @@ namespace EManagersLib.API {
                 float num6 = Vector3.Distance(vector2, origin);
                 if (num6 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -110,6 +136,9 @@ namespace EManagersLib.API {
                 float num7 = Vector3.Distance(vector2, origin) - 0.5f;
                 if (num7 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -125,6 +154,9 @@ namespace EManagersLib.API {
                 float num8 = Vector3.Distance(vector2, origin) - 1f;
                 if (num8 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -141,6 +173,10 @@ namespace EManagersLib.API {
                 float num9 = Vector3.Distance(vector2, origin) - 0.5f;
                 if (num9 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
+                    output.__oldpropInstance = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -159,6 +195,10 @@ namespace EManagersLib.API {
                 float num10 = Vector3.Distance(vector2, origin) - 0.5f;
                 if (num10 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
+                    output.__oldpropInstance = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -178,6 +218,10 @@ namespace EManagersLib.API {
                 float num11 = Vector3.Distance(vector2, origin) - 2f;
                 if (num11 < num) {
                     output.m_hitPos = vector2;
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
+                    output.__oldpropInstance = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -201,13 +245,13 @@ namespace EManagersLib.API {
                 } else {
                     if (input.m_ignoreDistrictFlags != District.Flags.All) {
                         output.m_district = Singleton<DistrictManager>.instance.SampleDistrict(output.m_hitPos);
-                        if ((Singleton<DistrictManager>.instance.m_districts.m_buffer[(int)output.m_district].m_flags & input.m_ignoreDistrictFlags) != District.Flags.None) {
+                        if ((Singleton<DistrictManager>.instance.m_districts.m_buffer[output.m_district].m_flags & input.m_ignoreDistrictFlags) != District.Flags.None) {
                             output.m_district = 0;
                         }
                     }
                     if (input.m_ignoreParkFlags != DistrictPark.Flags.All) {
                         output.m_park = Singleton<DistrictManager>.instance.SamplePark(output.m_hitPos);
-                        if ((Singleton<DistrictManager>.instance.m_parks.m_buffer[(int)output.m_park].m_flags & input.m_ignoreParkFlags) != DistrictPark.Flags.None) {
+                        if ((Singleton<DistrictManager>.instance.m_parks.m_buffer[output.m_park].m_flags & input.m_ignoreParkFlags) != DistrictPark.Flags.None) {
                             output.m_park = 0;
                         }
                         if (output.m_park != 0) {
@@ -216,6 +260,10 @@ namespace EManagersLib.API {
                     }
                 }
                 if (output.m_district != 0 || output.m_park != 0) {
+                    output.__oldnetNode = 0;
+                    output.__oldnetSegment = 0;
+                    output.__oldbuilding = 0;
+                    output.__oldpropInstance = 0;
                     output.m_netNode = 0;
                     output.m_netSegment = 0;
                     output.m_building = 0;
@@ -232,10 +280,10 @@ namespace EManagersLib.API {
                     result = true;
                 }
             }
-            if (output.m_netNode != 0) {
+            if (output.__oldnetNode != 0) {
                 NetManager instance = Singleton<NetManager>.instance;
                 NetInfo info = instance.m_nodes.m_buffer[(int)output.m_netNode].Info;
-                output.m_overlayButtonIndex = info.m_netAI.RayCastNodeButton(output.m_netNode, ref instance.m_nodes.m_buffer[(int)output.m_netNode], ray);
+                output.m_overlayButtonIndex = info.m_netAI.RayCastNodeButton(output.__oldnetNode, ref instance.m_nodes.m_buffer[output.__oldnetNode], ray);
             }
             return result;
         }

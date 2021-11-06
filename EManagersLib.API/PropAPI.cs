@@ -133,6 +133,38 @@ namespace EManagersLib.API {
         }
 
         /// <summary>
+        /// Delegate prototype for ToolBase::RayCast(RaycastInput, out RaycastOutput)
+        /// </summary>
+        /// <param name="input">RaycastInput parameter</param>
+        /// <param name="output">RaycastOutput parameter</param>
+        /// <returns>Returns boolean indicating a hit or no hit</returns>
+        public delegate bool DefaultRayCastHandler(ToolBase.RaycastInput input, out ToolBase.RaycastOutput output);
+
+        /// <summary>
+        /// This is the helper function when you need to call ToolBase::RayCast(RaycastInput, out RaycastOutput)
+        /// Call this instead of directly calling ToolBase::RayCast for EML compatibility
+        /// Due to ToolBase::Raycast being a protected member, you need to assign the parameter "defaultHandler" the RayCast method itself
+        /// e.g. ToolBaseRayCast(input, out EToolBase.RaycastOutput output, ToolBase.RayCast);
+        /// </summary>
+        /// <param name="raycastInput">RaycastInput parameter</param>
+        /// <param name="raycastOutput">EML compatible RaycastOutput</param>
+        /// <param name="defaultHandler">Delegated </param>
+        /// <returns>Returns boolean indicating a hit or no hit</returns>
+        public static bool ToolBaseRayCast(ToolBase.RaycastInput raycastInput, out EToolBase.RaycastOutput raycastOutput, DefaultRayCastHandler defaultHandler) {
+            if (m_isEMLInstalled) {
+                return EToolBase.RayCast(raycastInput, out raycastOutput);
+            }
+            bool result = defaultHandler(raycastInput, out ToolBase.RaycastOutput output);
+            raycastOutput = default;
+            raycastOutput.m_raycastOutput = output;
+            raycastOutput.m_netNode = output.m_netNode;
+            raycastOutput.m_netSegment = output.m_netSegment;
+            raycastOutput.m_building = output.m_building;
+            raycastOutput.m_propInstance = output.m_propInstance;
+            return result;
+        }
+
+        /// <summary>
         /// This is a helper function to get the prop Array32
         /// </summary>
         /// <returns>Returns Array32 prop array</returns>
