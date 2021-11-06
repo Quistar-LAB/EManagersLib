@@ -179,8 +179,8 @@ namespace EManagersLib {
                             }
                             Label snappingEnabled = il.DefineLabel(), originalCode = il.DefineLabel();
                             yield return cur;
-                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(m_props)));
                             yield return new CodeInstruction(OpCodes.Ldloca_S, randomizer);
+                            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EPropManager), nameof(m_props)));
                             yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(Array32<EPropInstance>), nameof(Array32<EPropInstance>.NextFreeItem)));
                             yield return newStLoc(seed);
                             yield return new CodeInstruction(OpCodes.Ldarg_0);
