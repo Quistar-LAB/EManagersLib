@@ -51,7 +51,9 @@ namespace EManagersLib {
             root.gameObject.AddComponent<EKeyBinding>();
         }
 
-        public void OnCreated(ILoading loading) { }
+        public void OnCreated(ILoading loading) {
+            EUtils.EnableModPatches();
+        }
 
         public void OnReleased() { }
 

@@ -65,6 +65,7 @@
     <Compile Include="EUtils.cs" />
     <Compile Include="EModule.cs" />
     <Compile Include="IEManagersInit.cs" />
+    <Compile Include="Patches\E81TilesCompatPatch.cs" />
     <Compile Include="Patches\EToolBaseCompatPatch.cs" />
     <Compile Include="Patches\EBuildingAIPatch.cs" />
     <Compile Include="Patches\EPropToolPatch.cs" />
