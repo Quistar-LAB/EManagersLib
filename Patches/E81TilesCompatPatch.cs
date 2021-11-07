@@ -9,18 +9,14 @@ using EManagersLib.API;
 namespace EManagersLib {
 
     public class E81TilesCompatPatch {
-        public static int HALFGRID = 450;
-        public static int GRID = 900;
-
 
         private MethodInfo fakeParkProps;
 
-
         /// <summary>
         /// This is just the EDistrictManager.MoveParkProps code copypasted and using the 81-tiles halfgrid as a preemptive prefix patch.
+        /// Yes, this is overridding a detour by way of a pre-emptive Harmony Prefix on the detour target.
         /// Normally wouldn't do things this way but since this is only interim (and don't want to touch EDistrictManager code), this is a quick and reliable way to get what we want.
         /// </summary>
-        /// <returns></returns>
         public static bool MoveParkPropsPrefix(int cellX, int cellZ, byte src, byte dest) {
             DistrictPark[] parks = Singleton<DistrictManager>.instance.m_parks.m_buffer;
             int HALFGRID = 450; // vanilla 256
@@ -49,6 +45,7 @@ namespace EManagersLib {
                 }
             }
 
+            // Pre-empt target method.
             return false;
         }
 
