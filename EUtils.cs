@@ -121,8 +121,7 @@ namespace EManagersLib {
         /// Enables Harmony patches for other mods. Do NOT call before OnCreated() - especially DO NOT USE DoOnHarmonyReady.
         /// Mod load and instantiation order is undefined at OnEnabled, and CitiesHarmony DoOnHarmonyReady may - and often does - trigger this BEFORE target mod is lodaed.
         /// </summary>
-        internal static void EnableModPatches()
-        {
+        internal static void EnableModPatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new E81TilesCompatPatch().Enable(harmony);
         }
