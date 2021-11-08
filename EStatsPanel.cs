@@ -371,9 +371,11 @@ namespace EManagersLib {
             if (EKeyBinding.m_toggleStatsPanel.IsPressed(Event.current)) {
                 if (isVisible) {
                     CancelInvoke("RefreshLimit");
+                    Event.current.Use();
                     Hide();
                 } else {
                     InvokeRepeating("RefreshLimit", 0.2f, 4f);
+                    Event.current.Use();
                     Show();
                 }
             }
