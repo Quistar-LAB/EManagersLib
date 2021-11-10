@@ -322,6 +322,35 @@ namespace EManagersLib.API {
             }
         }
 
+        public static void UpdatePropRenderer(uint propID, bool updateGroup) {
+            int Clamp(int value, int min, int max) {
+                value = (value < min) ? min : value;
+                return (value > max) ? max : value;
+            }
+            ref EPropInstance prop = ref m_props.m_buffer[propID];
+            if (prop.m_flags == 0) return;
+            if (updateGroup) {
+                int posX;
+                int posZ;
+                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
+                    posX = Clamp(((prop.m_posX >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posZ = Clamp(((prop.m_posZ >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                } else {
+                    posX = Clamp((prop.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posZ = Clamp((prop.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                }
+                int x = posX * 45 / PROPGRID_RESOLUTION;
+                int z = posZ * 45 / PROPGRID_RESOLUTION;
+                PropInfo info = prop.Info;
+                if (!(info is null) && info.m_prefabDataLayer != -1) {
+                    Singleton<RenderManager>.instance.UpdateGroup(x, z, info.m_prefabDataLayer);
+                }
+                if (!(info is null) && info.m_effectLayer != -1) {
+                    Singleton<RenderManager>.instance.UpdateGroup(x, z, info.m_effectLayer);
+                }
+            }
+        }
+
         public static bool OverlapQuad(Quad2 quad, float minY, float maxY, ItemClass.CollisionType collisionType, int layer, ushort ignoreProp) {
             int Max(int a, int b) => (a <= b) ? b : a;
             int Min(int a, int b) => (a >= b) ? b : a;

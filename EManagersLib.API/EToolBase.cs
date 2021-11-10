@@ -31,7 +31,7 @@ namespace EManagersLib.API {
             [FieldOffset(64)] public uint m_building;
         }
 
-        public static bool RayCast(ToolBase.RaycastInput input, out RaycastOutput output) {
+        public static bool RayCast(ToolBase.RaycastInput input, out EToolBase.RaycastOutput output) {
             Vector3 origin = input.m_ray.origin;
             Vector3 normalized = input.m_ray.direction.normalized;
             Vector3 vector = input.m_ray.origin + normalized * input.m_length;

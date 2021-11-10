@@ -30,6 +30,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\EManagersLib.API.xml</DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -45,11 +46,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IPropWrapper.cs" />
+    <Compile Include="CommonMath.cs" />
+    <Compile Include="PropWrapper.cs" />
+    <Compile Include="PropAPI.cs" />
     <Compile Include="EPropInstance.cs" />
     <Compile Include="EPropManager.cs" />
     <Compile Include="EToolBase.cs" />
-    <Compile Include="PropAPI.cs" />
     <Compile Include="EInstanceID.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

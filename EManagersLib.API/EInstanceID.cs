@@ -188,14 +188,14 @@ namespace EManagersLib.API {
             }
         }
 
-        public static explicit operator InstanceID(EInstanceID eInstance) {
-            InstanceID id = default;
-            id.RawData = eInstance.RawData;
-            return id;
-        }
-        public static explicit operator EInstanceID(InstanceID instance) {
+        public static implicit operator EInstanceID(InstanceID instance) {
             EInstanceID id = default;
             id.RawData = instance.RawData;
+            return id;
+        }
+        public static implicit operator InstanceID(EInstanceID eInstance) {
+            InstanceID id = default;
+            id.RawData = eInstance.RawData;
             return id;
         }
         public static bool operator ==(EInstanceID x, EInstanceID y) => x.RawData == y.RawData;
