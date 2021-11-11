@@ -1,10 +1,10 @@
 ﻿using ColossalFramework;
-using EManagersLib.API;
 using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     internal class EInstanceManagerPatch {

@@ -1,10 +1,9 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Plugins;
-using EManagersLib.API;
 using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
-
+using EManagersLib.API;
 
 namespace EManagersLib {
 

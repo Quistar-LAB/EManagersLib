@@ -1,5 +1,4 @@
 ﻿using ColossalFramework;
-using EManagersLib.API;
 using HarmonyLib;
 using System;
 using System.Collections;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     public class EBulldozePatch {

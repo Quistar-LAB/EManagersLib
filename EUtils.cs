@@ -1,11 +1,11 @@
-﻿using EManagersLib.API;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using EManagersLib.API;
 
 namespace EManagersLib {
     /// <summary>
