@@ -20,7 +20,7 @@ namespace EManagersLib.API {
             return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
         }
 
-        public static void SetProp32(ref this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
+        public static void SetProp32(this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
 
         public static void SetProp32ByRef(ref InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
     }

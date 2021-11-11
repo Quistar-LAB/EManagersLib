@@ -91,13 +91,11 @@ namespace EManagersLib.API {
         }
 
         public static float SampleSmoothHeight(Vector3 worldPos) {
-            int Max(int a, int b) => (a <= b) ? b : a;
-            int Min(int a, int b) => (a >= b) ? b : a;
             float finalHeight = 0f;
-            int startX = Max((int)((worldPos.x - 32f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int startZ = Max((int)((worldPos.z - 32f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int endX = Min((int)((worldPos.x + 32f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
-            int endZ = Min((int)((worldPos.z + 32f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int startX = EMath.Max((int)((worldPos.x - 32f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int startZ = EMath.Max((int)((worldPos.z - 32f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int endX = EMath.Min((int)((worldPos.x + 32f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int endZ = EMath.Min((int)((worldPos.z + 32f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
             uint[] propGrid = m_propGrid;
             EPropInstance[] props = m_props.m_buffer;
             for (int i = startZ; i <= endZ; i++) {
@@ -111,8 +109,8 @@ namespace EManagersLib.API {
                             float diameter = vector.x * vector.x + vector.z * vector.z;
                             if (diameter < maxDiameter) {
                                 PropInfo info = props[propID].Info;
-                                float height = MathUtils.SmoothClamp01(1f - Mathf.Sqrt(diameter / maxDiameter));
-                                height = Mathf.Lerp(worldPos.y, position.y + info.m_generatedInfo.m_size.y * 1.25f, height);
+                                float height = MathUtils.SmoothClamp01(1f - EMath.Sqrt(diameter / maxDiameter));
+                                height = EMath.Lerp(worldPos.y, position.y + info.m_generatedInfo.m_size.y * 1.25f, height);
                                 if (height > finalHeight) {
                                     finalHeight = height;
                                 }
@@ -158,18 +156,14 @@ namespace EManagersLib.API {
         }
 
         public static void InitializeProp(uint prop, ref EPropInstance data, bool assetEditor) {
-            int Clamp(int value, int min, int max) {
-                value = (value < min) ? min : value;
-                return (value > max) ? max : value;
-            }
             int posX;
             int posZ;
             if (assetEditor) {
-                posX = Clamp(((data.m_posX / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                posZ = Clamp(((data.m_posZ / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posX = EMath.Clamp(((data.m_posX / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posZ = EMath.Clamp(((data.m_posZ / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
             } else {
-                posX = Clamp((data.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                posZ = Clamp((data.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posX = EMath.Clamp((data.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posZ = EMath.Clamp((data.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
             }
             int grid = posZ * PROPGRID_RESOLUTION + posX;
             while (!Monitor.TryEnter(m_propGrid, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
@@ -182,19 +176,15 @@ namespace EManagersLib.API {
         }
 
         public static void FinalizeProp(uint prop, ref EPropInstance data) {
-            int Clamp(int value, int min, int max) {
-                value = (value < min) ? min : value;
-                return (value > max) ? max : value;
-            }
             int posx;
             int posz;
             EPropInstance[] props = m_props.m_buffer;
             if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                posx = Clamp(((data.m_posX / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                posz = Clamp(((data.m_posZ / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posx = EMath.Clamp(((data.m_posX / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posz = EMath.Clamp(((data.m_posZ / 16) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
             } else {
-                posx = Clamp((data.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                posz = Clamp((data.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posx = EMath.Clamp((data.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                posz = EMath.Clamp((data.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
             }
             int grid = posz * PROPGRID_RESOLUTION + posx;
             while (!Monitor.TryEnter(m_propGrid, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
@@ -270,19 +260,17 @@ namespace EManagersLib.API {
         }
 
         public static void UpdateProps(PropManager pmInstance, float minX, float minZ, float maxX, float maxZ) {
-            int Max(int a, int b) => (a <= b) ? b : a;
-            int Min(int a, int b) => (a >= b) ? b : a;
             EPropInstance[] props = m_props.m_buffer;
-            int startX = Max((int)((minX - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int startZ = Max((int)((minZ - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int endX = Min((int)((maxX + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
-            int endZ = Min((int)((maxZ + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int startX = EMath.Max((int)((minX - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int startZ = EMath.Max((int)((minZ - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int endX = EMath.Min((int)((maxX + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int endZ = EMath.Min((int)((maxZ + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
             for (int i = startZ; i <= endZ; i++) {
                 for (int j = startX; j <= endX; j++) {
                     uint propID = m_propGrid[i * PROPGRID_RESOLUTION + j];
                     while (propID != 0) {
                         Vector3 position = props[propID].Position;
-                        float intersect = Mathf.Max(Mathf.Max(minX - 8f - position.x, minZ - 8f - position.z), Mathf.Max(position.x - maxX - 8f, position.z - maxZ - 8f));
+                        float intersect = EMath.Max(EMath.Max(minX - 8f - position.x, minZ - 8f - position.z), EMath.Max(position.x - maxX - 8f, position.z - maxZ - 8f));
                         if (intersect < 0f) {
                             m_updatedProps[propID >> 6] |= 1uL << (int)propID;
                             pmInstance.m_propsUpdated = true;
@@ -294,21 +282,17 @@ namespace EManagersLib.API {
         }
 
         public static void UpdatePropRenderer(this PropManager _, uint propID, bool updateGroup) {
-            int Clamp(int value, int min, int max) {
-                value = (value < min) ? min : value;
-                return (value > max) ? max : value;
-            }
             ref EPropInstance prop = ref m_props.m_buffer[propID];
             if (prop.m_flags == 0) return;
             if (updateGroup) {
                 int posX;
                 int posZ;
                 if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    posX = Clamp(((prop.m_posX >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                    posZ = Clamp(((prop.m_posZ >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posX = EMath.Clamp(((prop.m_posX >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posZ = EMath.Clamp(((prop.m_posZ >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
                 } else {
-                    posX = Clamp((prop.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                    posZ = Clamp((prop.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posX = EMath.Clamp((prop.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posZ = EMath.Clamp((prop.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
                 }
                 int x = posX * 45 / PROPGRID_RESOLUTION;
                 int z = posZ * 45 / PROPGRID_RESOLUTION;
@@ -323,21 +307,17 @@ namespace EManagersLib.API {
         }
 
         public static void UpdatePropRenderer(uint propID, bool updateGroup) {
-            int Clamp(int value, int min, int max) {
-                value = (value < min) ? min : value;
-                return (value > max) ? max : value;
-            }
             ref EPropInstance prop = ref m_props.m_buffer[propID];
             if (prop.m_flags == 0) return;
             if (updateGroup) {
                 int posX;
                 int posZ;
                 if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    posX = Clamp(((prop.m_posX >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                    posZ = Clamp(((prop.m_posZ >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posX = EMath.Clamp(((prop.m_posX >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posZ = EMath.Clamp(((prop.m_posZ >> 4) + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
                 } else {
-                    posX = Clamp((prop.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
-                    posZ = Clamp((prop.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posX = EMath.Clamp((prop.m_posX + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
+                    posZ = EMath.Clamp((prop.m_posZ + 32768) * PROPGRID_RESOLUTION / 65536, 0, PROPGRID_RESOLUTION - 1);
                 }
                 int x = posX * 45 / PROPGRID_RESOLUTION;
                 int z = posZ * 45 / PROPGRID_RESOLUTION;
@@ -352,22 +332,19 @@ namespace EManagersLib.API {
         }
 
         public static bool OverlapQuad(Quad2 quad, float minY, float maxY, ItemClass.CollisionType collisionType, int layer, ushort ignoreProp) {
-            int Max(int a, int b) => (a <= b) ? b : a;
-            int Min(int a, int b) => (a >= b) ? b : a;
-            float Maxf(float a, float b) => (a <= b) ? b : a;
             Vector2 vector = quad.Min();
             Vector2 vector2 = quad.Max();
             EPropInstance[] props = m_props.m_buffer;
-            int startX = Max((int)((vector.x - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int startZ = Max((int)((vector.y - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int endX = Min((int)((vector2.x + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
-            int endZ = Min((int)((vector2.y + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int startX = EMath.Max((int)((vector.x - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int startZ = EMath.Max((int)((vector.y - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int endX = EMath.Min((int)((vector2.x + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int endZ = EMath.Min((int)((vector2.y + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
             for (int i = startZ; i <= endZ; i++) {
                 for (int j = startX; j <= endX; j++) {
                     uint propID = m_propGrid[i * PROPGRID_RESOLUTION + j];
                     while (propID != 0) {
                         Vector3 position = props[propID].Position;
-                        float intersect = Maxf(Maxf(vector.x - 8f - position.x, vector.y - 8f - position.z), Maxf(position.x - vector2.x - 8f, position.z - vector2.y - 8f));
+                        float intersect = EMath.Max(EMath.Max(vector.x - 8f - position.x, vector.y - 8f - position.z), EMath.Max(position.x - vector2.x - 8f, position.z - vector2.y - 8f));
                         if (intersect < 0f && props[propID].OverlapQuad(propID, quad, minY, maxY, collisionType)) {
                             return true;
                         }
@@ -379,10 +356,6 @@ namespace EManagersLib.API {
         }
 
         public static bool RayCast(Segment3 ray, ItemClass.Service service, ItemClass.SubService subService, ItemClass.Layer itemLayers, PropInstance.Flags ignoreFlags, out Vector3 hit, out uint propIndex) {
-            int Max(int a, int b) => (a <= b) ? b : a;
-            int Min(int a, int b) => (a >= b) ? b : a;
-            float Maxf(float a, float b) => (a <= b) ? b : a;
-            float Minf(float a, float b) => (a >= b) ? b : a;
             Bounds bounds = new Bounds(new Vector3(0f, 512f, 0f), new Vector3(17280f, 1152f, 17280f));
             if (ray.Clip(bounds)) {
                 Vector3 vector = ray.b - ray.a;
@@ -390,8 +363,8 @@ namespace EManagersLib.API {
                 int z1 = (int)(ray.a.z / PROPGRID_CELL_SIZE + 135f);
                 int x2 = (int)(ray.b.x / PROPGRID_CELL_SIZE + 135f);
                 int z2 = (int)(ray.b.z / PROPGRID_CELL_SIZE + 135f);
-                float rangeX = Mathf.Abs(vector.x);
-                float rangeZ = Mathf.Abs(vector.z);
+                float rangeX = EMath.Abs(vector.x);
+                float rangeZ = EMath.Abs(vector.z);
                 int num7;
                 int num8;
                 if (rangeX >= rangeZ) {
@@ -422,30 +395,30 @@ namespace EManagersLib.API {
                     int endZ;
                     if (num7 != 0) {
                         if ((num11 == x1 && num7 > 0) || (num11 == x2 && num7 < 0)) {
-                            startX = Max((int)((vector4.x - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
+                            startX = EMath.Max((int)((vector4.x - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
                         } else {
-                            startX = Max(num11, 0);
+                            startX = EMath.Max(num11, 0);
                         }
                         if ((num11 == x1 && num7 < 0) || (num11 == x2 && num7 > 0)) {
-                            endX = Min((int)((vector4.x + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+                            endX = EMath.Min((int)((vector4.x + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
                         } else {
-                            endX = Min(num11, PROPGRID_RESOLUTION - 1);
+                            endX = EMath.Min(num11, PROPGRID_RESOLUTION - 1);
                         }
-                        startZ = Max((int)((Minf(vector2.z, vector4.z) - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
-                        endZ = Min((int)((Maxf(vector2.z, vector4.z) + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+                        startZ = EMath.Max((int)((EMath.Min(vector2.z, vector4.z) - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
+                        endZ = EMath.Min((int)((EMath.Max(vector2.z, vector4.z) + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
                     } else {
                         if ((num12 == z1 && num8 > 0) || (num12 == z2 && num8 < 0)) {
-                            startZ = Max((int)((vector4.z - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
+                            startZ = EMath.Max((int)((vector4.z - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
                         } else {
-                            startZ = Max(num12, 0);
+                            startZ = EMath.Max(num12, 0);
                         }
                         if ((num12 == z1 && num8 < 0) || (num12 == z2 && num8 > 0)) {
-                            endZ = Min((int)((vector4.z + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+                            endZ = EMath.Min((int)((vector4.z + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
                         } else {
-                            endZ = Min(num12, PROPGRID_RESOLUTION - 1);
+                            endZ = EMath.Min(num12, PROPGRID_RESOLUTION - 1);
                         }
-                        startX = Max((int)((Minf(vector2.x, vector4.x) - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
-                        endX = Min((int)((Maxf(vector2.x, vector4.x) + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+                        startX = EMath.Max((int)((EMath.Min(vector2.x, vector4.x) - 72f) / PROPGRID_CELL_SIZE + 135f), 0);
+                        endX = EMath.Min((int)((EMath.Max(vector2.x, vector4.x) + 72f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
                     }
                     EPropInstance[] props = m_props.m_buffer;
                     for (int i = startZ; i <= endZ; i++) {
@@ -477,7 +450,7 @@ namespace EManagersLib.API {
                     return true;
                 }
             }
-            hit = Vector3.zero;
+            hit = EMath.Vector3Zero;
             propIndex = 0;
             return false;
         }
@@ -522,16 +495,16 @@ namespace EManagersLib.API {
             float z = surfaceArea.m_min.z;
             float x2 = surfaceArea.m_max.x;
             float z2 = surfaceArea.m_max.z;
-            int startX = Mathf.Max((int)((x - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int startZ = Mathf.Max((int)((z - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int endX = Mathf.Min((int)((x2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
-            int endZ = Mathf.Min((int)((z2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int startX = EMath.Max((int)((x - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int startZ = EMath.Max((int)((z - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int endX = EMath.Min((int)((x2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int endZ = EMath.Min((int)((z2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
             for (int i = startZ; i <= endZ; i++) {
                 for (int j = startX; j <= endX; j++) {
                     uint propID = propGrid[i * PROPGRID_RESOLUTION + j];
                     while (propID != 0) {
                         Vector3 position = props[propID].Position;
-                        float intersect = Mathf.Max(Mathf.Max(x - 8f - position.x, z - 8f - position.z), Mathf.Max(position.x - x2 - 8f, position.z - z2 - 8f));
+                        float intersect = EMath.Max(EMath.Max(x - 8f - position.x, z - 8f - position.z), EMath.Max(position.x - x2 - 8f, position.z - z2 - 8f));
                         if (intersect < 0f) {
                             props[propID].TerrainUpdated(propID, x, z, x2, z2);
                         }
@@ -542,25 +515,22 @@ namespace EManagersLib.API {
         }
 
         public static void AfterTerrainUpdate(TerrainArea heightArea) {
-            int Max(int a, int b) => (a <= b) ? b : a;
-            int Min(int a, int b) => (a >= b) ? b : a;
-            float Maxf(float a, float b) => (a <= b) ? b : a;
             uint[] propGrid = m_propGrid;
             EPropInstance[] props = m_props.m_buffer;
             float x = heightArea.m_min.x;
             float z = heightArea.m_min.z;
             float x2 = heightArea.m_max.x;
             float z2 = heightArea.m_max.z;
-            int startX = Max((int)((x - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int startZ = Max((int)((z - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
-            int endX = Min((int)((x2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
-            int endZ = Min((int)((z2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int startX = EMath.Max((int)((x - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int startZ = EMath.Max((int)((z - 8f) / PROPGRID_CELL_SIZE + 135f), 0);
+            int endX = EMath.Min((int)((x2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
+            int endZ = EMath.Min((int)((z2 + 8f) / PROPGRID_CELL_SIZE + 135f), PROPGRID_RESOLUTION - 1);
             for (int i = startZ; i <= endZ; i++) {
                 for (int j = startX; j <= endX; j++) {
                     uint propID = propGrid[i * PROPGRID_RESOLUTION + j];
                     while (propID != 0) {
                         Vector3 position = props[propID].Position;
-                        float intersect = Maxf(Maxf(x - 8f - position.x, z - 8f - position.z), Maxf(position.x - x2 - 8f, position.z - z2 - 8f));
+                        float intersect = EMath.Max(EMath.Max(x - 8f - position.x, z - 8f - position.z), EMath.Max(position.x - x2 - 8f, position.z - z2 - 8f));
                         if (intersect < 0f) {
                             props[propID].AfterTerrainUpdated(propID, x, z, x2, z2);
                         }
@@ -627,6 +597,5 @@ namespace EManagersLib.API {
             m_pmInstance.m_infoCount = PrefabCollection<PropInfo>.PrefabCount();
             Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndLoading();
         }
-
     }
 }

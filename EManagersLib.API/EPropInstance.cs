@@ -81,19 +81,14 @@ namespace EManagersLib.API {
                 return result;
             }
             set {
-                int Clamp(int val, int min, int max) {
-                    val = (val < min) ? min : val;
-                    return (val > max) ? max : val;
-                }
-                int RoundToInt(float f) => (int)(f + 0.5f);
                 if (m_mode == ItemClass.Availability.AssetEditor) {
-                    m_posX = (short)Clamp(RoundToInt(value.x * 60.68148f), -32767, 32767);
-                    m_posZ = (short)Clamp(RoundToInt(value.z * 60.68148f), -32767, 32767);
-                    m_posY = (ushort)Clamp(RoundToInt(value.y * 64f), 0, 65535);
+                    m_posX = (short)EMath.Clamp(EMath.RoundToInt(value.x * 60.68148f), -32767, 32767);
+                    m_posZ = (short)EMath.Clamp(EMath.RoundToInt(value.z * 60.68148f), -32767, 32767);
+                    m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(value.y * 64f), 0, 65535);
                 } else {
-                    m_posX = (short)Clamp(RoundToInt(value.x * 3.79259253f), -32767, 32767);
-                    m_posZ = (short)Clamp(RoundToInt(value.z * 3.79259253f), -32767, 32767);
-                    m_posY = (ushort)Clamp(RoundToInt(value.y * 64f), 0, 65535);
+                    m_posX = (short)EMath.Clamp(EMath.RoundToInt(value.x * 3.79259253f), -32767, 32767);
+                    m_posZ = (short)EMath.Clamp(EMath.RoundToInt(value.z * 3.79259253f), -32767, 32767);
+                    m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(value.y * 64f), 0, 65535);
                     m_preciseX = value.x * 3.79259253f - m_posX;
                     m_preciseZ = value.z * 3.79259253f - m_posZ;
                 }
@@ -130,13 +125,13 @@ namespace EManagersLib.API {
             if (info.m_prefabInitialized) {
                 if (info.m_hasEffects && (active || info.m_alwaysActive)) {
                     Matrix4x4 matrix4x = default;
-                    matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                    matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                     float simulationTimeDelta = Singleton<SimulationManager>.instance.m_simulationTimeDelta;
                     for (int i = 0; i < info.m_effects.Length; i++) {
                         Vector3 position2 = matrix4x.MultiplyPoint(info.m_effects[i].m_position);
                         Vector3 direction = matrix4x.MultiplyVector(info.m_effects[i].m_direction);
                         EffectInfo.SpawnArea area = new EffectInfo.SpawnArea(position2, direction, 0f);
-                        info.m_effects[i].m_effect.RenderEffect(id, area, Vector3.zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
+                        info.m_effects[i].m_effect.RenderEffect(id, area, EMath.Vector3Zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                     }
                 }
                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
@@ -162,7 +157,7 @@ namespace EManagersLib.API {
                     }
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
-                        matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                        matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                         PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
@@ -193,8 +188,8 @@ namespace EManagersLib.API {
                         info.m_lodLocations[info.m_lodCount] = new Vector4(position.x, position.y, position.z, angle);
                         info.m_lodObjectIndices[info.m_lodCount] = objectIndex;
                         info.m_lodColors[info.m_lodCount] = color.linear;
-                        info.m_lodMin = Vector3.Min(info.m_lodMin, position);
-                        info.m_lodMax = Vector3.Max(info.m_lodMax, position);
+                        info.m_lodMin = EMath.Min(info.m_lodMin, position);
+                        info.m_lodMax = EMath.Max(info.m_lodMax, position);
                         if (++info.m_lodCount == info.m_lodLocations.Length) {
                             RenderLod(cameraInfo, info);
                         }
@@ -211,7 +206,7 @@ namespace EManagersLib.API {
                         Vector3 position2 = matrix.MultiplyPoint(info.m_effects[i].m_position);
                         Vector3 direction = matrix.MultiplyVector(info.m_effects[i].m_direction);
                         EffectInfo.SpawnArea area = new EffectInfo.SpawnArea(position2, direction, 0f);
-                        info.m_effects[i].m_effect.RenderEffect(id, area, Vector3.zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
+                        info.m_effects[i].m_effect.RenderEffect(id, area, EMath.Vector3Zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                     }
                 }
                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
@@ -226,7 +221,7 @@ namespace EManagersLib.API {
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
                                 float num2 = num * 3.71f + Singleton<SimulationManager>.instance.m_simulationTimer / blinkVector.w;
-                                num2 = (num2 - Mathf.Floor(num2)) * blinkVector.w;
+                                num2 = (num2 - EMath.Floor(num2)) * blinkVector.w;
                                 float num3 = MathUtils.SmoothStep(blinkVector.x, blinkVector.y, num2);
                                 float num4 = MathUtils.SmoothStep(blinkVector.w, blinkVector.z, num2);
                                 objectIndex.z *= 1f - num3 * num4;
@@ -264,8 +259,8 @@ namespace EManagersLib.API {
                         info.m_lodLocations[info.m_lodCount] = new Vector4(position.x, position.y, position.z, angle);
                         info.m_lodObjectIndices[info.m_lodCount] = objectIndex;
                         info.m_lodColors[info.m_lodCount] = color.linear;
-                        info.m_lodMin = Vector3.Min(info.m_lodMin, position);
-                        info.m_lodMax = Vector3.Max(info.m_lodMax, position);
+                        info.m_lodMin = EMath.Min(info.m_lodMin, position);
+                        info.m_lodMax = EMath.Max(info.m_lodMax, position);
                         if (++info.m_lodCount == info.m_lodLocations.Length) {
                             RenderLod(cameraInfo, info);
                         }
@@ -278,13 +273,11 @@ namespace EManagersLib.API {
             if (info.m_prefabInitialized) {
                 if (info.m_hasEffects && (active || info.m_alwaysActive)) {
                     Matrix4x4 matrix4x = default;
-                    matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                    matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                     float simulationTimeDelta = Singleton<SimulationManager>.instance.m_simulationTimeDelta;
                     for (int i = 0; i < info.m_effects.Length; i++) {
-                        Vector3 position2 = matrix4x.MultiplyPoint(info.m_effects[i].m_position);
-                        Vector3 direction = matrix4x.MultiplyVector(info.m_effects[i].m_direction);
-                        EffectInfo.SpawnArea area = new EffectInfo.SpawnArea(position2, direction, 0f);
-                        info.m_effects[i].m_effect.RenderEffect(id, area, Vector3.zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
+                        info.m_effects[i].m_effect.RenderEffect(id, new EffectInfo.SpawnArea(matrix4x.MultiplyPoint(info.m_effects[i].m_position),
+                            matrix4x.MultiplyVector(info.m_effects[i].m_direction), 0f), EMath.Vector3Zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                     }
                 }
                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
@@ -299,7 +292,7 @@ namespace EManagersLib.API {
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
                                 float num2 = num * 3.71f + Singleton<SimulationManager>.instance.m_simulationTimer / blinkVector.w;
-                                num2 = (num2 - Mathf.Floor(num2)) * blinkVector.w;
+                                num2 = (num2 - EMath.Floor(num2)) * blinkVector.w;
                                 float num3 = MathUtils.SmoothStep(blinkVector.x, blinkVector.y, num2);
                                 float num4 = MathUtils.SmoothStep(blinkVector.w, blinkVector.z, num2);
                                 objectIndex.z *= 1f - num3 * num4;
@@ -310,7 +303,7 @@ namespace EManagersLib.API {
                     }
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
-                        matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                        matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                         PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
@@ -338,8 +331,8 @@ namespace EManagersLib.API {
                         info.m_lodLocations[info.m_lodCount] = new Vector4(position.x, position.y, position.z, angle);
                         info.m_lodObjectIndices[info.m_lodCount] = objectIndex;
                         info.m_lodColors[info.m_lodCount] = color.linear;
-                        info.m_lodMin = Vector3.Min(info.m_lodMin, position);
-                        info.m_lodMax = Vector3.Max(info.m_lodMax, position);
+                        info.m_lodMin = EMath.Min(info.m_lodMin, position);
+                        info.m_lodMax = EMath.Max(info.m_lodMax, position);
                         if (++info.m_lodCount == info.m_lodLocations.Length) {
                             RenderLod(cameraInfo, info);
                         }
@@ -352,13 +345,11 @@ namespace EManagersLib.API {
             if (info.m_prefabInitialized) {
                 if (info.m_hasEffects && (active || info.m_alwaysActive)) {
                     Matrix4x4 matrix4x = default;
-                    matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                    matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                     float simulationTimeDelta = Singleton<SimulationManager>.instance.m_simulationTimeDelta;
                     for (int i = 0; i < info.m_effects.Length; i++) {
-                        Vector3 position2 = matrix4x.MultiplyPoint(info.m_effects[i].m_position);
-                        Vector3 direction = matrix4x.MultiplyVector(info.m_effects[i].m_direction);
-                        EffectInfo.SpawnArea area = new EffectInfo.SpawnArea(position2, direction, 0f);
-                        info.m_effects[i].m_effect.RenderEffect(id, area, Vector3.zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
+                        info.m_effects[i].m_effect.RenderEffect(id, new EffectInfo.SpawnArea(matrix4x.MultiplyPoint(info.m_effects[i].m_position),
+                            matrix4x.MultiplyVector(info.m_effects[i].m_direction), 0f), EMath.Vector3Zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                     }
                 }
                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
@@ -373,7 +364,7 @@ namespace EManagersLib.API {
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
                                 float num2 = num * 3.71f + Singleton<SimulationManager>.instance.m_simulationTimer / blinkVector.w;
-                                num2 = (num2 - Mathf.Floor(num2)) * blinkVector.w;
+                                num2 = (num2 - EMath.Floor(num2)) * blinkVector.w;
                                 float num3 = MathUtils.SmoothStep(blinkVector.x, blinkVector.y, num2);
                                 float num4 = MathUtils.SmoothStep(blinkVector.w, blinkVector.z, num2);
                                 objectIndex.z *= 1f - num3 * num4;
@@ -384,7 +375,7 @@ namespace EManagersLib.API {
                     }
                     if (cameraInfo is null || cameraInfo.CheckRenderDistance(position, info.m_lodRenderDistance)) {
                         Matrix4x4 matrix = default;
-                        matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                        matrix.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                         PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = instance.m_materialBlock;
                         materialBlock.Clear();
@@ -418,8 +409,8 @@ namespace EManagersLib.API {
                         info.m_lodLocations[info.m_lodCount] = new Vector4(position.x, position.y, position.z, angle);
                         info.m_lodObjectIndices[info.m_lodCount] = objectIndex;
                         info.m_lodColors[info.m_lodCount] = color.linear;
-                        info.m_lodMin = Vector3.Min(info.m_lodMin, position);
-                        info.m_lodMax = Vector3.Max(info.m_lodMax, position);
+                        info.m_lodMin = EMath.Min(info.m_lodMin, position);
+                        info.m_lodMax = EMath.Max(info.m_lodMax, position);
                         if (++info.m_lodCount == info.m_lodLocations.Length) {
                             RenderLod(cameraInfo, info);
                         }
@@ -449,8 +440,8 @@ namespace EManagersLib.API {
             }
             for (int i = info.m_lodCount; i < lodCount; i++) {
                 info.m_lodLocations[i] = cameraInfo.m_forward * -100000f;
-                info.m_lodObjectIndices[i] = Vector4.zero;
-                info.m_lodColors[i] = Color.clear;
+                info.m_lodObjectIndices[i] = EMath.Vector4Zero;
+                info.m_lodColors[i] = EMath.ColorClear;
             }
             materialBlock.SetVectorArray(instance.ID_PropLocation, info.m_lodLocations);
             materialBlock.SetVectorArray(instance.ID_PropObjectIndex, info.m_lodObjectIndices);
@@ -471,10 +462,10 @@ namespace EManagersLib.API {
             }
             if (!(mesh is null)) {
                 Bounds bounds = default;
-                bounds.SetMinMax(info.m_lodMin - new Vector3(100f, 100f, 100f), info.m_lodMax + new Vector3(100f, 100f, 100f));
+                bounds.SetMinMax(info.m_lodMin - EMath.DefaultLod100, info.m_lodMax + EMath.DefaultLod100);
                 mesh.bounds = bounds;
-                info.m_lodMin = new Vector3(100000f, 100000f, 100000f);
-                info.m_lodMax = new Vector3(-100000f, -100000f, -100000f);
+                info.m_lodMin = EMath.DefaultLodMin;
+                info.m_lodMax = EMath.DefaultLodMax;
                 instance.m_drawCallData.m_lodCalls++;
                 instance.m_drawCallData.m_batchedCalls += (info.m_lodCount - 1);
                 Graphics.DrawMesh(mesh, Matrix4x4.identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
@@ -489,17 +480,12 @@ namespace EManagersLib.API {
         }
 
         public void CalculateProp(uint propID) {
-            int Clamp(int value, int min, int max) {
-                value = (value < min) ? min : value;
-                return (value > max) ? max : value;
-            }
-            int RoundToInt(float f) => (int)(f + 0.5f);
             if (GetSnappingState()) return;
             if ((m_flags & (CREATEDFLAG | DELETEDFLAG)) != CREATEDFLAG) return;
             if ((m_flags & FIXEDHEIGHTFLAG) == 0) {
                 Vector3 position = Position;
                 position.y = Singleton<TerrainManager>.instance.SampleDetailHeight(position);
-                m_posY = (ushort)Clamp(RoundToInt(position.y * 64f), 0, 65535);
+                m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(position.y * 64f), 0, 65535);
             }
             CheckOverlap(propID);
         }
@@ -551,7 +537,6 @@ namespace EManagersLib.API {
         }
 
         public void UpdateProp(uint propID) {
-            float Max(float a, float b) => (a <= b) ? b : a;
             if ((m_flags & CREATEDFLAG) == 0) return;
             PropInfo info = Info;
             if (info is null) return;
@@ -559,7 +544,7 @@ namespace EManagersLib.API {
                 Vector3 position = Position;
                 float range = 4.5f;
                 if (info.m_isDecal) {
-                    range = Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * m_scale * 0.5f + 2.5f;
+                    range = EMath.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * m_scale * 0.5f + 2.5f;
                 }
                 float minX = position.x - range;
                 float minZ = position.z - range;
@@ -583,8 +568,8 @@ namespace EManagersLib.API {
                 Vector3 d;
                 if (info.m_isDecal) {
                     float scale = m_props.m_buffer[propID].m_scale;
-                    Vector3 b = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * (info.m_generatedInfo.m_size.x * scale * 0.5f + 2.5f);
-                    Vector3 b2 = new Vector3(-Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * (info.m_generatedInfo.m_size.z * scale * 0.5f + 2.5f);
+                    Vector3 b = new Vector3(EMath.Cos(angle), 0f, EMath.Sin(angle)) * (info.m_generatedInfo.m_size.x * scale * 0.5f + 2.5f);
+                    Vector3 b2 = new Vector3(-EMath.Sin(angle), 0f, EMath.Cos(angle)) * (info.m_generatedInfo.m_size.z * scale * 0.5f + 2.5f);
                     a = position - b - b2;
                     b3 = position - b + b2;
                     c = position + b + b2;
@@ -603,16 +588,11 @@ namespace EManagersLib.API {
         }
 
         public void AfterTerrainUpdated(uint propID, float minX, float minZ, float maxX, float maxZ) {
-            int Clamp(int value, int min, int max) {
-                value = (value < min) ? min : value;
-                return (value > max) ? max : value;
-            }
-            int RoundToInt(float f) => (int)(f + 0.5f);
             if ((m_flags & (CREATEDFLAG | DELETEDFLAG)) != CREATEDFLAG) return;
             if ((m_flags & FIXEDHEIGHTFLAG) == 0) {
                 Vector3 position = Position;
                 position.y = Singleton<TerrainManager>.instance.SampleDetailHeight(position);
-                ushort posY = (ushort)Clamp(RoundToInt(position.y * 64f), 0, 65535);
+                ushort posY = (ushort)EMath.Clamp(EMath.RoundToInt(position.y * 64f), 0, 65535);
                 if (posY != m_posY) {
                     bool blocked = Blocked;
                     if (!UsePropSnapping || Singleton<LoadingManager>.instance.m_currentlyLoading) m_posY = posY;
@@ -655,20 +635,18 @@ namespace EManagersLib.API {
         }
 
         public bool RayCast(uint propID, Segment3 ray, out float t, out float targetSqr) {
-            float Max(float a, float b) => (a <= b) ? b : a;
-            float Min(float a, float b) => (a >= b) ? b : a;
             t = 2f;
             targetSqr = 0f;
             if (Blocked) return false;
             PropInfo info = Info;
             float scale = m_scale;
             float height = info.m_generatedInfo.m_size.y * scale;
-            float maxRadius = Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
+            float maxRadius = EMath.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
             Vector3 position = Position;
             Bounds bounds = new Bounds(new Vector3(position.x, position.y + height * 0.5f, position.z), new Vector3(maxRadius, height, maxRadius));
             if (!bounds.IntersectRay(new Ray(ray.a, ray.b - ray.a))) return false;
             float radius = (info.m_generatedInfo.m_size.x + info.m_generatedInfo.m_size.z) * scale * 0.125f;
-            float minHeight = Min(radius, height * 0.45f);
+            float minHeight = EMath.Min(radius, height * 0.45f);
             Segment3 segment = new Segment3(position, position);
             segment.a.y += minHeight;
             segment.b.y += (height - minHeight);
@@ -716,31 +694,27 @@ namespace EManagersLib.API {
             if (Blocked) return;
             PropInfo info = Info;
             if (info.m_prefabDataLayer == layer || info.m_effectLayer == layer) {
-                Vector3 position = Position;
                 InstanceID id = default;
                 InstanceIDExtension.SetProp32ByRef(ref id, propID);
-                PopulateGroupData(info, layer, id, position, m_scale, Angle, m_color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                PopulateGroupData(info, layer, id, Position, m_scale, Angle, m_color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
             }
         }
 
         public static void PopulateGroupData(PropInfo info, int layer, InstanceID id, Vector3 position, float scale, float angle, Color color, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
-            float Max(float a, float b) => (a <= b) ? b : a;
-            //float Min(float a, float b) => (a >= b) ? b : a;
             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
             if (info.m_prefabDataLayer == layer) {
                 float y = info.m_generatedInfo.m_size.y * scale;
-                float maxRadius = Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
-                min = Vector3.Min(min, position - new Vector3(maxRadius, 0f, maxRadius));
-                max = Vector3.Max(max, position + new Vector3(maxRadius, y, maxRadius));
-                maxRenderDistance = Max(maxRenderDistance, info.m_maxRenderDistance);
-                maxInstanceDistance = Max(maxInstanceDistance, info.m_maxRenderDistance);
+                float maxRadius = EMath.Max(info.m_generatedInfo.m_size.x, info.m_generatedInfo.m_size.z) * scale * 0.5f;
+                min = EMath.Min(min, position - new Vector3(maxRadius, 0f, maxRadius));
+                max = EMath.Max(max, position + new Vector3(maxRadius, y, maxRadius));
+                maxRenderDistance = EMath.Max(maxRenderDistance, info.m_maxRenderDistance);
+                maxInstanceDistance = EMath.Max(maxInstanceDistance, info.m_maxRenderDistance);
             } else if (info.m_effectLayer == layer || (info.m_effectLayer == lightSystem.m_lightLayer && layer == lightSystem.m_lightLayerFloating)) {
                 Matrix4x4 matrix4x = default;
-                matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, Vector3.down), new Vector3(scale, scale, scale));
+                matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
                 for (int i = 0; i < info.m_effects.Length; i++) {
-                    Vector3 pos = matrix4x.MultiplyPoint(info.m_effects[i].m_position);
-                    Vector3 dir = matrix4x.MultiplyVector(info.m_effects[i].m_direction);
-                    info.m_effects[i].m_effect.PopulateGroupData(layer, id, pos, dir, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                    info.m_effects[i].m_effect.PopulateGroupData(layer, id, matrix4x.MultiplyPoint(info.m_effects[i].m_position),
+                        matrix4x.MultiplyVector(info.m_effects[i].m_direction), ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                 }
             }
         }

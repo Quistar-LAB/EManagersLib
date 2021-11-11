@@ -46,7 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommonMath.cs" />
+    <Compile Include="EMath.cs" />
     <Compile Include="PropWrapper.cs" />
     <Compile Include="PropAPI.cs" />
     <Compile Include="EPropInstance.cs" />
