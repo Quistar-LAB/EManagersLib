@@ -1,8 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using UnityEngine;
-using EManagersLib.API;
-using static EManagersLib.API.EPropManager;
+using static EManagersLib.EPropManager;
 
 namespace EManagersLib {
     public static class EDisasterHelpers {

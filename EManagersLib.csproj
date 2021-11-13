@@ -11,7 +11,9 @@
     <AssemblyName>EManagersLib</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <Deterministic>false</Deterministic>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,6 +33,8 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\EManagersLib.xml</DocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Deterministic>true</Deterministic>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -56,13 +60,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EInstanceID.cs" />
     <Compile Include="EKeyBinding.cs" />
+    <Compile Include="EMath.cs" />
+    <Compile Include="EPropInstance.cs" />
+    <Compile Include="EPropManager.cs" />
     <Compile Include="EStatsPanel.cs" />
     <Compile Include="EDistrictManager.cs" />
     <Compile Include="EDisasterHelpers.cs" />
     <Compile Include="EPropTool.cs" />
     <Compile Include="EDefaultToolExtension.cs" />
     <Compile Include="ESerializeableExtension.cs" />
+    <Compile Include="EToolBase.cs" />
     <Compile Include="EUtils.cs" />
     <Compile Include="EModule.cs" />
     <Compile Include="IEManagersInit.cs" />
@@ -89,18 +98,12 @@
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="EManagersLib.API\EManagersLib.API.csproj">
-      <Project>{303ac92f-057f-494d-a1fd-40ba1a60a22b}</Project>
-      <Name>EManagersLib.API</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if not exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)" mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 if exist "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)" del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
 xcopy /y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 
-</PostBuildEvent>
+xcopy /y "$(TargetDir)\CitiesHarmony.API.dll" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using EManagersLib.API;
-using static EManagersLib.API.EPropManager;
+using static EManagersLib.EPropManager;
 
 namespace EManagersLib {
     public class EPropToolPatch {

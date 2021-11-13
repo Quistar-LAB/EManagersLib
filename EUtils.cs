@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using EManagersLib.API;
 
 namespace EManagersLib {
     /// <summary>
@@ -13,6 +12,7 @@ namespace EManagersLib {
     /// </summary>
     public static class EUtils {
         private const string m_debugLogFile = "oEManagerDebug.log";
+        public delegate U RefGetter<U>();
 
         /// <summary>Make sure to cache the return value of this property before using it in a loop</summary>
         /// <returns>Returns the maximum prop limit set by Prop Anarchy. If Prop Anarchy is not installed, then returns default prop limit</returns>
@@ -41,6 +41,18 @@ namespace EManagersLib {
             }
             gen.Emit(OpCodes.Ret);
             return (Func<S, T>)setterMethod.CreateDelegate(typeof(Func<S, T>));
+        }
+
+        public static RefGetter<U> CreatePrefabRefGetter<U>(string s_field) {
+            var prefab = typeof(PrefabCollection<PropInfo>);
+            var fi = prefab.GetField(s_field, BindingFlags.NonPublic | BindingFlags.Static);
+            if (fi == null) throw new MissingFieldException(prefab.Name, s_field);
+            var s_name = "__refget_" + prefab.Name + "_fi_" + fi.Name;
+            var dm = new DynamicMethod(s_name, typeof(U), new[] { prefab }, prefab, true);
+            var il = dm.GetILGenerator();
+            il.Emit(OpCodes.Ldsfld, fi);
+            il.Emit(OpCodes.Ret);
+            return (RefGetter<U>)dm.CreateDelegate(typeof(RefGetter<U>));
         }
 
         /// <summary>

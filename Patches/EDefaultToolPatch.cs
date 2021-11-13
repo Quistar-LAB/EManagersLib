@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using EManagersLib.API;
 
 namespace EManagersLib {
     internal class EDefaultToolPatch {
