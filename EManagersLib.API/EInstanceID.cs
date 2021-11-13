@@ -1,6 +1,5 @@
 ﻿using ColossalFramework.IO;
 using System;
-using UnityEngine;
 
 namespace EManagersLib.API {
     #region InstanceIDExtensions
@@ -20,7 +19,7 @@ namespace EManagersLib.API {
             return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
         }
 
-        public static void SetProp32(this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
+        public static void SetProp32(ref this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
 
         public static void SetProp32ByRef(ref InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
     }
@@ -66,7 +65,7 @@ namespace EManagersLib.API {
 
         public InstanceType Type {
             get => (InstanceType)((RawData & OBJECT_TYPE) >> 24);
-            set => RawData = ((RawData & OBJECT_INDEX) | ((uint)Mathf.Clamp((int)value, 0, 255) << 24));
+            set => RawData = ((RawData & OBJECT_INDEX) | ((uint)EMath.Clamp((int)value, 0, 255) << 24));
         }
 
         public uint Index {
