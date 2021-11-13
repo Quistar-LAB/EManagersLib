@@ -8,7 +8,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94BAC621-716E-42A1-92FF-CE3511A21D2F}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		TextFile2.txt = TextFile2.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EManagersLib.API", "EManagersLib.API\EManagersLib.API.csproj", "{303AC92F-057F-494D-A1FD-40BA1A60A22B}"
