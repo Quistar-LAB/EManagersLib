@@ -8,9 +8,11 @@ namespace EManagersLib {
     /// the wheel, but these speed ups are drastic enough to do them
     /// </summary>
     public static class EMath {
+        public static Vector2 Vector2Zero = Vector2.zero;
         public static Vector3 Vector3Zero = Vector3.zero;
         public static Vector4 Vector4Zero = Vector4.zero;
         public static Vector3 Vector3Down = Vector3.down;
+        public static Vector3 Vector3Forward = Vector3.forward;
         public static Vector3 DefaultLodMin = new Vector3(100000f, 100000f, 100000f);
         public static Vector3 DefaultLodMax = new Vector3(-100000f, -100000f, -100000f);
         public static Vector3 DefaultLod100 = new Vector3(100f, 100f, 100f);
@@ -179,5 +181,8 @@ namespace EManagersLib {
         }
 
         public static bool IsNearlyEqual(float a, float b, float epsilon = 0.0001f) => a == b || Abs(a - b) < epsilon;
+
+        public static void SetRandomizerSeed(int val) => randomizer.seed = (ulong)(6364136223846793005L * val + 1442695040888963407L);
+        public static void SetRandomizerSeed(uint val) => randomizer.seed = 6364136223846793005uL * val + 1442695040888963407uL;
     }
 }
