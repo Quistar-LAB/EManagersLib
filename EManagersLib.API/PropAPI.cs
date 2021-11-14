@@ -174,7 +174,7 @@ namespace EManagersLib.API {
                 delegatedEPropInstanceRayCast = (EPROPINSTANCERAYCAST)Delegate.CreateDelegate(typeof(EPROPINSTANCERAYCAST),
                     ePropInstance.GetMethod("PropRayCast", BindingFlags.Public | BindingFlags.Static));
                 Wrapper = new EMLPropWrapper();
-                RayCast = (RAYCASTAPI)Delegate.CreateDelegate(typeof(RAYCASTAPI), eToolBase, "RayCast");
+                RayCast = EToolBase.RayCast;
                 GetPropID = EMLPropInstanceID;
             } else {
                 Wrapper = new DefPropWrapper();
