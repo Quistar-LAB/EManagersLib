@@ -8,6 +8,7 @@ namespace EManagersLib {
         private const uint OBJECT_TYPE = 0xff000000u;
         private const uint OBJECT_INDEX = 0x00ffffffu;
         private const uint OBJECT_PROP = 0x0a000000u;
+        private const uint OBJECT_BUILDINGPROP = 0x0e000000u;
 
         public static uint GetProp32(this InstanceID instance) {
             uint id = instance.RawData;
@@ -22,6 +23,16 @@ namespace EManagersLib {
         public static void SetProp32(ref this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
 
         public static void SetProp32ByRef(ref InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
+
+        public static void GetBuildingProp32(this InstanceID instance, out uint building, out int propIndex) {
+            if ((instance.RawData & OBJECT_TYPE) == OBJECT_BUILDINGPROP) {
+                building = (instance.RawData & 0xffffu);
+                propIndex = (int)(instance.RawData >> 16 & 0xffu);
+            } else {
+                building = 0;
+                propIndex = 0;
+            }
+        }
     }
     #endregion InstanceIDExtensions
 
