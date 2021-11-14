@@ -732,7 +732,7 @@ namespace EManagersLib {
             PropInfo info = Info;
             if (info.m_prefabDataLayer == layer || info.m_effectLayer == layer) {
                 InstanceID id = default;
-                InstanceIDExtension.SetProp32ByRef(ref id, propID);
+                id.SetProp32(propID);
                 PopulateGroupData(info, layer, id, Position, m_scale, Angle, m_color, ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
             }
         }

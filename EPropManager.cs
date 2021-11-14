@@ -138,19 +138,18 @@ namespace EManagersLib {
             }
             if (m_props.CreateItem(out uint propID, ref randomizer)) {
                 prop = propID;
-                Randomizer rand = new Randomizer((int)prop);
-                m_props.m_buffer[prop].m_flags = EPropInstance.CREATEDFLAG;
-                m_props.m_buffer[prop].Info = info;
-                m_props.m_buffer[prop].Single = single;
-                m_props.m_buffer[prop].Blocked = false;
-                m_props.m_buffer[prop].Position = position;
-                m_props.m_buffer[prop].Angle = angle;
-                m_props.m_buffer[prop].m_scale = info.m_minScale + rand.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
-                m_props.m_buffer[prop].m_color = info.GetColor(ref rand);
+                EMath.SetRandomizerSeed(prop);
+                EPropInstance[] props = m_props.m_buffer;
+                props[prop].m_flags = EPropInstance.CREATEDFLAG | EPropInstance.SINGLEFLAG;
+                props[prop].Info = info;
+                props[prop].Position = position;
+                props[prop].Angle = angle;
+                props[prop].m_scale = info.m_minScale + EMath.randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
+                props[prop].m_color = info.GetColor(ref EMath.randomizer);
                 DistrictManager instance = Singleton<DistrictManager>.instance;
                 instance.m_parks.m_buffer[instance.GetPark(position)].m_propCount++;
                 ItemClass.Availability mode = Singleton<ToolManager>.instance.m_properties.m_mode;
-                InitializeProp(prop, ref m_props.m_buffer[prop], (mode & ItemClass.Availability.AssetEditor) != ItemClass.Availability.None);
+                InitializeProp(prop, ref props[prop], (mode & ItemClass.Availability.AssetEditor) != ItemClass.Availability.None);
                 UpdateProp(prop);
                 pmInstance.m_propCount = (int)(m_props.ItemCount() - 1u);
                 return true;
@@ -160,7 +159,23 @@ namespace EManagersLib {
         }
 
         public static void ReleaseProp(this PropManager _, uint prop) {
-            ReleasePropImplementation(prop, ref m_props.m_buffer[prop]);
+            ref EPropInstance data = ref m_props.m_buffer[prop];
+            if (data.m_flags != 0) {
+                EInstanceID id = default;
+                id.Prop = prop;
+                Singleton<InstanceManager>.instance.ReleaseInstance(id.OrigID);
+                data.m_flags |= EPropInstance.DELETEDFLAG;
+                data.UpdateProp(prop);
+                m_pmInstance.UpdatePropRenderer(prop, true);
+                if (!data.Blocked) {
+                    DistrictManager instance = Singleton<DistrictManager>.instance;
+                    instance.m_parks.m_buffer[instance.GetPark(data.Position)].m_propCount--;
+                }
+                data.m_flags = 0;
+                FinalizeProp(prop, ref data);
+                m_props.ReleaseItem(prop);
+                m_pmInstance.m_propCount = (int)(m_props.ItemCount() - 1u);
+            }
         }
 
         public static void InitializeProp(uint prop, ref EPropInstance data, bool assetEditor) {
@@ -225,10 +240,7 @@ namespace EManagersLib {
         }
 
         public static void MoveProp(this PropManager _, uint prop, Vector3 position) {
-            MovePropImplementation(prop, ref m_props.m_buffer[prop], position);
-        }
-
-        private static void MovePropImplementation(uint prop, ref EPropInstance data, Vector3 position) {
+            ref EPropInstance data = ref m_props.m_buffer[prop];
             if (data.m_flags != 0) {
                 if (!data.Blocked) {
                     DistrictManager instance = Singleton<DistrictManager>.instance;

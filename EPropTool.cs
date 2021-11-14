@@ -4,19 +4,22 @@ using UnityEngine;
 
 namespace EManagersLib {
     public static class EPropTool {
+        private static Vector2 veca = new Vector2(-0.3f, -0.3f);
+        private static Vector2 vecb = new Vector2(-0.3f, 0.3f);
+        private static Vector2 vecc = new Vector2(0.3f, 0.3f);
+        private static Vector2 vecd = new Vector2(0.3f, -0.3f);
         public static ToolBase.ToolErrors CheckPlacementErrors(PropInfo info, Vector3 position, bool fixedHeight, uint id, ulong[] collidingSegmentBuffer, ulong[] collidingBuildingBuffer) {
             if (EPropManager.UsePropAnarchy) return ToolBase.ToolErrors.None;
-            Randomizer randomizer = new Randomizer(id);
-            float scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
+            float scale = EPropManager.m_props.m_buffer[id].m_scale;
             float height = info.m_generatedInfo.m_size.y * scale;
             Vector2 vector = VectorUtils.XZ(position);
             Quad2 quad = default;
-            quad.a = vector + new Vector2(-0.3f, -0.3f);
-            quad.b = vector + new Vector2(-0.3f, 0.3f);
-            quad.c = vector + new Vector2(0.3f, 0.3f);
-            quad.d = vector + new Vector2(0.3f, -0.3f);
+            quad.a = vector + veca;
+            quad.b = vector + vecb;
+            quad.c = vector + vecc;
+            quad.d = vector + vecd;
             float y = position.y;
-            float maxY = position.y + height;
+            float maxY = y + height;
             ItemClass.CollisionType collisionType = ItemClass.CollisionType.Terrain;
             if (fixedHeight) {
                 collisionType = ItemClass.CollisionType.Elevated;

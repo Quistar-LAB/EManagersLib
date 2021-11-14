@@ -59,23 +59,23 @@ namespace EManagersLib {
             output.m_disaster = 0;
             output.m_currentEditObject = false;
             bool result = false;
-            float num = input.m_length;
+            float rayLength = input.m_length;
             if (!input.m_ignoreTerrain && Singleton<TerrainManager>.instance.RayCast(ray, out Vector3 vector2)) {
-                float num2 = Vector3.Distance(vector2, origin) + 100f;
-                if (num2 < num) {
+                float num2 = EMath.Sqrt((vector2 - origin).sqrMagnitude) + 100f;
+                if (num2 < rayLength) {
                     output.m_hitPos = vector2;
                     result = true;
-                    num = num2;
+                    rayLength = num2;
                 }
             }
             if ((input.m_ignoreNodeFlags != NetNode.Flags.All || input.m_ignoreSegmentFlags != NetSegment.Flags.All) && Singleton<NetManager>.instance.RayCast(input.m_buildObject as NetInfo, ray, input.m_netSnap, input.m_segmentNameOnly, input.m_netService.m_service, input.m_netService2.m_service, input.m_netService.m_subService, input.m_netService2.m_subService, input.m_netService.m_itemLayers, input.m_netService2.m_itemLayers, input.m_ignoreNodeFlags, input.m_ignoreSegmentFlags, out vector2, out output.__oldnetNode, out output.__oldnetSegment)) {
-                float num3 = Vector3.Distance(vector2, origin);
-                if (num3 < num) {
+                float num3 = EMath.Sqrt((vector2 - origin).sqrMagnitude);
+                if (num3 < rayLength) {
                     output.m_netNode = output.__oldnetNode;
                     output.m_netSegment = output.__oldnetSegment;
                     output.m_hitPos = vector2;
                     result = true;
-                    num = num3;
+                    rayLength = num3;
                 } else {
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -84,8 +84,8 @@ namespace EManagersLib {
                 }
             }
             if (input.m_ignoreBuildingFlags != Building.Flags.All && Singleton<BuildingManager>.instance.RayCast(ray, input.m_buildingService.m_service, input.m_buildingService.m_subService, input.m_buildingService.m_itemLayers, input.m_ignoreBuildingFlags, out vector2, out output.__oldbuilding)) {
-                float num4 = Vector3.Distance(vector2, origin);
-                if (num4 < num) {
+                float num4 = EMath.Sqrt((vector2 - origin).sqrMagnitude);
+                if (num4 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -93,15 +93,15 @@ namespace EManagersLib {
                     output.m_netSegment = 0;
                     output.m_building = output.__oldbuilding;
                     result = true;
-                    num = num4;
+                    rayLength = num4;
                 } else {
                     output.__oldbuilding = 0;
                     output.m_building = 0;
                 }
             }
             if (input.m_ignoreDisasterFlags != DisasterData.Flags.All && Singleton<DisasterManager>.instance.RayCast(ray, input.m_ignoreDisasterFlags, out vector2, out output.m_disaster)) {
-                float num5 = Vector3.Distance(vector2, origin);
-                if (num5 < num) {
+                float num5 = EMath.Sqrt((vector2 - origin).sqrMagnitude);
+                if (num5 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -110,14 +110,14 @@ namespace EManagersLib {
                     output.m_netSegment = 0;
                     output.m_building = 0;
                     result = true;
-                    num = num5;
+                    rayLength = num5;
                 } else {
                     output.m_disaster = 0;
                 }
             }
             if (input.m_currentEditObject && Singleton<ToolManager>.instance.m_properties.RaycastEditObject(ray, out vector2)) {
-                float num6 = Vector3.Distance(vector2, origin);
-                if (num6 < num) {
+                float num6 = EMath.Sqrt((vector2 - origin).sqrMagnitude);
+                if (num6 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -128,13 +128,13 @@ namespace EManagersLib {
                     output.m_disaster = 0;
                     output.m_currentEditObject = true;
                     result = true;
-                    num = num6;
+                    rayLength = num6;
                 }
             }
             if (input.m_ignorePropFlags != PropInstance.Flags.All &&
                 EPropManager.RayCast(ray, input.m_propService.m_service, input.m_propService.m_subService, input.m_propService.m_itemLayers, input.m_ignorePropFlags, out vector2, out output.m_propInstance)) {
-                float num7 = Vector3.Distance(vector2, origin) - 0.5f;
-                if (num7 < num) {
+                float num7 = EMath.Sqrt((vector2 - origin).sqrMagnitude) - 0.5f;
+                if (num7 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -145,14 +145,14 @@ namespace EManagersLib {
                     output.m_disaster = 0;
                     output.m_currentEditObject = false;
                     result = true;
-                    num = num7;
+                    rayLength = num7;
                 } else {
                     output.m_propInstance = 0;
                 }
             }
             if (input.m_ignoreTreeFlags != TreeInstance.Flags.All && Singleton<TreeManager>.instance.RayCast(ray, input.m_treeService.m_service, input.m_treeService.m_subService, input.m_treeService.m_itemLayers, input.m_ignoreTreeFlags, out vector2, out output.m_treeInstance)) {
-                float num8 = Vector3.Distance(vector2, origin) - 1f;
-                if (num8 < num) {
+                float num8 = EMath.Sqrt((vector2 - origin).sqrMagnitude) - 1f;
+                if (num8 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -164,14 +164,14 @@ namespace EManagersLib {
                     output.m_propInstance = 0;
                     output.m_currentEditObject = false;
                     result = true;
-                    num = num8;
+                    rayLength = num8;
                 } else {
                     output.m_treeInstance = 0u;
                 }
             }
             if ((input.m_ignoreVehicleFlags != (Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving | Vehicle.Flags.Arriving | Vehicle.Flags.Reversed | Vehicle.Flags.TakingOff | Vehicle.Flags.Flying | Vehicle.Flags.Landing | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingCargo | Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget | Vehicle.Flags.Importing | Vehicle.Flags.Exporting | Vehicle.Flags.Parking | Vehicle.Flags.CustomName | Vehicle.Flags.OnGravel | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Congestion | Vehicle.Flags.DummyTraffic | Vehicle.Flags.Underground | Vehicle.Flags.Transition | Vehicle.Flags.InsideBuilding | Vehicle.Flags.LeftHandDrive) || input.m_ignoreParkedVehicleFlags != VehicleParked.Flags.All) && Singleton<VehicleManager>.instance.RayCast(ray, input.m_ignoreVehicleFlags, input.m_ignoreParkedVehicleFlags, out vector2, out output.m_vehicle, out output.m_parkedVehicle)) {
-                float num9 = Vector3.Distance(vector2, origin) - 0.5f;
-                if (num9 < num) {
+                float num9 = EMath.Sqrt((vector2 - origin).sqrMagnitude) - 0.5f;
+                if (num9 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -185,15 +185,15 @@ namespace EManagersLib {
                     output.m_treeInstance = 0u;
                     output.m_currentEditObject = false;
                     result = true;
-                    num = num9;
+                    rayLength = num9;
                 } else {
                     output.m_vehicle = 0;
                     output.m_parkedVehicle = 0;
                 }
             }
             if (input.m_ignoreCitizenFlags != CitizenInstance.Flags.All && Singleton<CitizenManager>.instance.RayCast(ray, input.m_ignoreCitizenFlags, out vector2, out output.m_citizenInstance)) {
-                float num10 = Vector3.Distance(vector2, origin) - 0.5f;
-                if (num10 < num) {
+                float num10 = EMath.Sqrt((vector2 - origin).sqrMagnitude) - 0.5f;
+                if (num10 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;
@@ -209,14 +209,14 @@ namespace EManagersLib {
                     output.m_parkedVehicle = 0;
                     output.m_currentEditObject = false;
                     result = true;
-                    num = num10;
+                    rayLength = num10;
                 } else {
                     output.m_citizenInstance = 0;
                 }
             }
             if (input.m_ignoreTransportFlags != TransportLine.Flags.All && Singleton<TransportManager>.instance.RayCast(input.m_ray, input.m_length, input.m_transportTypes, out vector2, out output.m_transportLine, out output.m_transportStopIndex, out output.m_transportSegmentIndex)) {
-                float num11 = Vector3.Distance(vector2, origin) - 2f;
-                if (num11 < num) {
+                float num11 = EMath.Sqrt((vector2 - origin).sqrMagnitude) - 2f;
+                if (num11 < rayLength) {
                     output.m_hitPos = vector2;
                     output.__oldnetNode = 0;
                     output.__oldnetSegment = 0;

@@ -253,7 +253,7 @@ namespace EManagersLib {
             }
         }
 
-        public static void IntegratedPropDeserialize(EPropInstance[] props) {
+        public static void IntegratedPropDeserialize(EPropInstance[] _) {
             if (MAX_PROP_LIMIT <= DEFAULT_PROP_LIMIT) return;
             try {
                 if (Singleton<SimulationManager>.instance.m_serializableDataStorage.TryGetValue(EMANAGER_PROP_KEY, out byte[] data)) {
