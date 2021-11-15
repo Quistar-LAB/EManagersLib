@@ -20,6 +20,14 @@ namespace EManagersLib {
         public static Randomizer randomizer = new Randomizer();
 
         /// <summary>
+        /// Functions exactly the same as Mathf.Approximately but 52x faster
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static bool Approximately(float a, float b) => a + 0.0000000596f >= b && a - 0.0000000596f <= b;
+
+        /// <summary>
         /// Functions exactly the same as Mathf.Abs but ~4x faster
         /// </summary>
         /// <param name="val"></param>
@@ -70,9 +78,18 @@ namespace EManagersLib {
         /// <param name="val"></param>
         /// <returns>Returns value between 0 and 1</returns>
         public static float Clamp01(float val) {
-            if (val < 0) return 0;
-            else if (val > 1) return 1;
-            return val;
+            val = val > 1 ? 1 : val;
+            return val < 0 ? 0 : val;
+        }
+
+        /// <summary>
+        /// Same as Mathf.Clamp01, clamps between 0 and 1
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns>Returns value between 0 and 1</returns>
+        public static int Clamp01(int val) {
+            val = val > 1 ? 1 : val;
+            return val < 0 ? 0 : val;
         }
 
         /// <summary>
@@ -97,7 +114,7 @@ namespace EManagersLib {
         /// <param name="a">First value to compare</param>
         /// <param name="b">Second value to compare</param>
         /// <returns>Returns the maximum value</returns>
-        public static int Max(int a, int b) => (a <= b) ? b : a;
+        public static int Max(int a, int b) => a > b ? a : b;
 
         /// <summary>
         /// I don't know why Mathf.Min and Math.Min is so slow, but this method will work ~27x faster
@@ -105,7 +122,7 @@ namespace EManagersLib {
         /// <param name="a">First value to compare</param>
         /// <param name="b">Second value to compare</param>
         /// <returns>Returns the minimum value</returns>
-        public static int Min(int a, int b) => (a >= b) ? b : a;
+        public static int Min(int a, int b) => a < b ? a : b;
 
         /// <summary>
         /// I don't know why Mathf.Max and Math.Max is so slow, but this method will work ~27x faster
@@ -113,7 +130,7 @@ namespace EManagersLib {
         /// <param name="a">First value to compare</param>
         /// <param name="b">Second value to compare</param>
         /// <returns>Returns the maximum value</returns>
-        public static float Max(float a, float b) => (a <= b) ? b : a;
+        public static float Max(float a, float b) => a > b ? a : b;
 
         /// <summary>
         /// I don't know why Mathf.Min and Math.Min is so slow, but this method will work ~27x faster
@@ -121,7 +138,7 @@ namespace EManagersLib {
         /// <param name="a">First value to compare</param>
         /// <param name="b">Second value to compare</param>
         /// <returns>Returns the minimum value</returns>
-        public static float Min(float a, float b) => (a >= b) ? b : a;
+        public static float Min(float a, float b) => a < b ? a : b;
 
         /// <summary>
         /// Compares Vector3 and returns the max, this method is about ~2x faster than Vector3.Max
@@ -168,21 +185,52 @@ namespace EManagersLib {
         public static float Cos(float x) => Sin(x + 1.5707963f);
 
         /// <summary>
+        /// Functions exactly the same as Mathf.Repeat, just faster
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static float Repeat(float a, float b) => a % b;
+
+        /// <summary>
         /// This Sqrt function is accurate to only 0.01f, the speed is about ~3x faster
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
         public static unsafe float Sqrt(float x) {
             float xHalf = 0.5f * x;
-            int tmp = 0x5F3759DF - (*(int*)&x >> 1);
+            int tmp = 0x5f3759df - (*(int*)&x >> 1);
             float xRes = *(float*)&tmp;
             xRes *= (1.5f - (xHalf * xRes * xRes));
             return xRes * x;
         }
 
+        /// <summary>
+        /// Functions Exactly the same as Mathf.Sign
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static float Sign(float a) => a < 0 ? -1 : 1;
+
+        /// <summary>
+        /// Functions Exactly the same as Mathf.Sign
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
+        public static int Sign(int a) => a < 0 ? -1 : 1;
+
         public static bool IsNearlyEqual(float a, float b, float epsilon = 0.0001f) => a == b || Abs(a - b) < epsilon;
 
+        /// <summary>
+        /// Use this method to set the seed value, instead of calling new Randomizer(int val), so randomizer can be re-used
+        /// </summary>
+        /// <param name="val"></param>
         public static void SetRandomizerSeed(int val) => randomizer.seed = (ulong)(6364136223846793005L * val + 1442695040888963407L);
+
+        /// <summary>
+        /// Use this method to set the seed value, instead of calling new Randomizer(int val), so randomizer can be re-used
+        /// </summary>
+        /// <param name="val"></param>
         public static void SetRandomizerSeed(uint val) => randomizer.seed = 6364136223846793005uL * val + 1442695040888963407uL;
     }
 }
