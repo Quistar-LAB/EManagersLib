@@ -14,8 +14,9 @@ namespace EManagersLib.API {
     /// </summary>
     public abstract class PropWrapper {
         /// <summary>
-        /// Cached randomizer to speed things up a bit
+        /// Cached instance of PropManager
         /// </summary>
+        public static PropManager pmInstance;
         public static Randomizer m_randomizer = new Randomizer();
         /// <summary>
         /// Check if Prop Anarchy is enabled or disabled
@@ -107,12 +108,14 @@ namespace EManagersLib.API {
         /// Set Prop Single property
         /// </summary>
         /// <param name="id">Prop ID</param>
-        public abstract void SetSingle(uint id);
+        /// <param name="state">True or False</param>
+        public abstract void SetSingle(uint id, bool state);
         /// <summary>
         /// Set Prop Single property
         /// </summary>
         /// <param name="id">InstanceID</param>
-        public abstract void SetSingle(InstanceID id);
+        /// <param name="state">True or False</param>
+        public abstract void SetSingle(InstanceID id, bool state);
         /// <summary>
         /// Get Prop FixedHeight property
         /// </summary>
@@ -331,10 +334,6 @@ namespace EManagersLib.API {
         /// This buffer will be set during class initialization
         /// </summary>
         public static PropInstance[] m_defBuffer;
-        /// <summary>
-        /// Cached instance of PropManager
-        /// </summary>
-        public static PropManager pmInstance;
 
         /// <summary>
         /// Default prop framework wrapper initialization
@@ -505,13 +504,17 @@ namespace EManagersLib.API {
         /// Set prop Single property
         /// </summary>
         /// <param name="id">prop ID</param>
-        public override void SetSingle(uint id) => m_defBuffer[id].m_flags &= EPropInstance.SINGLEMASK;
+        /// <param name="state">True or False</param>
+        public override void SetSingle(uint id, bool state) =>
+            m_defBuffer[id].m_flags = state ? (ushort)(m_defBuffer[id].m_flags | EPropInstance.SINGLEFLAG) : (ushort)(m_defBuffer[id].m_flags & EPropInstance.SINGLEMASK);
 
         /// <summary>
         /// Set prop Single property
         /// </summary>
         /// <param name="id">InstanceID</param>
-        public override void SetSingle(InstanceID id) => m_defBuffer[id.Prop].m_flags &= EPropInstance.SINGLEMASK;
+        /// <param name="state">True or False</param>
+        public override void SetSingle(InstanceID id, bool state) =>
+            m_defBuffer[id.GetProp32()].m_flags = state ? (ushort)(m_defBuffer[id.GetProp32()].m_flags | EPropInstance.SINGLEFLAG) : (ushort)(m_defBuffer[id.GetProp32()].m_flags & EPropInstance.SINGLEMASK);
 
         /// <summary>
         /// Get prop FixedHeight property
@@ -825,10 +828,6 @@ namespace EManagersLib.API {
         /// This buffer will be set during class initialization
         /// </summary>
         public static EPropInstance[] m_defBuffer;
-        /// <summary>
-        /// Cached instance of PropManager
-        /// </summary>
-        public static PropManager pmInstance;
 
         /// <summary>
         /// Default prop framework wrapper initialization
@@ -958,13 +957,17 @@ namespace EManagersLib.API {
         /// Set prop Single property
         /// </summary>
         /// <param name="id">prop ID</param>
-        public override void SetSingle(uint id) => m_defBuffer[id].m_flags &= EPropInstance.SINGLEMASK;
+        /// <param name="state">True or False</param>
+        public override void SetSingle(uint id, bool state) =>
+            m_defBuffer[id].m_flags = state ? (ushort)(m_defBuffer[id].m_flags | EPropInstance.SINGLEFLAG) : (ushort)(m_defBuffer[id].m_flags & EPropInstance.SINGLEMASK);
 
         /// <summary>
         /// Set prop Single property
         /// </summary>
         /// <param name="id">InstanceID</param>
-        public override void SetSingle(InstanceID id) => m_defBuffer[id.GetProp32()].m_flags &= EPropInstance.SINGLEMASK;
+        /// <param name="state">True or False</param>
+        public override void SetSingle(InstanceID id, bool state) =>
+            m_defBuffer[id.GetProp32()].m_flags = state ? (ushort)(m_defBuffer[id.GetProp32()].m_flags | EPropInstance.SINGLEFLAG) : (ushort)(m_defBuffer[id.GetProp32()].m_flags & EPropInstance.SINGLEMASK);
 
         /// <summary>
         /// Get prop FixedHeight property
