@@ -20,13 +20,7 @@ namespace EManagersLib {
                 max = EMath.Max(max, rhs2);
                 Vector3 vector = pos - groupPosition;
                 maxRenderDistance = EMath.Max(maxRenderDistance, 30000f);
-                Vector3 vector2;
-                if (___m_lightType == LightType.Spot) {
-                    Quaternion rotation = Quaternion.LookRotation(dir);
-                    vector2 = rotation * (___m_lightRotation * EMath.Vector3Forward);
-                } else {
-                    vector2 = Vector3.forward;
-                }
+                Vector3 vector2 = ___m_lightType == LightType.Spot ? Quaternion.LookRotation(dir) * (___m_lightRotation * EMath.Vector3Forward) : EMath.Vector3Forward;
                 Vector4 vector3 = new Vector4(vector2.x, vector2.y, vector2.z, 100000f);
                 if (___m_lightType == LightType.Spot) {
                     vector3.w = -EMath.Cos(0.0174532924f * ___m_lightSpotAngle * 0.5f);
@@ -39,7 +33,7 @@ namespace EManagersLib {
                 ushort building = EffectInfo.GetBuilding(id);
                 Vector2 vector6;
                 Vector2 vector7;
-                if (building != 0) {
+                if (building != 0 && building < 49152) { // make sure buildingID is less than 49152
                     vector6 = RenderManager.GetColorLocation(building);
                     if (flag) {
                         Vector3 v = Singleton<BuildingManager>.instance.m_buildings.m_buffer[building].CalculateMeshPosition();
