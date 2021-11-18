@@ -34,29 +34,34 @@ namespace EManagersLib {
             using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
                 while (codes.MoveNext()) {
                     var cur = codes.Current;
-                    if (cur.opcode == OpCodes.Ldloca_S && (cur.operand as LocalBuilder).LocalType == typeof(ToolBase.RaycastOutput)) {
+                    if (cur.opcode == OpCodes.Ldloca_S && cur.operand is LocalBuilder l1 && l1.LocalType == typeof(ToolBase.RaycastOutput)) {
                         yield return new CodeInstruction(OpCodes.Ldloca_S, raycastOutput).WithLabels(cur.labels);
-                    } else if (cur.opcode == OpCodes.Call && cur.operand == raycast) {
+                    } else if (cur.opcode == OpCodes.Call && cur.operand is MethodInfo method && method == raycast) {
                         yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EToolBase), nameof(EToolBase.RayCast))).WithLabels(cur.labels);
                     } else if (cur.opcode == OpCodes.Ldfld || cur.opcode == OpCodes.Ldflda || cur.opcode == OpCodes.Stfld) {
-                        if (cur.operand == m_hitPos) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_hitPos)));
-                        else if (cur.operand == m_currentEditObject) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_currentEditObject)));
-                        else if (cur.operand == m_netSegment) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_netSegment)));
-                        else if (cur.operand == m_netNode) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_netNode)));
-                        else if (cur.operand == m_building) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_building)));
-                        else if (cur.operand == m_vehicle) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_vehicle)));
-                        else if (cur.operand == m_citizenInstance) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_citizenInstance)));
-                        else if (cur.operand == m_overlayButtonIndex) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_overlayButtonIndex)));
-                        else if (cur.operand == m_propInstance) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_propInstance)));
-                        else if (cur.operand == m_treeInstance) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_treeInstance)));
-                        else if (cur.operand == m_disaster) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_disaster)));
-                        else if (cur.operand == m_parkedVehicle) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_parkedVehicle)));
-                        else if (cur.operand == m_district) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_district)));
-                        else if (cur.operand == m_park) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_park)));
-                        else if (cur.operand == m_transportLine) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_transportLine)));
-                        else yield return cur;
-                    } else if (cur.opcode == OpCodes.Initobj && cur.operand == typeof(ToolBase.RaycastOutput)) {
-                        yield return new CodeInstruction(OpCodes.Initobj, typeof(EToolBase.RaycastOutput));
+                        if (cur.operand is FieldInfo field) {
+                            if (field == m_hitPos) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_hitPos))).WithLabels(cur.labels);
+                            else if (field == m_currentEditObject) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_currentEditObject))).WithLabels(cur.labels);
+                            else if (field == m_netSegment) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_netSegment))).WithLabels(cur.labels);
+                            else if (field == m_netNode) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_netNode))).WithLabels(cur.labels);
+                            else if (field == m_building) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_building))).WithLabels(cur.labels);
+                            else if (field == m_vehicle) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_vehicle))).WithLabels(cur.labels);
+                            else if (field == m_citizenInstance) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_citizenInstance))).WithLabels(cur.labels);
+                            else if (field == m_overlayButtonIndex) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_overlayButtonIndex))).WithLabels(cur.labels);
+                            else if (field == m_propInstance) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_propInstance))).WithLabels(cur.labels);
+                            else if (field == m_treeInstance) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_treeInstance))).WithLabels(cur.labels);
+                            else if (field == m_disaster) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_disaster))).WithLabels(cur.labels);
+                            else if (field == m_parkedVehicle) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_parkedVehicle))).WithLabels(cur.labels);
+                            else if (field == m_district) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_district))).WithLabels(cur.labels);
+                            else if (field == m_park) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_park))).WithLabels(cur.labels);
+                            else if (field == m_transportLine) yield return new CodeInstruction(cur.opcode, AccessTools.Field(typeof(EToolBase.RaycastOutput), nameof(EToolBase.RaycastOutput.m_transportLine))).WithLabels(cur.labels);
+                            else yield return cur;
+                        } else {
+                            yield return cur;
+                        }
+                    } else if (cur.opcode == OpCodes.Initobj && cur.operand is LocalBuilder l2 && l2.LocalType == typeof(ToolBase.RaycastOutput)) {
+                        cur.operand = typeof(EToolBase.RaycastOutput);
+                        yield return cur;
                     } else {
                         yield return cur;
                     }
