@@ -5,6 +5,8 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using UnityEngine;
+
 using static EManagersLib.EPropManager;
 
 namespace EManagersLib {
@@ -71,10 +73,10 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Ldarg_2);
             yield return new CodeInstruction(OpCodes.Ldarg_3);
-            yield return new CodeInstruction(OpCodes.Ldarga_S, 4);
-            yield return new CodeInstruction(OpCodes.Ldarga_S, 5);
-            yield return new CodeInstruction(OpCodes.Ldarga_S, 6);
-            yield return new CodeInstruction(OpCodes.Ldarga_S, 7);
+            yield return new CodeInstruction(OpCodes.Ldarg_S, 4);
+            yield return new CodeInstruction(OpCodes.Ldarg_S, 5);
+            yield return new CodeInstruction(OpCodes.Ldarg_S, 6);
+            yield return new CodeInstruction(OpCodes.Ldarg_S, 7);
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.CalculateGroupData)));
             yield return new CodeInstruction(OpCodes.Ret);
         }
