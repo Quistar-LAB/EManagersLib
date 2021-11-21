@@ -717,8 +717,10 @@ namespace EManagersLib {
             if (info.m_prefabDataLayer == layer) return true;
             if (info.m_effectLayer == layer || (info.m_effectLayer == lightSystem.m_lightLayer && layer == lightSystem.m_lightLayerFloating)) {
                 bool result = false;
-                for (int i = 0; i < info.m_effects.Length; i++) {
-                    if (info.m_effects[i].m_effect.CalculateGroupData(layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays)) {
+                PropInfo.Effect[] effects = info.m_effects;
+                int len = effects.Length;
+                for (int i = 0; i < len; i++) {
+                    if (effects[i].m_effect.CalculateGroupData(layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays)) {
                         result = true;
                     }
                 }
@@ -747,11 +749,12 @@ namespace EManagersLib {
                 maxRenderDistance = EMath.Max(maxRenderDistance, info.m_maxRenderDistance);
                 maxInstanceDistance = EMath.Max(maxInstanceDistance, info.m_maxRenderDistance);
             } else if (info.m_effectLayer == layer || (info.m_effectLayer == lightSystem.m_lightLayer && layer == lightSystem.m_lightLayerFloating)) {
-                Matrix4x4 matrix4x = default;
-                matrix4x.SetTRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
-                for (int i = 0; i < info.m_effects.Length; i++) {
-                    info.m_effects[i].m_effect.PopulateGroupData(layer, id, matrix4x.MultiplyPoint(info.m_effects[i].m_position),
-                        matrix4x.MultiplyVector(info.m_effects[i].m_direction), ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
+                PropInfo.Effect[] effects = info.m_effects;
+                int len = effects.Length;
+                Matrix4x4 matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, EMath.Vector3Down), new Vector3(scale, scale, scale));
+                for (int i = 0; i < len; i++) {
+                    effects[i].m_effect.PopulateGroupData(layer, id, matrix4x.MultiplyPoint(effects[i].m_position),
+                        matrix4x.MultiplyVector(effects[i].m_direction), ref vertexIndex, ref triangleIndex, groupPosition, data, ref min, ref max, ref maxRenderDistance, ref maxInstanceDistance);
                 }
             }
         }

@@ -112,7 +112,6 @@ namespace EManagersLib {
             new EInstanceManagerPatch().Enable(harmony);
             new EPropToolPatch().Enable(harmony);
             new EBuildingAIPatch().Enable(harmony);
-            new ELightEffectPatch().Enable(harmony);
             new EToolBaseCompatPatch().Enable(harmony);
         }
 
@@ -127,7 +126,6 @@ namespace EManagersLib {
             new EPropToolPatch().Disable(harmony);
             new EBuildingAIPatch().Disable(harmony);
             new EToolBaseCompatPatch().Disable(harmony);
-            new ELightEffectPatch().Disable(harmony);
             new E81TilesCompatPatch().Disable(harmony);
         }
 
