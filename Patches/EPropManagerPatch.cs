@@ -5,7 +5,6 @@ using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using UnityEngine;
 
 using static EManagersLib.EPropManager;
 
@@ -94,6 +93,7 @@ namespace EManagersLib {
         }
 
         private static IEnumerable<CodeInstruction> EndRenderingImplTranspiler(IEnumerable<CodeInstruction> instructions) {
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.EndRenderingImpl)));
             yield return new CodeInstruction(OpCodes.Ret);
