@@ -49,7 +49,7 @@ namespace EManagersLib {
 
         internal void Enable(Harmony harmony) {
             fakeParkProps = EightyOneReflection();
-            if (fakeParkProps == null) {
+            if (fakeParkProps is null) {
                 Debug.Log("81 Tiles MoveParkProps not reflected");
                 return;
             }
@@ -58,7 +58,8 @@ namespace EManagersLib {
         }
 
         internal void Disable(Harmony harmony) {
-            harmony.Unpatch(fakeParkProps, HarmonyPatchType.Prefix, EModule.HARMONYID);
+            if(!(fakeParkProps is null))
+                harmony.Unpatch(fakeParkProps, HarmonyPatchType.Prefix, EModule.HARMONYID);
         }
 
         /// <summary>
