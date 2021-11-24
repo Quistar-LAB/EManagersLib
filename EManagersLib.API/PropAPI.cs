@@ -152,8 +152,8 @@ namespace EManagersLib.API {
             foreach (PluginManager.PluginInfo current in Singleton<PluginManager>.instance.GetPluginsInfo()) {
                 foreach (Assembly current2 in current.GetAssemblies()) {
                     if (current2.GetName().Name.ToLower().Equals("emanagerslib")) {
-                        m_isEMLInstalled = true;
-                        Debug.Log("EML: Is installed!");
+                        m_isEMLInstalled = current.isEnabled;
+                        Debug.Log("EML: Is installed! and is " + (current.isEnabled ? "ENABLED" : "DISABLED"));
                     }
                 }
             }
