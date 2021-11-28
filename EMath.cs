@@ -8,21 +8,21 @@ namespace EManagersLib {
     /// the wheel, but these speed ups are drastic enough to do them
     /// </summary>
     public static class EMath {
-        public static Vector2 Vector2Zero = Vector2.zero;
-        public static Vector3 Vector3Zero = Vector3.zero;
-        public static Vector4 Vector4Zero = Vector4.zero;
-        public static Vector3 Vector3Down = Vector3.down;
-        public static Vector3 Vector3Forward = Vector3.forward;
-        public static Vector3 DefaultLodMin = new Vector3(100000f, 100000f, 100000f);
-        public static Vector3 DefaultLodMax = new Vector3(-100000f, -100000f, -100000f);
-        public static Vector3 DefaultLod100 = new Vector3(100f, 100f, 100f);
-        public static Color ColorClear = Color.clear;
+        public static readonly Vector2 Vector2Zero = Vector2.zero;
+        public static readonly Vector3 Vector3Zero = Vector3.zero;
+        public static readonly Vector4 Vector4Zero = Vector4.zero;
+        public static readonly Vector3 Vector3Down = Vector3.down;
+        public static readonly Vector3 Vector3Forward = Vector3.forward;
+        public static readonly Vector3 DefaultLodMin = new Vector3(100000f, 100000f, 100000f);
+        public static readonly Vector3 DefaultLodMax = new Vector3(-100000f, -100000f, -100000f);
+        public static readonly Vector3 DefaultLod100 = new Vector3(100f, 100f, 100f);
+        public static readonly Color ColorClear = Color.clear;
         public static Randomizer randomizer = new Randomizer();
 
         /// <summary>
         /// Get Matrix.identity using this static variable. It's about ~5x faster
         /// </summary>
-        public static Matrix4x4 matrix4Identity = Matrix4x4.identity;
+        public static readonly Matrix4x4 matrix4Identity = Matrix4x4.identity;
 
         /// <summary>
         /// Functions exactly the same as Mathf.Approximately but 52x faster
@@ -112,6 +112,18 @@ namespace EManagersLib {
         /// <param name="t"></param>
         /// <returns></returns>
         public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp01(t);
+
+        /// <summary>
+        /// Same as Vector3.Lerp, just slightly faster
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="t"></param>
+        /// <returns>Returns Vector3</returns>
+        public static Vector3 Lerp(Vector3 a, Vector3 b, float t) {
+            t = t > 1 ? 1 : (t < 0 ? 0 : t);
+            return new Vector3(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
+        }
 
         /// <summary>
         /// I don't know why Mathf.Max and Math.Max is so slow, but this method will work ~27x faster
@@ -223,6 +235,20 @@ namespace EManagersLib {
         /// <param name="a"></param>
         /// <returns></returns>
         public static int Sign(int a) => a < 0 ? -1 : 1;
+
+        /// <summary>
+        /// Functions Exactly like Mathf.FloorToInt, just ~8x faster
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public static int FloorToInt(float val) => (val < 0) ? (int)(val - 1) : (int)val;
+
+        /// <summary>
+        /// Functions like Mathf.CeilToInt, just ~3x faster
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public static int CeilToInt(float val) => (val < 0) ? (int)(val) : (val % (int)val > 0f ? (int)(val + 1) : (int)val);
 
         public static bool IsNearlyEqual(float a, float b, float epsilon = 0.0001f) => a == b || Abs(a - b) < epsilon;
 
