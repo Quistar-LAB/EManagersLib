@@ -207,6 +207,11 @@ namespace EManagersLib.API {
         /// <returns>Returns the boxed buffer</returns>
         public abstract object GetBuffer(InstanceID id);
         /// <summary>
+        /// Get the whole buffer
+        /// </summary>
+        /// <returns></returns>
+        public abstract object GetRawBuffer();
+        /// <summary>
         /// Wrapper for PropManager::CreateProp
         /// </summary>
         /// <param name="prop"></param>
@@ -649,6 +654,12 @@ namespace EManagersLib.API {
         public override object GetBuffer(InstanceID id) => m_defBuffer[id.Prop];
 
         /// <summary>
+        /// Get the entire PropInstance buffer
+        /// </summary>
+        /// <returns></returns>
+        public override object GetRawBuffer() => m_defBuffer;
+
+        /// <summary>
         /// Wrapper for PropManager::CreateProp
         /// </summary>
         /// <param name="prop">Prop ID</param>
@@ -1078,6 +1089,12 @@ namespace EManagersLib.API {
         /// <param name="id">InstanceID</param>
         /// <returns>Returns the boxed EPropInstance buffer</returns>
         public override object GetBuffer(InstanceID id) => m_defBuffer[id.GetProp32()];
+
+        /// <summary>
+        /// Get entire EPropInstance buffer
+        /// </summary>
+        /// <returns></returns>
+        public override object GetRawBuffer() => m_defBuffer;
 
         /// <summary>
         /// Wrapper for EPropManager::CreateProp
