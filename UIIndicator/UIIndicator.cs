@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace UI {
     public class UIIndicator : UIPanel {
-        private const float indicatorWidth = 24f;
-        private const float indicatorHeight = 24f;
+        private const float indicatorWidth = 26f;
+        private const float indicatorHeight = 26f;
         private const int spriteMaxSize = 32;
         private const string IndicatorPanelName = @"IndicatorPanel";
         private const string SnappingIconName = @"Snap";
@@ -245,7 +245,7 @@ namespace UI {
             UnmanagedMemoryStream s = (UnmanagedMemoryStream)Assembly.GetExecutingAssembly().GetManifestResourceStream("UIIndicator.Icons." + filename);
             byte[] array = new byte[s.Length];
             s.Read(array, 0, array.Length);
-            Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+            Texture2D texture = new Texture2D(spriteMaxSize, spriteMaxSize, TextureFormat.ARGB32, false);
             texture.LoadImage(array);
             texture.Compress(false);
             return texture;
