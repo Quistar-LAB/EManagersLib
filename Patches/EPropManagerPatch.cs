@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using System;
 using ColossalFramework.IO;
 using ColossalFramework.Math;
 using HarmonyLib;
@@ -281,26 +282,67 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
-        private static IEnumerable<CodeInstruction> AfterDeserializeTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
-            yield return new CodeInstruction(OpCodes.Ldarg_1);
-            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserialize)));
-            yield return new CodeInstruction(OpCodes.Ret);
+        private static IEnumerable<CodeInstruction> AfterDeserializeTranspiler(IEnumerable<CodeInstruction> instructions) {
+            bool skip = false;
+            int sigCounter = 0;
+            MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
+            MethodInfo beginAfterDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginAfterDeserialize));
+            foreach(var code in instructions) {
+                if(!skip && code.opcode == OpCodes.Callvirt && code.operand == beginAfterDeserialize) {
+                    skip = true;
+                    yield return code;
+                    yield return new CodeInstruction(OpCodes.Ldarg_1);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserialize)));
+                } else if(skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
+                    if(++sigCounter == 2) {
+                        skip = false;
+                        yield return code;
+                    }
+                } else if(!skip) {
+                    yield return code;
+                }
+            }
         }
 
         private static IEnumerable<CodeInstruction> DeserializeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            yield return new CodeInstruction(OpCodes.Ldarg_1);
-            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize)));
-            yield return new CodeInstruction(OpCodes.Ret);
+            bool skip = false;
+            MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
+            MethodInfo beginDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginDeserialize), new Type[] { typeof(DataSerializer), typeof(string) });
+            foreach(var code in instructions) {
+                if (code.opcode == OpCodes.Callvirt && code.operand == beginDeserialize) {
+                    skip = true;
+                    yield return code;
+                    yield return new CodeInstruction(OpCodes.Ldarg_1);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize)));
+                } else if (skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
+                    skip = false;
+                    yield return code;
+                } else if (!skip) {
+                    yield return code;
+                }
+            }
         }
 
         private static IEnumerable<CodeInstruction> SerializeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            yield return new CodeInstruction(OpCodes.Ldarg_1);
-            yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize)));
-            yield return new CodeInstruction(OpCodes.Ret);
+            bool skip = false;
+            MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
+            MethodInfo beginDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginSerialize), new Type[] { typeof(DataSerializer), typeof(string) });
+            foreach (var code in instructions) {
+                if (code.opcode == OpCodes.Callvirt && code.operand == beginDeserialize) {
+                    skip = true;
+                    yield return code;
+                    yield return new CodeInstruction(OpCodes.Ldarg_1);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize)));
+                } else if (skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
+                    skip = false;
+                    yield return code;
+                } else if (!skip) {
+                    yield return code;
+                }
+            }
         }
 
         private static void AfterDeserialize(DataSerializer s) {
-            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginAfterDeserialize(s, "PropManager");
             Singleton<LoadingManager>.instance.WaitUntilEssentialScenesLoaded();
             PrefabCollection<PropInfo>.BindPrefabs();
             PropManager instance = Singleton<PropManager>.instance;
@@ -320,11 +362,9 @@ namespace EManagersLib {
                 }
             }
             instance.m_propCount = (int)(m_props.ItemCount() - 1u);
-            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndAfterDeserialize(s, "PropManager");
         }
 
         private static void Deserialize(DataSerializer s) {
-            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginDeserialize(s, "PropManager");
             PropManager instance = Singleton<PropManager>.instance;
             EnsureCapacity(instance);
             EPropInstance[] buffer = m_props.m_buffer;
@@ -385,11 +425,9 @@ namespace EManagersLib {
                     m_props.ReleaseItem((uint)i);
                 }
             }
-            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndDeserialize(s, "PropManager");
         }
 
         private static void Serialize(DataSerializer s) {
-            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.BeginSerialize(s, "PropManager");
             EPropInstance[] buffer = m_props.m_buffer;
             int num = DEFAULT_PROP_LIMIT;
             EncodedArray.UShort uShort = EncodedArray.UShort.BeginWrite(s);
@@ -428,10 +466,7 @@ namespace EManagersLib {
                 }
             }
             uShort2.EndWrite();
-            Singleton<LoadingManager>.instance.m_loadingProfilerSimulation.EndSerialize(s, "PropManager");
         }
-
-
 
         internal void Enable(Harmony harmony) {
             harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AwakeTranspiler))));
