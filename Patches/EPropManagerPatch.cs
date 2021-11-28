@@ -1,12 +1,11 @@
 ﻿using ColossalFramework;
-using System;
 using ColossalFramework.IO;
 using ColossalFramework.Math;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-
 using static EManagersLib.EPropManager;
 
 namespace EManagersLib {
@@ -287,18 +286,18 @@ namespace EManagersLib {
             int sigCounter = 0;
             MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
             MethodInfo beginAfterDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginAfterDeserialize));
-            foreach(var code in instructions) {
-                if(!skip && code.opcode == OpCodes.Callvirt && code.operand == beginAfterDeserialize) {
+            foreach (var code in instructions) {
+                if (!skip && code.opcode == OpCodes.Callvirt && code.operand == beginAfterDeserialize) {
                     skip = true;
                     yield return code;
                     yield return new CodeInstruction(OpCodes.Ldarg_1);
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserialize)));
-                } else if(skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
-                    if(++sigCounter == 2) {
+                } else if (skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
+                    if (++sigCounter == 2) {
                         skip = false;
                         yield return code;
                     }
-                } else if(!skip) {
+                } else if (!skip) {
                     yield return code;
                 }
             }
@@ -308,7 +307,7 @@ namespace EManagersLib {
             bool skip = false;
             MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
             MethodInfo beginDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginDeserialize), new Type[] { typeof(DataSerializer), typeof(string) });
-            foreach(var code in instructions) {
+            foreach (var code in instructions) {
                 if (code.opcode == OpCodes.Callvirt && code.operand == beginDeserialize) {
                     skip = true;
                     yield return code;

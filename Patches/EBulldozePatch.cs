@@ -75,10 +75,10 @@ namespace EManagersLib {
             MethodInfo propGetter = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
             MethodInfo deleteProp = AccessTools.Method(typeof(BulldozeTool), "DeletePropImpl");
             foreach (var code in instructions) {
-                if(code.opcode == OpCodes.Call && code.operand == propGetter) {
+                if (code.opcode == OpCodes.Call && code.operand == propGetter) {
                     code.operand = AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef));
                     yield return code;
-                } else if(code.opcode == OpCodes.Call && code.operand == deleteProp) {
+                } else if (code.opcode == OpCodes.Call && code.operand == deleteProp) {
                     code.operand = AccessTools.Method(typeof(EBulldozePatch), nameof(EBulldozePatch.DeletePropImpl));
                     yield return code;
                 } else {

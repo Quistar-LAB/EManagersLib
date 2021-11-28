@@ -58,7 +58,7 @@ namespace EManagersLib {
         }
 
         internal void Disable(Harmony harmony) {
-            if(!(fakeParkProps is null))
+            if (!(fakeParkProps is null))
                 harmony.Unpatch(fakeParkProps, HarmonyPatchType.Prefix, EModule.HARMONYID);
         }
 

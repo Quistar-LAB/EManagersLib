@@ -92,7 +92,7 @@ namespace UI {
         public static UIIndicator Setup() {
             UIPanel infoPanel = UIView.GetAView().FindUIComponent<UIPanel>(@"InfoPanel");
             UIIndicator indicatorPanel = infoPanel.GetComponentInChildren<UIIndicator>();
-            if(indicatorPanel is null) {
+            if (indicatorPanel is null) {
                 Debug.Log($"IndicatorPanel: Is NULL");
             } else {
                 Debug.Log($"IndicatorPanel: {indicatorPanel.name}");
@@ -142,7 +142,7 @@ namespace UI {
                 icon.m_enabledTooltip += "\n" + enableTooltip;
                 icon.m_disabledTooltip += "\n" + disableTooltip;
                 icon.InvalidateTooltip();
-                if(defState != icon.State) {
+                if (defState != icon.State) {
                     finalState = icon.State;
                     icon.State = finalState;
                 }
@@ -180,7 +180,7 @@ namespace UI {
                 icon.m_enabledTooltip += "\n" + enableTooltip;
                 icon.m_disabledTooltip += "\n" + disableTooltip;
                 icon.InvalidateTooltip();
-                if(defState != icon.State) {
+                if (defState != icon.State) {
                     finalState = icon.State;
                     icon.State = finalState;
                 }
