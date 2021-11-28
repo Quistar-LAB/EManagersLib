@@ -71,6 +71,22 @@ namespace EManagersLib {
             }
         }
 
+        private static IEnumerable<CodeInstruction> SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions) {
+            MethodInfo propGetter = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
+            MethodInfo deleteProp = AccessTools.Method(typeof(BulldozeTool), "DeletePropImpl");
+            foreach (var code in instructions) {
+                if(code.opcode == OpCodes.Call && code.operand == propGetter) {
+                    code.operand = AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef));
+                    yield return code;
+                } else if(code.opcode == OpCodes.Call && code.operand == deleteProp) {
+                    code.operand = AccessTools.Method(typeof(EBulldozePatch), nameof(EBulldozePatch.DeletePropImpl));
+                    yield return code;
+                } else {
+                    yield return code;
+                }
+            }
+        }
+
         private static bool InitializedBulldoze = false;
         internal void Enable(Harmony harmony) {
             if (!InitializedBulldoze) {
@@ -86,10 +102,12 @@ namespace EManagersLib {
                 InitializedBulldoze = true;
             }
             harmony.Patch(AccessTools.Method(typeof(BulldozeTool), "OnToolGUI"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBulldozePatch), nameof(BulldozeOnToolGUITranspiler))));
+            harmony.Patch(AccessTools.Method(typeof(BulldozeTool), nameof(BulldozeTool.SimulationStep)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBulldozePatch), nameof(SimulationStepTranspiler))));
         }
 
         internal void Disable(Harmony harmony) {
             harmony.Unpatch(AccessTools.Method(typeof(BulldozeTool), "OnToolGUI"), HarmonyPatchType.Transpiler, EModule.HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(BulldozeTool), nameof(BulldozeTool.SimulationStep)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
         }
     }
 }
