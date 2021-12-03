@@ -6,7 +6,7 @@ using System;
 
 namespace EManagersLib {
     public class EModule : IUserMod, ILoadingExtension {
-        internal const string m_modVersion = "0.8.7";
+        internal const string m_modVersion = "0.9.0";
         internal const string m_assemblyVersion = m_modVersion + ".*";
         internal const string m_modName = "Extended Managers";
         internal const string m_modDesc = "A library that extends the existing framework in Cities Skylines";
@@ -30,6 +30,7 @@ namespace EManagersLib {
 
         public void OnEnabled() {
             EUtils.CreateDebugFile();
+            EUtils.CheckIncompatibleMods();
             HarmonyHelper.DoOnHarmonyReady(() => EUtils.EnablePropPatches());
         }
 
