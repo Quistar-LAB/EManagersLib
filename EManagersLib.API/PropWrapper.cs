@@ -23,6 +23,10 @@ namespace EManagersLib.API {
         /// </summary>
         public abstract bool IsAnarchyEnabled { get; }
         /// <summary>
+        /// Check if Prop Snapping is enabled or disabled
+        /// </summary>
+        public abstract bool IsSnappingEnabled { get; }
+        /// <summary>
         /// Check whether prop is valid
         /// </summary>
         /// <param name="id">Prop ID</param>
@@ -352,6 +356,11 @@ namespace EManagersLib.API {
         /// Check if Prop Anarchy is enabled or disabled
         /// </summary>
         public override bool IsAnarchyEnabled => false;
+
+        /// <summary>
+        /// Check if Prop Anarchy is enabled or disabled
+        /// </summary>
+        public override bool IsSnappingEnabled => false;
 
         /// <summary>
         /// Check whether prop is valid
@@ -865,6 +874,11 @@ namespace EManagersLib.API {
         /// Check if Prop Anarchy is enabled or disabled
         /// </summary>
         public override bool IsAnarchyEnabled => PropAnarchyGetter();
+
+        /// <summary>
+        /// Check if Prop Anarchy is enabled or disabled
+        /// </summary>
+        public override bool IsSnappingEnabled => PropSnappingGetter();
 
         /// <summary>
         /// Check whether prop is valid
