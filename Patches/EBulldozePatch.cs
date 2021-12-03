@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     public class EBulldozePatch {
@@ -19,12 +20,14 @@ namespace EManagersLib {
         private static Action<BulldozeTool, InstanceID> set_LastInstance;
         private static Func<BulldozeTool, InstanceID> get_LastInstance;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static IEnumerator DeleteProp(BulldozeTool bulldoze, uint prop) {
             DeletePropImpl(bulldoze, prop);
             yield return 0;
         }
 
         private static void DeletePropImpl(BulldozeTool bulldoze, uint prop) {
+            EUtils.ELog($"bulldoze: {bulldoze}, propID: {prop}");
             if (EPropManager.m_props.m_buffer[prop].m_flags != 0) {
                 PropManager propManager = Singleton<PropManager>.instance;
                 set_BulldozingMode(bulldoze, BulldozeTool.Mode.PropOrTree);
@@ -72,10 +75,54 @@ namespace EManagersLib {
         }
 
         private static IEnumerable<CodeInstruction> SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions) {
+            var codes = __SimulationStepTranspiler(instructions);
+            foreach(var code in codes) {
+                EUtils.ELog(code.ToString());
+            }
+            return codes;
+        }
+        private static IEnumerable<CodeInstruction> __SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo propGetter = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
             MethodInfo deleteProp = AccessTools.Method(typeof(BulldozeTool), "DeletePropImpl");
+            MethodInfo simulationStep = AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.SimulationStep));
+            FieldInfo lastInstance = AccessTools.Field(typeof(BulldozeTool), "m_lastInstance");
+
             foreach (var code in instructions) {
-                if (code.opcode == OpCodes.Call && code.operand == propGetter) {
+                if(code.opcode == OpCodes.Call && code.operand == simulationStep) {
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_mouseRayValid"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_mouseRay"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_rayRight"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_mouseRayLength"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_mouseLeftDown"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_mouseRightDown"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_mousePosition"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_hoverInstance"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_hoverInstance2"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_subHoverIndex"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_selectErrors"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_toolController"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_angle"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_accuratePosition"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_accuratePositionValid"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(BulldozeTool), "m_fixedHeight"));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EDefaultToolExtension), nameof(EDefaultToolExtension.DefaultSimulationStep)));
+                } else if (code.opcode == OpCodes.Call && code.operand == propGetter) {
                     code.operand = AccessTools.Method(typeof(InstanceIDExtension), nameof(InstanceIDExtension.GetProp32ByRef));
                     yield return code;
                 } else if (code.opcode == OpCodes.Call && code.operand == deleteProp) {
@@ -86,6 +133,7 @@ namespace EManagersLib {
                 }
             }
         }
+
 
         private static bool InitializedBulldoze = false;
         internal void Enable(Harmony harmony) {

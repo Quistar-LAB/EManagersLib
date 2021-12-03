@@ -75,6 +75,7 @@
     <Compile Include="EToolBase.cs" />
     <Compile Include="EUtils.cs" />
     <Compile Include="EModule.cs" />
+    <Compile Include="Extra\EDialog.cs" />
     <Compile Include="IEManagersInit.cs" />
     <Compile Include="Patches\E81TilesCompatPatch.cs" />
     <Compile Include="Patches\EToolBaseCompatPatch.cs" />
