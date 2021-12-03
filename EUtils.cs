@@ -5,6 +5,9 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using ColossalFramework.PlatformServices;
+using ColossalFramework.UI;
+using EManagersLib.Extra;
 
 namespace EManagersLib {
     /// <summary>
@@ -102,6 +105,62 @@ namespace EManagersLib {
             }
         }
 
+        public readonly struct ModInfo {
+            public readonly ulong fileID;
+            public readonly string name;
+            public readonly string specialMsg;
+            public readonly bool inclusive;
+            public ModInfo(ulong modID, string modName, bool isInclusive) {
+                fileID = modID;
+                name = modName;
+                specialMsg = null;
+                inclusive = isInclusive;
+            }
+            public ModInfo(ulong modID, string modName, bool isInclusive, string extraMsg) {
+                fileID = modID;
+                name = modName;
+                specialMsg = extraMsg;
+                inclusive = isInclusive;
+            }
+        }
+
+        private static readonly ModInfo[] IncompatibleMods = new ModInfo[] {
+            new ModInfo(1619685021, @"Move It", false, @"Only Move It Beta is supported at the moment"),
+            new ModInfo(593588108, @"Prop & Tree Anarchy", false, @"Prop Anarchy Beta and Tree Anarchy Beta together replaces Prop & Tree Anarchy"),
+            new ModInfo(791221322, @"Prop Precision", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(787611845, @"Prop Snapping", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(767233815, @"Decal Prop Fix", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(694512541, @"Prop Line Tool", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(911295408, @"Prop Scaler", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(1869561285, @"Prop Painter", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(1410003347, @"Additive Shader by Ronyx69", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(2119477759, @"[TEST]Additive Shader by aubergine18", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(878991312, @"Prop It Up", false, @"Use BOB instead"),
+            new ModInfo(2153618633, @"Prop Switcher", false, @"Use BOB instead"),
+            new ModInfo(518456166, @"Prop Remover", false, @"Use BOB instead"),
+            new ModInfo(1890830956, @"Undo It", false),
+        };
+
+        internal static bool CheckIncompatibleMods() {
+            string errorMsg = "";
+            foreach (var mod in PlatformService.workshop.GetSubscribedItems()) {
+                for (int i = 0; i < IncompatibleMods.Length; i++) {
+                    if (mod.AsUInt64 == IncompatibleMods[i].fileID) {
+                        errorMsg += '[' + IncompatibleMods[i].name + ']' + @" detected. " +
+                            (IncompatibleMods[i].inclusive ? "EML already includes the same functionality. " : "This mod is incompatible with EML. ") +
+                            (IncompatibleMods[i].specialMsg is null ? "\n" : IncompatibleMods[i].specialMsg + "\n\n");
+                        ELog(@"Incompatible mod: [" + IncompatibleMods[i].name + @"] detected");
+                    }
+                }
+            }
+            if (errorMsg.Length > 0) {
+                EDialog.MessageBox("EML detected incompatible mods", errorMsg);
+                ELog("EML detected incompatible mods, please remove the following mentioned mods\n" + errorMsg);
+                return false;
+            }
+            return true;
+        }
+
         internal static void EnablePropPatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Enable(harmony);
@@ -118,8 +177,8 @@ namespace EManagersLib {
         internal static void DisablePropPatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Disable(harmony);
-            new EDefaultToolPatch().Disable(harmony);
             new EBulldozePatch().Disable(harmony);
+            new EDefaultToolPatch().Disable(harmony);
             new EDisasterHelpersPatch().Disable(harmony);
             new EDistrictManagerPatch().Disable(harmony);
             new EInstanceManagerPatch().Disable(harmony);
