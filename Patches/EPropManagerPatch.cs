@@ -1,6 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.IO;
 using ColossalFramework.Math;
+using UnityEngine;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -348,15 +349,22 @@ namespace EManagersLib {
             RefreshAutomaticProps();
             EPropInstance[] buffer = m_props.m_buffer;
             int len = buffer.Length;
+            Randomizer randomizer = EMath.randomizer;
+            DistrictManager district = Singleton<DistrictManager>.instance;
+            DistrictPark[] parks = district.m_parks.m_buffer;
             for (int i = 1; i < len; i++) {
                 if (buffer[i].m_flags != 0) {
                     PropInfo info = buffer[i].Info;
-                    if (info != null) {
+                    if (!(info is null)) {
                         buffer[i].m_infoIndex = (ushort)info.m_prefabDataIndex;
+                        if (buffer[i].m_scale == 0) {
+                            randomizer.SetSeed(i);
+                            buffer[i].m_scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
+                            buffer[i].m_color = info.GetColor(ref randomizer);
+                        }
                     }
                     if (!buffer[i].Blocked) {
-                        DistrictManager district = Singleton<DistrictManager>.instance;
-                        district.m_parks.m_buffer[district.GetPark(buffer[i].Position)].m_propCount++;
+                        parks[district.GetPark(buffer[i].Position)].m_propCount++;
                     }
                 }
             }
