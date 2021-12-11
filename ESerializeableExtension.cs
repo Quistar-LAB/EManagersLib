@@ -9,6 +9,9 @@ using static EManagersLib.EPropManager;
 namespace EManagersLib {
     public class ESerializableData : ISerializableDataExtension {
         private const string EMANAGER_PROP_KEY = @"EManagers/PropAnarchy";
+        private const string PROPSNAPPINGID = "PropSnapping";
+        private const string PROPPRECISIONID = "PropPrecision";
+
         private enum Format : uint {
             Version1 = 1,
             Version2 = 2,
@@ -271,6 +274,31 @@ namespace EManagersLib {
             }
         }
 
+        private static Type PropSnappingLegacyHandler(string text) => typeof(PropSnapping.Data);
+
+        private static Type PropPrecisionLegacyHandler(string text) => typeof(PropPrecision.Data);
+
+        public void OnLoadData() {
+            /* Try load old prop snapping data */
+            if (ToolManager.instance.m_properties.m_mode == ItemClass.Availability.Game) {
+                SimulationManager smInstance = Singleton<SimulationManager>.instance;
+                if (smInstance.m_serializableDataStorage.TryGetValue(PROPSNAPPINGID, out byte[] data)) {
+                    EUtils.ELog("Found Prop Snapping data");
+                    using (MemoryStream ms = new MemoryStream(data)) {
+                        var s = DataSerializer.Deserialize<PropSnapping.Data>(ms, DataSerializer.Mode.Memory, PropSnappingLegacyHandler);
+                    }
+                    EraseData(PROPSNAPPINGID);
+                }
+                if (smInstance.m_serializableDataStorage.TryGetValue(PROPPRECISIONID, out data)) {
+                    EUtils.ELog("Found Prop Precision data");
+                    using (MemoryStream ms = new MemoryStream(data)) {
+                        var s = DataSerializer.Deserialize<PropPrecision.Data>(ms, DataSerializer.Mode.Memory, PropPrecisionLegacyHandler);
+                    }
+                    EraseData(PROPPRECISIONID);
+                }
+            }
+        }
+
         public void OnSaveData() {
             if (MAX_PROP_LIMIT <= DEFAULT_PROP_LIMIT) return;
             try {
@@ -296,8 +324,19 @@ namespace EManagersLib {
             }
         }
 
+        private void EraseData(string id) {
+            SimulationManager smInstance = Singleton<SimulationManager>.instance;
+            while (!Monitor.TryEnter(smInstance.m_serializableDataStorage, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
+            try {
+                if (smInstance.m_serializableDataStorage.ContainsKey(id)) {
+                    smInstance.m_serializableDataStorage.Remove(id);
+                }
+            } finally {
+                Monitor.Exit(smInstance.m_serializableDataStorage);
+            }
+        }
+
         public void OnCreated(ISerializableData serializedData) { }
-        public void OnLoadData() { }
         public void OnReleased() { }
     }
 }

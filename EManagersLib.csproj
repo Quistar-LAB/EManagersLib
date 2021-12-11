@@ -89,6 +89,8 @@
     <Compile Include="Patches\EDefaultToolPatch.cs" />
     <Compile Include="Patches\EPropManagerPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PropPrecision\Data.cs" />
+    <Compile Include="PropSnapping\Data.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
