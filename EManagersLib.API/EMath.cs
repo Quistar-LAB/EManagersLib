@@ -51,7 +51,7 @@ namespace EManagersLib.API {
         /// </summary>
         /// <param name="f">The value that will be rounded</param>
         /// <returns>The rounded result</returns>
-        public static int RoundToInt(float f) => (int)(f + 0.5f);
+        public static int RoundToInt(float f) => f >= 0 ? (int)(f + 0.5f) : -(int)(0.5f - f);
 
         /// <summary>
         /// Functions exactly the same as Mathf.Clamp but ~28x faster
