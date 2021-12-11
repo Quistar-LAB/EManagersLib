@@ -11,6 +11,7 @@ namespace EManagersLib {
         private const string EMANAGER_PROP_KEY = @"EManagers/PropAnarchy";
         private const string PROPSNAPPINGID = "PropSnapping";
         private const string PROPPRECISIONID = "PropPrecision";
+        private const string PROPPAINTERID = "PropPainter";
 
         private enum Format : uint {
             Version1 = 1,
@@ -274,27 +275,39 @@ namespace EManagersLib {
             }
         }
 
-        private static Type PropSnappingLegacyHandler(string text) => typeof(PropSnapping.Data);
+        private static Type PropSnappingLegacyHandler(string _) => typeof(PropSnapping.Data);
 
-        private static Type PropPrecisionLegacyHandler(string text) => typeof(PropPrecision.Data);
+        private static Type PropPrecisionLegacyHandler(string _) => typeof(PropPrecision.Data);
+
+        private static Type PropPainterLegacyHandler(string _) => typeof(PropPainter.PropPainterDataContainer);
 
         public void OnLoadData() {
             /* Try load old prop snapping data */
             if (ToolManager.instance.m_properties.m_mode == ItemClass.Availability.Game) {
                 SimulationManager smInstance = Singleton<SimulationManager>.instance;
                 if (smInstance.m_serializableDataStorage.TryGetValue(PROPSNAPPINGID, out byte[] data)) {
-                    EUtils.ELog("Found Prop Snapping data");
+                    EUtils.ELog("Found Prop Snapping data, loading...");
                     using (MemoryStream ms = new MemoryStream(data)) {
                         var s = DataSerializer.Deserialize<PropSnapping.Data>(ms, DataSerializer.Mode.Memory, PropSnappingLegacyHandler);
                     }
+                    EUtils.ELog("Loaded " + (data.Length / 1024) + "kb of Prop Snapping data");
                     EraseData(PROPSNAPPINGID);
                 }
                 if (smInstance.m_serializableDataStorage.TryGetValue(PROPPRECISIONID, out data)) {
-                    EUtils.ELog("Found Prop Precision data");
+                    EUtils.ELog("Found Prop Precision data, loading...");
                     using (MemoryStream ms = new MemoryStream(data)) {
                         var s = DataSerializer.Deserialize<PropPrecision.Data>(ms, DataSerializer.Mode.Memory, PropPrecisionLegacyHandler);
                     }
+                    EUtils.ELog("Loaded " + (data.Length / 1024) + "kb of Prop Precision data");
                     EraseData(PROPPRECISIONID);
+                }
+                if (smInstance.m_serializableDataStorage.TryGetValue(PROPPAINTERID, out data)) {
+                    EUtils.ELog("Found Prop Painter data, loading...");
+                    using (MemoryStream ms = new MemoryStream(data)) {
+                        var s = DataSerializer.Deserialize<PropPainter.PropPainterDataContainer>(ms, DataSerializer.Mode.Memory, PropPainterLegacyHandler);
+                    }
+                    EUtils.ELog("Loaded " + (data.Length / 1024) + "kb of Prop Precision data");
+                    EraseData(PROPPAINTERID);
                 }
             }
         }
