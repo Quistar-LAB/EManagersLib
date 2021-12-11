@@ -1,13 +1,12 @@
-﻿using HarmonyLib;
+﻿using ColossalFramework.PlatformServices;
+using EManagersLib.Extra;
+using HarmonyLib;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
-using ColossalFramework.PlatformServices;
-using ColossalFramework.UI;
-using EManagersLib.Extra;
 
 namespace EManagersLib {
     /// <summary>
@@ -125,7 +124,7 @@ namespace EManagersLib {
         }
 
         private static readonly ModInfo[] IncompatibleMods = new ModInfo[] {
-            new ModInfo(1619685021, @"Move It", false, @"Only Move It Beta is supported at the moment"),
+            //new ModInfo(1619685021, @"Move It", false, @"Only Move It Beta is supported at the moment"),
             new ModInfo(593588108, @"Prop & Tree Anarchy", false, @"Prop Anarchy Beta and Tree Anarchy Beta together replaces Prop & Tree Anarchy"),
             new ModInfo(791221322, @"Prop Precision", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(787611845, @"Prop Snapping", false, @"Use Prop Anarchy Beta instead"),
