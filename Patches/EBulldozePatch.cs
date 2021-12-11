@@ -5,8 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using UnityEngine;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace EManagersLib {
     public class EBulldozePatch {
@@ -75,20 +75,13 @@ namespace EManagersLib {
         }
 
         private static IEnumerable<CodeInstruction> SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions) {
-            var codes = __SimulationStepTranspiler(instructions);
-            foreach(var code in codes) {
-                EUtils.ELog(code.ToString());
-            }
-            return codes;
-        }
-        private static IEnumerable<CodeInstruction> __SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo propGetter = AccessTools.PropertyGetter(typeof(InstanceID), nameof(InstanceID.Prop));
             MethodInfo deleteProp = AccessTools.Method(typeof(BulldozeTool), "DeletePropImpl");
             MethodInfo simulationStep = AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.SimulationStep));
             FieldInfo lastInstance = AccessTools.Field(typeof(BulldozeTool), "m_lastInstance");
 
             foreach (var code in instructions) {
-                if(code.opcode == OpCodes.Call && code.operand == simulationStep) {
+                if (code.opcode == OpCodes.Call && code.operand == simulationStep) {
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
                     yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(BulldozeTool), "m_mouseRayValid"));
                     yield return new CodeInstruction(OpCodes.Ldarg_0);
