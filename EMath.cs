@@ -12,6 +12,9 @@ namespace EManagersLib {
         public static readonly Vector3 Vector3Zero = Vector3.zero;
         public static readonly Vector4 Vector4Zero = Vector4.zero;
         public static readonly Vector3 Vector3Down = Vector3.down;
+        public static readonly Vector3 Vector3Up = Vector3.up;
+        public static readonly Vector3 Vector3Left = Vector3.left;
+        public static readonly Vector3 Vector3Right = Vector3.right;
         public static readonly Vector3 Vector3Forward = Vector3.forward;
         public static readonly Vector3 DefaultLodMin = new Vector3(100000f, 100000f, 100000f);
         public static readonly Vector3 DefaultLodMax = new Vector3(-100000f, -100000f, -100000f);
@@ -51,7 +54,7 @@ namespace EManagersLib {
         /// </summary>
         /// <param name="f">The value that will be rounded</param>
         /// <returns>The rounded result</returns>
-        public static int RoundToInt(float f) => (int)(f + 0.5f);
+        public static int RoundToInt(float f) => f >= 0 ? (int)(f + 0.5f) : -(int)(0.5f - f);
 
         /// <summary>
         /// Functions exactly the same as Mathf.Clamp but ~28x faster
@@ -121,7 +124,8 @@ namespace EManagersLib {
         /// <param name="t"></param>
         /// <returns>Returns Vector3</returns>
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) {
-            t = t > 1 ? 1 : (t < 0 ? 0 : t);
+            t = t > 1 ? 1 : t;
+            t = t < 0 ? 0 : t;
             return new Vector3(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
         }
 
