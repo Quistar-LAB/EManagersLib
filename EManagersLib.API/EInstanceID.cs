@@ -7,6 +7,8 @@ namespace EManagersLib.API {
     public static class InstanceIDExtension {
         private const uint OBJECT_TYPE = 0xff000000u;
         private const uint OBJECT_INDEX = 0x00ffffffu;
+        private const uint OBJECT_BUILDING = 0x01000000u;
+        private const uint OBJECT_BUILDINGPROP = 0x0e000000u;
         private const uint OBJECT_PROP = 0x0a000000u;
 
         public static uint GetProp32(this InstanceID instance) {
@@ -19,35 +21,42 @@ namespace EManagersLib.API {
             return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
         }
 
-        public static void SetProp32(ref this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
+        public static void SetProp32(ref this InstanceID instance, uint id) => instance.RawData = OBJECT_PROP | id;
 
-        public static void SetProp32ByRef(ref InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
+        public static void SetProp32ByRef(ref InstanceID instance, uint id) => instance.RawData = OBJECT_PROP | id;
+
+        public static uint GetBuilding32(this InstanceID instance) {
+            uint id = instance.RawData;
+            return ((id & OBJECT_TYPE) != OBJECT_BUILDING) ? 0u : (id & OBJECT_INDEX);
+        }
+
+        public static void SetBuilding32(ref this InstanceID instance, uint id) => instance.RawData = OBJECT_BUILDING | id;
     }
     #endregion InstanceIDExtensions
 
     public struct EInstanceID : IEquatable<EInstanceID> {
-        private const uint OBJECT_TYPE = 0xff000000u;
-        private const uint OBJECT_INDEX = 0x00ffffffu;
-        private const uint OBJECT_BUILDING = 0x01000000u;
-        private const uint OBJECT_VEHICLE = 0x02000000u;
-        private const uint OBJECT_DISTRICT = 0x03000000u;
-        private const uint OBJECT_CITIZEN = 0x04000000u;
-        private const uint OBJECT_NETNODE = 0x05000000u;
-        private const uint OBJECT_NETSEGMENT = 0x06000000u;
-        private const uint OBJECT_PARKEDVEHICLE = 0x07000000u;
-        private const uint OBJECT_TRANSPORT = 0x08000000u;
-        private const uint OBJECT_CITIZENINSTANCE = 0x09000000u;
-        private const uint OBJECT_PROP = 0x0a000000u;
-        private const uint OBJECT_TREE = 0x0b000000u;
-        private const uint OBJECT_EVENT = 0x0c000000u;
-        private const uint OBJECT_NETLANE = 0x0d000000u;
-        private const uint OBJECT_BUILDINGPROP = 0x0e000000u;
-        private const uint OBJECT_NETLANEPROP = 0x0f000000u;
-        private const uint OBJECT_DISASTER = 0x10000000u;
-        private const uint OBJECT_LIGHTNING = 0x11000000u;
-        private const uint OBJECT_RADIOCHANNEL = 0x12000000u;
-        private const uint OBJECT_RADIOCONTENT = 0x13000000u;
-        private const uint OBJECT_PARK = 0x14000000u;
+        public const uint OBJECT_TYPE = 0xff000000u;
+        public const uint OBJECT_INDEX = 0x00ffffffu;
+        public const uint OBJECT_BUILDING = 0x01000000u;
+        public const uint OBJECT_VEHICLE = 0x02000000u;
+        public const uint OBJECT_DISTRICT = 0x03000000u;
+        public const uint OBJECT_CITIZEN = 0x04000000u;
+        public const uint OBJECT_NETNODE = 0x05000000u;
+        public const uint OBJECT_NETSEGMENT = 0x06000000u;
+        public const uint OBJECT_PARKEDVEHICLE = 0x07000000u;
+        public const uint OBJECT_TRANSPORT = 0x08000000u;
+        public const uint OBJECT_CITIZENINSTANCE = 0x09000000u;
+        public const uint OBJECT_PROP = 0x0a000000u;
+        public const uint OBJECT_TREE = 0x0b000000u;
+        public const uint OBJECT_EVENT = 0x0c000000u;
+        public const uint OBJECT_NETLANE = 0x0d000000u;
+        public const uint OBJECT_BUILDINGPROP = 0x0e000000u;
+        public const uint OBJECT_NETLANEPROP = 0x0f000000u;
+        public const uint OBJECT_DISASTER = 0x10000000u;
+        public const uint OBJECT_LIGHTNING = 0x11000000u;
+        public const uint OBJECT_RADIOCHANNEL = 0x12000000u;
+        public const uint OBJECT_RADIOCONTENT = 0x13000000u;
+        public const uint OBJECT_PARK = 0x14000000u;
         public static EInstanceID Empty = default;
         public uint RawData { get; set; }
 
@@ -73,7 +82,7 @@ namespace EManagersLib.API {
             set => RawData = (RawData & OBJECT_TYPE) | (value & OBJECT_INDEX);
         }
 
-        public ushort Building {
+        public uint Building {
             get => (ushort)(((RawData & OBJECT_TYPE) != OBJECT_BUILDING) ? 0u : (RawData & OBJECT_INDEX));
             set => RawData = (OBJECT_BUILDING | value);
         }

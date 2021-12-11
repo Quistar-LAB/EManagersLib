@@ -7,6 +7,7 @@ namespace EManagersLib {
     public static class InstanceIDExtension {
         private const uint OBJECT_TYPE = 0xff000000u;
         private const uint OBJECT_INDEX = 0x00ffffffu;
+        private const uint OBJECT_BUILDING = 0x01000000u;
         private const uint OBJECT_PROP = 0x0a000000u;
         private const uint OBJECT_BUILDINGPROP = 0x0e000000u;
 
@@ -33,6 +34,20 @@ namespace EManagersLib {
                 propIndex = 0;
             }
         }
+
+        public static uint GetBuilding32(this InstanceID instance) {
+            uint id = instance.RawData;
+            return ((id & OBJECT_TYPE) != OBJECT_BUILDING) ? 0u : (id & OBJECT_INDEX);
+        }
+
+        public static uint GetBuilding32ByRef(ref InstanceID instance) {
+            uint id = instance.RawData;
+            return ((id & OBJECT_TYPE) != OBJECT_BUILDING) ? 0u : (id & OBJECT_INDEX);
+        }
+
+        public static void SetBuilding32(ref this InstanceID instance, uint id) => instance.RawData = OBJECT_BUILDING | id;
+
+        public static void SetBuilding32ByRef(ref InstanceID instance, uint id) => instance.RawData = OBJECT_BUILDING | id;
     }
     #endregion InstanceIDExtensions
 
