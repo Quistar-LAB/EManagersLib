@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System;
-using ColossalFramework.UI;
 // example:
 // HFTDialog.MessageBox("error", "Sorry but you're S.O.L", () => { Application.Quit() });
 
