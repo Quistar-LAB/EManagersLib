@@ -28,7 +28,7 @@ namespace PropSnapping {
                 props[index].m_posY = @ushort.Read();
                 Vector3 position = props[index].Position;
                 float terrainHeight = tmInstance.SampleDetailHeight(position);
-                if (position.y > terrainHeight) {
+                if (position.y != terrainHeight) {
                     props[index].m_flags |= EPropInstance.FIXEDHEIGHTFLAG;
                 }
             }
