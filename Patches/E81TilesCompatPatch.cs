@@ -4,6 +4,7 @@ using HarmonyLib;
 using System;
 using System.Reflection;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
 
@@ -63,6 +64,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal void Disable(Harmony harmony) {
             if (!(fakeParkProps is null))
                 harmony.Unpatch(fakeParkProps, HarmonyPatchType.Prefix, EModule.HARMONYID);

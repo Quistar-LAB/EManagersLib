@@ -7,9 +7,11 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using static EManagersLib.EPropManager;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     public class EPropToolPatch {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static float CalcSeedPropScale(PropInfo info, ref Randomizer defRandom) {
             Randomizer randomizer = new Randomizer((int)m_props.NextFreeItem(ref defRandom));
             return info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
@@ -92,6 +94,7 @@ namespace EManagersLib {
             input.m_netService2 = new ToolBase.RaycastService(ItemClass.Service.None, ItemClass.SubService.None, ItemClass.Layer.Default);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool CheckFixedHeight(ref Vector3 position, bool currentEditObject) {
             if (UsePropSnapping) {
                 float terrainHeight = Singleton<TerrainManager>.instance.SampleDetailHeight(position);

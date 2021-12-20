@@ -3,6 +3,7 @@ using ColossalFramework.Math;
 using System;
 using System.Threading;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     public static class EPropManager {
@@ -112,6 +113,7 @@ namespace EManagersLib {
             m_props.CreateItem(out uint _);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void EnsureCapacity(PropManager pmInstance) {
             if (m_props.m_buffer.Length != MAX_PROP_LIMIT) {
                 m_props = new Array32<EPropInstance>((uint)MAX_PROP_LIMIT);
@@ -917,6 +919,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void UpdateProp(uint prop) {
             m_updatedProps[prop >> 6] |= 1uL << (int)prop;
             m_pmInstance.m_propsUpdated = true;
@@ -1222,6 +1225,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void UpdateData(PropManager pmInstance) {
             int limit = MAX_PROP_LIMIT;
             EPropInstance[] props = m_props.m_buffer;

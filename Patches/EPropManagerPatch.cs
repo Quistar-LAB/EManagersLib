@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using static EManagersLib.EPropManager;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     internal class EPropManagerPatch {
@@ -266,6 +267,7 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetPropScaleColor(uint id, ref EPropInstance prop, PropInfo info) {
             if (prop.m_scale == 0f) {
                 Randomizer rand = new Randomizer((int)id);

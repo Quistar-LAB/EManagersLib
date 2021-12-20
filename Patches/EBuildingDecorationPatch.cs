@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     internal class EBuildingDecorationPatch {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ReleaseProps() {
             PropManager pmInstance = Singleton<PropManager>.instance;
             EPropInstance[] propBuffer = EPropManager.m_props.m_buffer;
@@ -79,6 +81,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void LoadBuildingProps(PropManager propManager, PropInfo finalProp, bool fixedHeight, Vector3 vector, float angle) {
             if (propManager.CreateProp(out uint propID, ref Singleton<SimulationManager>.instance.m_randomizer, finalProp, vector, angle, true)) {
                 EPropManager.m_props.m_buffer[propID].FixedHeight = fixedHeight;
