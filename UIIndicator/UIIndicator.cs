@@ -1,19 +1,21 @@
 ﻿using ColossalFramework;
 using ColossalFramework.UI;
+using System.Collections;
 using System.IO;
 using System.Reflection;
-using System.Threading;
 using UnityEngine;
 
 namespace UI {
     public class UIIndicator : UIPanel {
-        private const float indicatorWidth = 26f;
-        private const float indicatorHeight = 26f;
-        private const int spriteMaxSize = 32;
+        private const float indicatorWidth = 36f;
+        private const float indicatorHeight = 36f;
+        private const int spriteMaxSize = 128;
         private const string IndicatorPanelName = @"IndicatorPanel";
         private const string SnappingIconName = @"Snap";
         private const string AnarchyIconName = @"Anarchy";
         private const string LockForestryIconName = @"LockForestry";
+        private static UIComponent m_anchor;
+        private static UIComponent m_temperaturePanel;
         public static UIIcon SnapIndicator { get; private set; } = null;
         public static UIIcon AnarchyIndicator { get; private set; } = null;
         public static UIIcon LockForestryIndicator { get; private set; } = null;
@@ -59,19 +61,37 @@ namespace UI {
 
         protected override void OnResolutionChanged(Vector2 previousResolution, Vector2 currentResolution) {
             base.OnResolutionChanged(previousResolution, currentResolution);
-            relativePosition = new Vector3(0f - width - 5f, 0f);
+            UIComponent anchor = m_anchor;
+            UIComponent tempPanel = m_temperaturePanel;
+            Vector3 demandAbsPos = anchor.relativePosition + anchor.parent.relativePosition;
+            relativePosition = new Vector3(demandAbsPos.x + anchor.size.x + 8f, demandAbsPos.y + (anchor.size.y - size.y) / 2f);
+            if (tempPanel) {
+                float xOffset = relativePosition.x + size.x + 5f;
+                if (xOffset > tempPanel.relativePosition.x) {
+                    tempPanel.relativePosition = new Vector3(xOffset, tempPanel.relativePosition.y);
+                }
+            }
         }
 
         /* Hate this hack, but the only way I can think of
          * If anyone has a better solution, please don't hesitate to send a pull request
          * or email me. Thanks in advance */
-        private void OnInitialFrame(object _) {
-            while (UIView.GetAView().framesRendered < 5) { Thread.Sleep(100); }
-            relativePosition = new Vector3(0f - width - 5f, 0f);
+        private IEnumerator InitialFrameHandler(UIComponent anchor, UIButton tempPanel) {
+            while (UIView.GetAView().framesRendered < 5) { yield return new WaitForSeconds(0.1f); }
+            Vector3 demandAbsPos = anchor.relativePosition + anchor.parent.relativePosition;
+            relativePosition = new Vector3(demandAbsPos.x + anchor.size.x + 8f, demandAbsPos.y + (anchor.size.y - size.y) / 2f);
+            if (tempPanel) {
+                float offsetX = relativePosition.x + size.x + 5f;
+                if (offsetX > tempPanel.relativePosition.x) {
+                    tempPanel.relativePosition = new Vector3(offsetX, tempPanel.relativePosition.y);
+                }
+            }
         }
 
-        public override void OnDisable() {
-            base.OnDisable();
+        public override void OnDestroy() {
+            base.OnDestroy();
+            m_anchor = null;
+            m_temperaturePanel = null;
             if (SnapIndicator) {
                 RemoveUIComponent(SnapIndicator);
                 Destroy(SnapIndicator.gameObject);
@@ -93,30 +113,32 @@ namespace UI {
             UIPanel infoPanel = UIView.GetAView().FindUIComponent<UIPanel>(@"InfoPanel");
             UIIndicator indicatorPanel = infoPanel.GetComponentInChildren<UIIndicator>();
             if (indicatorPanel is null) {
-                Debug.Log($"IndicatorPanel: Is NULL");
+                Debug.Log($"UIIndicator: IndicatorPanel is NULL");
             } else {
-                Debug.Log($"IndicatorPanel: {indicatorPanel.name}");
+                Debug.Log($"UIIndicator: IndicatorPanel {indicatorPanel.name}");
             }
             if (indicatorPanel is null && (Singleton<ToolManager>.instance.m_properties.m_mode & ItemClass.Availability.MapEditor) == ItemClass.Availability.None) {
-                Debug.Log("Creating new Indicator panel");
-                indicatorPanel = UIView.GetAView().FindUIComponent<UIPanel>(@"InfoPanel").AddUIComponent<UIIndicator>();
+                UIPanel demand = infoPanel.Find<UIPanel>(@"Demand");
+                UIButton tempPanel = infoPanel.Find<UIButton>(@"Heat'o'meter");
+                m_anchor = demand;
+                m_temperaturePanel = tempPanel;
+                indicatorPanel = infoPanel.AddUIComponent<UIIndicator>();
                 indicatorPanel.name = IndicatorPanelName;
-                indicatorPanel.UpdatePosition();
+                indicatorPanel.StartCoroutine(indicatorPanel.InitialFrameHandler(demand, tempPanel));
                 return indicatorPanel;
             }
             return indicatorPanel;
         }
 
         public void UpdatePosition() {
+            UIPanel demand = parent.Find<UIPanel>(@"Demand");
             UIButton uIButton = parent.Find<UIButton>(@"Heat'o'meter");
-            if (uIButton is null) {
-                uIButton = parent.Find<UIButton>(@"PopulationPanel");
-            }
-            if (!(uIButton is null)) {
-                uIButton.relativePosition += new Vector3(10f, 0f);
-                cachedTransform.parent = uIButton.cachedTransform;
-                transform.parent = uIButton.transform;
-                ThreadPool.QueueUserWorkItem(OnInitialFrame);
+            if (!(demand is null)) {
+                m_anchor = demand;
+                m_temperaturePanel = uIButton;
+                //cachedTransform.parent = uIButton.cachedTransform;
+                //transform.parent = uIButton.transform;
+                StartCoroutine(InitialFrameHandler(demand, uIButton));
             }
         }
 
@@ -171,9 +193,9 @@ namespace UI {
                 if (anchor is null) {
                     icon.relativePosition = new Vector3(0f, 0f);
                 } else {
-                    icon.relativePosition = new Vector3(anchor.relativePosition.x + anchor.width, 0f);
+                    icon.relativePosition = new Vector3(anchor.relativePosition.x + anchor.width + 3f, 0f);
                 }
-                size = new Vector2(size.x + icon.width, size.y);
+                size = new Vector2(size.x + icon.width + 3f, size.y);
                 icon.State = defState;
                 AnarchyIndicator = icon;
             } else {
@@ -209,9 +231,9 @@ namespace UI {
                 if (anchor is null) {
                     icon.relativePosition = new Vector3(0f, 0f);
                 } else {
-                    icon.relativePosition = new Vector3(anchor.relativePosition.x + anchor.width, 0f);
+                    icon.relativePosition = new Vector3(anchor.relativePosition.x + anchor.width + 3f, 0f);
                 }
-                size = new Vector2(size.x + icon.width, size.y);
+                size = new Vector2(size.x + icon.width + 3f, size.y);
                 icon.State = defState;
                 LockForestryIndicator = icon;
             }
@@ -230,6 +252,7 @@ namespace UI {
             material.mainTexture = texture2D;
             uITextureAtlas.material = material;
             uITextureAtlas.name = atlasName;
+            uITextureAtlas.AddTextures(array);
             for (int j = 0; j < spriteNames.Length; j++) {
                 UITextureAtlas.SpriteInfo item = new UITextureAtlas.SpriteInfo() {
                     name = spriteNames[j],
@@ -245,9 +268,8 @@ namespace UI {
             UnmanagedMemoryStream s = (UnmanagedMemoryStream)Assembly.GetExecutingAssembly().GetManifestResourceStream("UIIndicator.Icons." + filename);
             byte[] array = new byte[s.Length];
             s.Read(array, 0, array.Length);
-            Texture2D texture = new Texture2D(spriteMaxSize, spriteMaxSize, TextureFormat.ARGB32, false);
+            Texture2D texture = new Texture2D(2, 2);
             texture.LoadImage(array);
-            texture.Compress(false);
             return texture;
         }
     }
