@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -160,9 +161,36 @@ namespace EManagersLib {
         }
 
         private void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.ClearDecorations)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDClearDecorationTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.SaveProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDSavePropsTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.LoadProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDLoadPropsTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.ClearDecorations)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDClearDecorationTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingDecoration::ClearDecorations");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.ClearDecorations)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.SaveProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDSavePropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingDecoration::SaveProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.SaveProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.LoadProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDLoadPropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingDecoration::LoadProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.LoadProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         private void Disable(Harmony harmony) {

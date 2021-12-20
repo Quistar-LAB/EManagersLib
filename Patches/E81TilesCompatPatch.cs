@@ -1,13 +1,13 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Plugins;
 using HarmonyLib;
+using System;
 using System.Reflection;
 using UnityEngine;
 
 namespace EManagersLib {
 
     public class E81TilesCompatPatch {
-
         private MethodInfo fakeParkProps;
 
         /// <summary>
@@ -15,34 +15,35 @@ namespace EManagersLib {
         /// Yes, this is overridding a detour by way of a pre-emptive Harmony Prefix on the detour target.
         /// Normally wouldn't do things this way but since this is only interim (and don't want to touch EDistrictManager code), this is a quick and reliable way to get what we want.
         /// </summary>
-        public static bool MoveParkPropsPrefix(int cellX, int cellZ, byte src, byte dest) {
-            DistrictPark[] parks = Singleton<DistrictManager>.instance.m_parks.m_buffer;
+        public unsafe static bool MoveParkPropsPrefix(int cellX, int cellZ, byte src, byte dest) {
             int HALFGRID = 450; // vanilla 256
-
-            int startX = Mathf.Max((int)((cellX - HALFGRID) * (19.2f / 64f) + 135f), 0);
-            int startZ = Mathf.Max((int)((cellZ - HALFGRID) * (19.2f / 64f) + 135f), 0);
-            int endX = Mathf.Min((int)((cellX - HALFGRID + 1f) * (19.2f / 64f) + 135f), 269);
-            int endZ = Mathf.Min((int)((cellZ - HALFGRID + 1f) * (19.2f / 64f) + 135f), 269);
-            EPropInstance[] props = EPropManager.m_props.m_buffer;
-            uint[] propGrid = EPropManager.m_propGrid;
-            for (int i = startZ; i <= endZ; i++) {
-                for (int j = startX; j <= endX; j++) {
-                    uint propID = propGrid[i * 270 + j];
-                    while (propID != 0) {
-                        if ((props[propID].m_flags & EPropInstance.BLOCKEDFLAG) == 0) {
-                            Vector3 position = props[propID].Position;
-                            int x = Mathf.Clamp((int)(position.x / 19.2f + 256f), 0, 511);
-                            int y = Mathf.Clamp((int)(position.z / 19.2f + 256f), 0, 511);
-                            if (x == cellX && y == cellZ) {
-                                parks[src].m_propCount--;
-                                parks[dest].m_propCount++;
+            int startX = EMath.Max((int)((cellX - HALFGRID) * (19.2f / 64f) + 135f), 0);
+            int startZ = EMath.Max((int)((cellZ - HALFGRID) * (19.2f / 64f) + 135f), 0);
+            int endX = EMath.Min((int)((cellX - HALFGRID + 1f) * (19.2f / 64f) + 135f), 269);
+            int endZ = EMath.Min((int)((cellZ - HALFGRID + 1f) * (19.2f / 64f) + 135f), 269);
+            ref DistrictPark srcPark = ref Singleton<DistrictManager>.instance.m_parks.m_buffer[src];
+            ref DistrictPark destPark = ref Singleton<DistrictManager>.instance.m_parks.m_buffer[dest];
+            fixed (EPropInstance* pProp = &EPropManager.m_props.m_buffer[0])
+            fixed (uint* pGrid = &EPropManager.m_propGrid[0]) {
+                for (int i = startZ; i <= endZ; i++) {
+                    for (int j = startX; j <= endX; j++) {
+                        uint propID = *(pGrid + (i * 270 + j));
+                        while (propID != 0) {
+                            EPropInstance* prop = pProp + propID;
+                            if ((prop->m_flags & EPropInstance.BLOCKEDFLAG) == 0) {
+                                Vector3 position = prop->Position;
+                                int x = EMath.Clamp((int)(position.x / 19.2f + 256f), 0, 511);
+                                int y = EMath.Clamp((int)(position.z / 19.2f + 256f), 0, 511);
+                                if (x == cellX && y == cellZ) {
+                                    srcPark.m_propCount--;
+                                    destPark.m_propCount++;
+                                }
                             }
+                            propID = prop->m_nextGridProp;
                         }
-                        propID = props[propID].m_nextGridProp;
                     }
                 }
             }
-
             // Pre-empt target method.
             return false;
         }
@@ -53,8 +54,13 @@ namespace EManagersLib {
                 Debug.Log("81 Tiles MoveParkProps not reflected");
                 return;
             }
-
-            harmony.Patch(fakeParkProps, prefix: new HarmonyMethod(AccessTools.Method(typeof(E81TilesCompatPatch), nameof(E81TilesCompatPatch.MoveParkPropsPrefix))));
+            try {
+                harmony.Patch(fakeParkProps, prefix: new HarmonyMethod(AccessTools.Method(typeof(E81TilesCompatPatch), nameof(E81TilesCompatPatch.MoveParkPropsPrefix))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch 81 Tiles MoveParkProps");
+                EUtils.ELog(e.Message);
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

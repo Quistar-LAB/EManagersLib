@@ -142,8 +142,26 @@ namespace EManagersLib {
                 get_LastInstance = EUtils.CreateGetter<BulldozeTool, InstanceID>(AccessTools.Field(typeof(BulldozeTool), "m_lastInstance"));
                 InitializedBulldoze = true;
             }
-            harmony.Patch(AccessTools.Method(typeof(BulldozeTool), "OnToolGUI"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBulldozePatch), nameof(BulldozeOnToolGUITranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(BulldozeTool), nameof(BulldozeTool.SimulationStep)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBulldozePatch), nameof(SimulationStepTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BulldozeTool), "OnToolGUI"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBulldozePatch), nameof(BulldozeOnToolGUITranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BulldozeTool::OnToolGUI");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BulldozeTool), "OnToolGUI"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BulldozeTool), nameof(BulldozeTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBulldozePatch), nameof(SimulationStepTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BulldozeTool::SimulationStep");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BulldozeTool), nameof(BulldozeTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

@@ -2,10 +2,12 @@
 using EManagersLib.Extra;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using UnityEngine;
 
 namespace EManagersLib {
@@ -81,7 +83,17 @@ namespace EManagersLib {
             return (Action<S, T>)setterMethod.CreateDelegate(typeof(Action<S, T>));
         }
 
+        internal static IEnumerable<CodeInstruction> DebugPatchOutput(IEnumerable<CodeInstruction> instructions, MethodBase method) {
+            ELog("---- " + method.Name + " ----");
+            foreach (var code in instructions) {
+                ELog(code.ToString());
+                yield return code;
+            }
+            ELog("------------------------------------------");
+        }
+
         private static readonly Stopwatch profiler = new Stopwatch();
+        private static readonly object fileLock = new object();
         internal static void CreateDebugFile() {
             profiler.Start();
             /* Create Debug Log File */
@@ -98,9 +110,14 @@ namespace EManagersLib {
 
         internal static void ELog(string msg) {
             var ticks = profiler.ElapsedTicks;
-            using (FileStream debugFile = new FileStream(Path.Combine(Application.dataPath, m_debugLogFile), FileMode.Append))
-            using (StreamWriter sw = new StreamWriter(debugFile)) {
-                sw.WriteLine($"{(ticks / Stopwatch.Frequency):n0}:{(ticks % Stopwatch.Frequency):D7}-{new StackFrame(1, true).GetMethod().Name} ==> {msg}");
+            Monitor.Enter(fileLock);
+            try {
+                using (FileStream debugFile = new FileStream(Path.Combine(Application.dataPath, m_debugLogFile), FileMode.Append))
+                using (StreamWriter sw = new StreamWriter(debugFile)) {
+                    sw.WriteLine($"{(ticks / Stopwatch.Frequency):n0}:{(ticks % Stopwatch.Frequency):D7}-{new StackFrame(1, true).GetMethod().Name} ==> {msg}");
+                }
+            } finally {
+                Monitor.Exit(fileLock);
             }
         }
 
@@ -124,7 +141,6 @@ namespace EManagersLib {
         }
 
         private static readonly ModInfo[] IncompatibleMods = new ModInfo[] {
-            //new ModInfo(1619685021, @"Move It", false, @"Only Move It Beta is supported at the moment"),
             new ModInfo(593588108, @"Prop & Tree Anarchy", false, @"Prop Anarchy Beta and Tree Anarchy Beta together replaces Prop & Tree Anarchy"),
             new ModInfo(791221322, @"Prop Precision", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(787611845, @"Prop Snapping", false, @"Use Prop Anarchy Beta instead"),
@@ -132,6 +148,7 @@ namespace EManagersLib {
             new ModInfo(694512541, @"Prop Line Tool", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(911295408, @"Prop Scaler", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(1869561285, @"Prop Painter", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(922939393, @"Transparency LOD Fix", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(1410003347, @"Additive Shader by Ronyx69", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(2119477759, @"[TEST]Additive Shader by aubergine18", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(878991312, @"Prop It Up", false, @"Use BOB instead"),

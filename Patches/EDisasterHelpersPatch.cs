@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
@@ -13,7 +14,16 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(DisasterHelpers), nameof(DisasterHelpers.DestroyProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDisasterHelpersPatch), nameof(DestroyPropsTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DisasterHelpers), nameof(DisasterHelpers.DestroyProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDisasterHelpersPatch), nameof(DestroyPropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DisasterHelpers::DestroyProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DisasterHelpers), nameof(DisasterHelpers.DestroyProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

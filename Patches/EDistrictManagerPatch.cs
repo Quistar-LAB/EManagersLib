@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
@@ -17,7 +18,16 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(DistrictManager), "MoveParkProps"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDistrictManagerPatch), nameof(EDistrictManagerPatch.MoveParkPropsTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DistrictManager), "MoveParkProps"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDistrictManagerPatch), nameof(EDistrictManagerPatch.MoveParkPropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DistrictManager::MoveParkProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DistrictManager), "MoveParkProps"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

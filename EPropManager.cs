@@ -121,59 +121,82 @@ namespace EManagersLib {
         }
 
         public unsafe static void EndRenderingImpl(PropManager pmInstance, RenderManager.CameraInfo cameraInfo) {
+            int i, j, k, l;
             FastList<RenderGroup> renderedGroups = Singleton<RenderManager>.instance.m_renderedGroups;
             int layer = 1 << m_propLayer | 1 << Singleton<RenderManager>.instance.lightSystem.m_lightLayer;
             if ((m_mode & ItemClass.Availability.Game) == ItemClass.Availability.None && m_markerAlpha >= 0.001f) {
                 layer |= 1 << m_markerLayer;
             }
-            uint[] propGrids = m_propGrid;
-            EPropInstance[] propsBuffer = m_props.m_buffer;
-            fixed (EPropInstance* pBuf = &propsBuffer[0]) {
-#if FALSE
-                Randomizer randomizer = EMath.randomizer;
-                Vector3 v3zero = EMath.Vector3Zero;
-                Vector3 v3down = EMath.Vector3Down;
-                Vector4 v4zero = EMath.Vector4Zero;
-                MaterialPropertyBlock materialBlock = m_materialBlock;
-                LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
-                TerrainManager tmInstance = Singleton<TerrainManager>.instance;
-                Vector4 objectIndex = RenderManager.DefaultColorLocation;
-                ref float simulationTimeDelta = ref Singleton<SimulationManager>.instance.m_simulationTimeDelta;
-                ref float simulationTimer = ref Singleton<SimulationManager>.instance.m_simulationTimer;
-                InfoManager.InfoMode infoMode = Singleton<InfoManager>.instance.CurrentMode;
-#endif
-                int renderSize = renderedGroups.m_size;
-                //                InstanceID id = default;
-                for (int i = 0; i < renderSize; i++) {
+            Randomizer randomizer = EMath.randomizer;
+            Vector3 v3zero = EMath.Vector3Zero;
+            Vector3 v3down = EMath.Vector3Down;
+            Vector4 v4zero = EMath.Vector4Zero;
+            Vector4 lodLocation = cameraInfo.m_forward * -100000f;
+            Vector3 defLODMin = EMath.DefaultLodMin;
+            Vector3 defLODMax = EMath.DefaultLodMax;
+            Matrix4x4 identity = EMath.matrix4Identity;
+            Vector4 clear = EMath.ColorClear;
+            int IDColor = ID_Color;
+            int IDHeightMap = ID_HeightMap;
+            int IDHeightMapping = ID_HeightMapping;
+            int IDSurfaceMapping = ID_SurfaceMapping;
+            int IDObjectIndex = ID_ObjectIndex;
+            int IDWaterHeightMap = ID_WaterHeightMap;
+            int IDWaterHeightMapping = ID_WaterHeightMapping;
+            int IDWaterSurfaceMapping = ID_WaterSurfaceMapping;
+            int IDRollLocation = ID_RollLocation;
+            int IDRollParams = ID_RollParams;
+            int IDPropLocation = ID_PropLocation;
+            int IDPropObjectIndex = ID_PropObjectIndex;
+            int IDPropColor = ID_PropColor;
+            MaterialPropertyBlock materialBlock = m_materialBlock;
+            LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
+            TerrainManager tmInstance = Singleton<TerrainManager>.instance;
+            Vector4 objectIndex = RenderManager.DefaultColorLocation;
+            ref float simulationTimeDelta = ref Singleton<SimulationManager>.instance.m_simulationTimeDelta;
+            ref float simulationTimer = ref Singleton<SimulationManager>.instance.m_simulationTimer;
+            InfoManager.InfoMode infoMode = Singleton<InfoManager>.instance.CurrentMode;
+            int renderSize = renderedGroups.m_size;
+            InstanceID id = default;
+            Bounds bounds = default;
+            Mesh mesh;
+            Vector3 lodMin, lodMax;
+            PropInfo info;
+            Matrix4x4 matrix4x;
+            Vector4 blinkVector;
+            float illumRange, illumStep;
+            fixed (DrawCallData* pDrawCallData = &pmInstance.m_drawCallData)
+            fixed (uint* pGrid = &m_propGrid[0])
+            fixed (EPropInstance* pBuf = &m_props.m_buffer[0]) {
+                for (i = 0; i < renderSize; i++) {
                     RenderGroup renderGroup = renderedGroups.m_buffer[i];
                     if ((renderGroup.m_instanceMask & layer) != 0) {
                         int startX = renderGroup.m_x * (PROPGRID_RESOLUTION / 45);
                         int startZ = renderGroup.m_z * (PROPGRID_RESOLUTION / 45);
                         int endX = (renderGroup.m_x + 1) * (PROPGRID_RESOLUTION / 45) - 1;
                         int endZ = (renderGroup.m_z + 1) * (PROPGRID_RESOLUTION / 45) - 1;
-                        for (int j = startZ; j <= endZ; j++) {
-                            for (int k = startX; k <= endX; k++) {
-                                uint propID = propGrids[j * PROPGRID_RESOLUTION + k];
+                        for (j = startZ; j <= endZ; j++) {
+                            for (k = startX; k <= endX; k++) {
+                                uint propID = *(pGrid + (j * PROPGRID_RESOLUTION + k));
                                 while (propID != 0) {
-                                    EPropInstance* props = &pBuf[propID];
-#if FALSE
-                                    if ((props->m_flags & (EPropInstance.HIDDENFLAG | EPropInstance.BLOCKEDFLAG)) == 0) {
-                                        PropInfo info = props->Info;
-                                        Vector3 position = props->Position;
+                                    EPropInstance* prop = pBuf + propID;
+                                    if ((prop->m_flags & (EPropInstance.HIDDENFLAG | EPropInstance.BLOCKEDFLAG)) == 0) {
+                                        info = prop->Info;
+                                        Vector3 position = prop->Position;
                                         if (info.m_prefabInitialized && cameraInfo.ECheckRenderDistance(position, info.m_maxRenderDistance) && cameraInfo.Intersect(position, info.m_generatedInfo.m_size.y * info.m_maxScale)) {
-                                            float scale = props->m_scale;
-                                            float angle = props->m_angle;
-                                            Color color = props->m_color;
+                                            float scale = prop->m_scale;
+                                            float angle = prop->Angle;
+                                            Color color = prop->m_color;
+                                            Material material = info.m_material;
                                             id.SetProp32(propID);
                                             if (info.m_requireWaterMap) {
                                                 position.y = tmInstance.SampleRawHeightWithWater(position, false, 0f);
                                                 tmInstance.GetHeightMapping(position, out Texture heightMap, out Vector4 heightMapping, out Vector4 surfaceMapping);
                                                 tmInstance.GetWaterMapping(position, out Texture waterHeightMap, out Vector4 waterHeightMapping, out Vector4 waterSurfaceMapping);
                                                 if (info.m_hasEffects) {
-                                                    Matrix4x4 matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale));
+                                                    matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale));
                                                     PropInfo.Effect[] effects = info.m_effects;
-                                                    int len = effects.Length;
-                                                    for (int l = 0; l < len; l++) {
+                                                    for (l = 0; l < effects.Length; l++) {
                                                         effects[l].m_effect.RenderEffect(id, new EffectInfo.SpawnArea(matrix4x.MultiplyPoint(effects[l].m_position),
                                                             matrix4x.MultiplyVector(effects[l].m_direction), 0f), v3zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                                                     }
@@ -182,15 +205,13 @@ namespace EManagersLib {
                                                     if (infoMode == InfoManager.InfoMode.None) {
                                                         if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                                             randomizer.SetSeed(id.Index);
-                                                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
-                                                            objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
+                                                            illumRange = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                                                            objectIndex.z = EMath.SmoothStep(illumRange + 0.01f, illumRange - 0.01f, lightSystem.DayLightIntensity);
                                                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
-                                                                Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
-                                                                float num2 = num * 3.71f + simulationTimer / blinkVector.w;
-                                                                num2 = (num2 - (int)num2) * blinkVector.w;
-                                                                float num3 = EMath.SmoothStep(blinkVector.x, blinkVector.y, num2);
-                                                                float num4 = EMath.SmoothStep(blinkVector.w, blinkVector.z, num2);
-                                                                objectIndex.z *= 1f - num3 * num4;
+                                                                blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
+                                                                illumStep = illumRange * 3.71f + simulationTimer / blinkVector.w;
+                                                                illumStep = (illumStep - (int)illumStep) * blinkVector.w;
+                                                                objectIndex.z *= 1f - EMath.SmoothStep(blinkVector.x, blinkVector.y, illumStep) * EMath.SmoothStep(blinkVector.w, blinkVector.z, illumStep);
                                                             }
                                                         } else {
                                                             objectIndex.z = 1f;
@@ -198,26 +219,75 @@ namespace EManagersLib {
                                                     }
                                                     if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
                                                         materialBlock.Clear();
-                                                        materialBlock.SetColor(ID_Color, color);
-                                                        materialBlock.SetTexture(ID_HeightMap, heightMap);
-                                                        materialBlock.SetVector(ID_HeightMapping, heightMapping);
-                                                        materialBlock.SetVector(ID_SurfaceMapping, surfaceMapping);
-                                                        materialBlock.SetVector(ID_ObjectIndex, objectIndex);
-                                                        materialBlock.SetTexture(ID_WaterHeightMap, waterHeightMap);
-                                                        materialBlock.SetVector(ID_WaterHeightMapping, waterHeightMapping);
-                                                        materialBlock.SetVector(ID_WaterSurfaceMapping, waterSurfaceMapping);
-                                                        if (info.m_rollLocation != null) {
-                                                            info.m_material.SetVectorArray(ID_RollLocation, info.m_rollLocation);
-                                                            info.m_material.SetVectorArray(ID_RollParams, info.m_rollParams);
+                                                        materialBlock.SetColor(IDColor, color);
+                                                        materialBlock.SetTexture(IDHeightMap, heightMap);
+                                                        materialBlock.SetVector(IDHeightMapping, heightMapping);
+                                                        materialBlock.SetVector(IDSurfaceMapping, surfaceMapping);
+                                                        materialBlock.SetVector(IDObjectIndex, objectIndex);
+                                                        materialBlock.SetTexture(IDWaterHeightMap, waterHeightMap);
+                                                        materialBlock.SetVector(IDWaterHeightMapping, waterHeightMapping);
+                                                        materialBlock.SetVector(IDWaterSurfaceMapping, waterSurfaceMapping);
+                                                        if (!(info.m_rollLocation is null)) {
+                                                            material.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                            material.SetVectorArray(IDRollParams, info.m_rollParams);
                                                         }
-                                                        pmInstance.m_drawCallData.m_defaultCalls++;
+                                                        pDrawCallData->m_defaultCalls++;
                                                         Graphics.DrawMesh(info.m_mesh,
                                                             Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale)),
-                                                            info.m_material, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                            material, info.m_prefabDataLayer, null, 0, materialBlock);
                                                     } else {
                                                         if (heightMap != info.m_lodHeightMap || waterHeightMap != info.m_lodWaterHeightMap) {
                                                             if (info.m_lodCount != 0) {
-                                                                EPropInstance.RenderLod(cameraInfo, info);
+                                                                materialBlock.Clear();
+                                                                int lodCount;
+                                                                if (info.m_lodCount <= 1) {
+                                                                    mesh = info.m_lodMeshCombined1;
+                                                                    lodCount = 1;
+                                                                } else if (info.m_lodCount <= 4) {
+                                                                    mesh = info.m_lodMeshCombined4;
+                                                                    lodCount = 4;
+                                                                } else if (info.m_lodCount <= 8) {
+                                                                    mesh = info.m_lodMeshCombined8;
+                                                                    lodCount = 8;
+                                                                } else {
+                                                                    mesh = info.m_lodMeshCombined16;
+                                                                    lodCount = 16;
+                                                                }
+                                                                for (l = info.m_lodCount; l < lodCount; l++) {
+                                                                    info.m_lodLocations[l] = lodLocation;
+                                                                    info.m_lodObjectIndices[l] = v4zero;
+                                                                    info.m_lodColors[l] = clear;
+                                                                }
+                                                                materialBlock.SetVectorArray(IDPropLocation, info.m_lodLocations);
+                                                                materialBlock.SetVectorArray(IDPropObjectIndex, info.m_lodObjectIndices);
+                                                                materialBlock.SetVectorArray(IDPropColor, info.m_lodColors);
+                                                                if (info.m_requireHeightMap) {
+                                                                    materialBlock.SetTexture(IDHeightMap, info.m_lodHeightMap);
+                                                                    materialBlock.SetVector(IDHeightMapping, info.m_lodHeightMapping);
+                                                                    materialBlock.SetVector(IDSurfaceMapping, info.m_lodSurfaceMapping);
+                                                                }
+                                                                if (info.m_requireWaterMap) {
+                                                                    materialBlock.SetTexture(IDWaterHeightMap, info.m_lodWaterHeightMap);
+                                                                    materialBlock.SetVector(IDWaterHeightMapping, info.m_lodWaterHeightMapping);
+                                                                    materialBlock.SetVector(IDWaterSurfaceMapping, info.m_lodWaterSurfaceMapping);
+                                                                }
+                                                                if (!(info.m_rollLocation is null)) {
+                                                                    info.m_lodMaterialCombined.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                                    info.m_lodMaterialCombined.SetVectorArray(IDRollParams, info.m_rollParams);
+                                                                }
+                                                                if (!(mesh is null)) {
+                                                                    lodMin = info.m_lodMin;
+                                                                    lodMax = info.m_lodMax;
+                                                                    bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
+                                                                                     new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
+                                                                    mesh.bounds = bounds;
+                                                                    info.m_lodMin = defLODMin;
+                                                                    info.m_lodMax = defLODMax;
+                                                                    pDrawCallData->m_lodCalls++;
+                                                                    pDrawCallData->m_batchedCalls += (info.m_lodCount - 1);
+                                                                    Graphics.DrawMesh(mesh, identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                                }
+                                                                info.m_lodCount = 0;
                                                             }
                                                             info.m_lodHeightMap = heightMap;
                                                             info.m_lodHeightMapping = heightMapping;
@@ -233,17 +303,65 @@ namespace EManagersLib {
                                                         info.m_lodMin = EMath.Min(info.m_lodMin, position);
                                                         info.m_lodMax = EMath.Max(info.m_lodMax, position);
                                                         if (++info.m_lodCount == info.m_lodLocations.Length) {
-                                                            EPropInstance.RenderLod(cameraInfo, info);
+                                                            materialBlock.Clear();
+                                                            int lodCount;
+                                                            if (info.m_lodCount <= 1) {
+                                                                mesh = info.m_lodMeshCombined1;
+                                                                lodCount = 1;
+                                                            } else if (info.m_lodCount <= 4) {
+                                                                mesh = info.m_lodMeshCombined4;
+                                                                lodCount = 4;
+                                                            } else if (info.m_lodCount <= 8) {
+                                                                mesh = info.m_lodMeshCombined8;
+                                                                lodCount = 8;
+                                                            } else {
+                                                                mesh = info.m_lodMeshCombined16;
+                                                                lodCount = 16;
+                                                            }
+                                                            for (l = info.m_lodCount; l < lodCount; l++) {
+                                                                info.m_lodLocations[l] = lodLocation;
+                                                                info.m_lodObjectIndices[l] = v4zero;
+                                                                info.m_lodColors[l] = clear;
+                                                            }
+                                                            materialBlock.SetVectorArray(IDPropLocation, info.m_lodLocations);
+                                                            materialBlock.SetVectorArray(IDPropObjectIndex, info.m_lodObjectIndices);
+                                                            materialBlock.SetVectorArray(IDPropColor, info.m_lodColors);
+                                                            if (info.m_requireHeightMap) {
+                                                                materialBlock.SetTexture(IDHeightMap, info.m_lodHeightMap);
+                                                                materialBlock.SetVector(IDHeightMapping, info.m_lodHeightMapping);
+                                                                materialBlock.SetVector(IDSurfaceMapping, info.m_lodSurfaceMapping);
+                                                            }
+                                                            if (info.m_requireWaterMap) {
+                                                                materialBlock.SetTexture(IDWaterHeightMap, info.m_lodWaterHeightMap);
+                                                                materialBlock.SetVector(IDWaterHeightMapping, info.m_lodWaterHeightMapping);
+                                                                materialBlock.SetVector(IDWaterSurfaceMapping, info.m_lodWaterSurfaceMapping);
+                                                            }
+                                                            if (!(info.m_rollLocation is null)) {
+                                                                info.m_lodMaterialCombined.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                                info.m_lodMaterialCombined.SetVectorArray(IDRollParams, info.m_rollParams);
+                                                            }
+                                                            if (!(mesh is null)) {
+                                                                lodMin = info.m_lodMin;
+                                                                lodMax = info.m_lodMax;
+                                                                bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
+                                                                                 new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
+                                                                mesh.bounds = bounds;
+                                                                info.m_lodMin = defLODMin;
+                                                                info.m_lodMax = defLODMax;
+                                                                pDrawCallData->m_lodCalls++;
+                                                                pDrawCallData->m_batchedCalls += (info.m_lodCount - 1);
+                                                                Graphics.DrawMesh(mesh, identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                            }
+                                                            info.m_lodCount = 0;
                                                         }
                                                     }
                                                 }
                                             } else if (info.m_requireHeightMap) {
                                                 tmInstance.GetHeightMapping(position, out Texture heightMap, out Vector4 heightMapping, out Vector4 surfaceMapping);
                                                 if (info.m_hasEffects) {
-                                                    Matrix4x4 matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale));
+                                                    matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale));
                                                     PropInfo.Effect[] effects = info.m_effects;
-                                                    int len = effects.Length;
-                                                    for (int l = 0; l < len; l++) {
+                                                    for (l = 0; l < effects.Length; l++) {
                                                         effects[l].m_effect.RenderEffect(id, new EffectInfo.SpawnArea(matrix4x.MultiplyPoint(effects[l].m_position),
                                                             matrix4x.MultiplyVector(effects[l].m_direction), 0f), v3zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                                                     }
@@ -252,15 +370,13 @@ namespace EManagersLib {
                                                     if (infoMode == InfoManager.InfoMode.None) {
                                                         if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                                             randomizer.SetSeed(id.Index);
-                                                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
-                                                            objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
+                                                            illumRange = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                                                            objectIndex.z = EMath.SmoothStep(illumRange + 0.01f, illumRange - 0.01f, lightSystem.DayLightIntensity);
                                                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
-                                                                Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
-                                                                float num2 = num * 3.71f + simulationTimer / blinkVector.w;
-                                                                num2 = (num2 - (int)num2) * blinkVector.w;
-                                                                float num3 = EMath.SmoothStep(blinkVector.x, blinkVector.y, num2);
-                                                                float num4 = EMath.SmoothStep(blinkVector.w, blinkVector.z, num2);
-                                                                objectIndex.z *= 1f - num3 * num4;
+                                                                blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
+                                                                illumStep = illumRange * 3.71f + simulationTimer / blinkVector.w;
+                                                                illumStep = (illumStep - (int)illumStep) * blinkVector.w;
+                                                                objectIndex.z *= 1f - EMath.SmoothStep(blinkVector.x, blinkVector.y, illumStep) * EMath.SmoothStep(blinkVector.w, blinkVector.z, illumStep);
                                                             }
                                                         } else {
                                                             objectIndex.z = 1f;
@@ -268,23 +384,72 @@ namespace EManagersLib {
                                                     }
                                                     if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
                                                         materialBlock.Clear();
-                                                        materialBlock.SetColor(ID_Color, color);
-                                                        materialBlock.SetTexture(ID_HeightMap, heightMap);
-                                                        materialBlock.SetVector(ID_HeightMapping, heightMapping);
-                                                        materialBlock.SetVector(ID_SurfaceMapping, surfaceMapping);
-                                                        materialBlock.SetVector(ID_ObjectIndex, objectIndex);
+                                                        materialBlock.SetColor(IDColor, color);
+                                                        materialBlock.SetTexture(IDHeightMap, heightMap);
+                                                        materialBlock.SetVector(IDHeightMapping, heightMapping);
+                                                        materialBlock.SetVector(IDSurfaceMapping, surfaceMapping);
+                                                        materialBlock.SetVector(IDObjectIndex, objectIndex);
                                                         if (!(info.m_rollLocation is null)) {
-                                                            info.m_material.SetVectorArray(ID_RollLocation, info.m_rollLocation);
-                                                            info.m_material.SetVectorArray(ID_RollParams, info.m_rollParams);
+                                                            material.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                            material.SetVectorArray(IDRollParams, info.m_rollParams);
                                                         }
-                                                        pmInstance.m_drawCallData.m_defaultCalls++;
+                                                        pDrawCallData->m_defaultCalls++;
                                                         Graphics.DrawMesh(info.m_mesh,
-                                                            Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f,  v3down), new Vector3(scale, scale, scale)),
-                                                            info.m_material, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                            Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale)),
+                                                            material, info.m_prefabDataLayer, null, 0, materialBlock);
                                                     } else {
                                                         if (heightMap != info.m_lodHeightMap) {
                                                             if (info.m_lodCount != 0) {
-                                                                EPropInstance.RenderLod(cameraInfo, info);
+                                                                materialBlock.Clear();
+                                                                int lodCount;
+                                                                if (info.m_lodCount <= 1) {
+                                                                    mesh = info.m_lodMeshCombined1;
+                                                                    lodCount = 1;
+                                                                } else if (info.m_lodCount <= 4) {
+                                                                    mesh = info.m_lodMeshCombined4;
+                                                                    lodCount = 4;
+                                                                } else if (info.m_lodCount <= 8) {
+                                                                    mesh = info.m_lodMeshCombined8;
+                                                                    lodCount = 8;
+                                                                } else {
+                                                                    mesh = info.m_lodMeshCombined16;
+                                                                    lodCount = 16;
+                                                                }
+                                                                for (l = info.m_lodCount; l < lodCount; l++) {
+                                                                    info.m_lodLocations[l] = lodLocation;
+                                                                    info.m_lodObjectIndices[l] = v4zero;
+                                                                    info.m_lodColors[l] = clear;
+                                                                }
+                                                                materialBlock.SetVectorArray(IDPropLocation, info.m_lodLocations);
+                                                                materialBlock.SetVectorArray(IDPropObjectIndex, info.m_lodObjectIndices);
+                                                                materialBlock.SetVectorArray(IDPropColor, info.m_lodColors);
+                                                                if (info.m_requireHeightMap) {
+                                                                    materialBlock.SetTexture(IDHeightMap, info.m_lodHeightMap);
+                                                                    materialBlock.SetVector(IDHeightMapping, info.m_lodHeightMapping);
+                                                                    materialBlock.SetVector(IDSurfaceMapping, info.m_lodSurfaceMapping);
+                                                                }
+                                                                if (info.m_requireWaterMap) {
+                                                                    materialBlock.SetTexture(IDWaterHeightMap, info.m_lodWaterHeightMap);
+                                                                    materialBlock.SetVector(IDWaterHeightMapping, info.m_lodWaterHeightMapping);
+                                                                    materialBlock.SetVector(IDWaterSurfaceMapping, info.m_lodWaterSurfaceMapping);
+                                                                }
+                                                                if (!(info.m_rollLocation is null)) {
+                                                                    info.m_lodMaterialCombined.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                                    info.m_lodMaterialCombined.SetVectorArray(IDRollParams, info.m_rollParams);
+                                                                }
+                                                                if (!(mesh is null)) {
+                                                                    lodMin = info.m_lodMin;
+                                                                    lodMax = info.m_lodMax;
+                                                                    bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
+                                                                                     new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
+                                                                    mesh.bounds = bounds;
+                                                                    info.m_lodMin = defLODMin;
+                                                                    info.m_lodMax = defLODMax;
+                                                                    pDrawCallData->m_lodCalls++;
+                                                                    pDrawCallData->m_batchedCalls += (info.m_lodCount - 1);
+                                                                    Graphics.DrawMesh(mesh, identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                                }
+                                                                info.m_lodCount = 0;
                                                             }
                                                             info.m_lodHeightMap = heightMap;
                                                             info.m_lodHeightMapping = heightMapping;
@@ -297,16 +462,64 @@ namespace EManagersLib {
                                                         info.m_lodMin = EMath.Min(info.m_lodMin, position);
                                                         info.m_lodMax = EMath.Max(info.m_lodMax, position);
                                                         if (++info.m_lodCount == info.m_lodLocations.Length) {
-                                                            EPropInstance.RenderLod(cameraInfo, info);
+                                                            materialBlock.Clear();
+                                                            int lodCount;
+                                                            if (info.m_lodCount <= 1) {
+                                                                mesh = info.m_lodMeshCombined1;
+                                                                lodCount = 1;
+                                                            } else if (info.m_lodCount <= 4) {
+                                                                mesh = info.m_lodMeshCombined4;
+                                                                lodCount = 4;
+                                                            } else if (info.m_lodCount <= 8) {
+                                                                mesh = info.m_lodMeshCombined8;
+                                                                lodCount = 8;
+                                                            } else {
+                                                                mesh = info.m_lodMeshCombined16;
+                                                                lodCount = 16;
+                                                            }
+                                                            for (l = info.m_lodCount; l < lodCount; l++) {
+                                                                info.m_lodLocations[l] = lodLocation;
+                                                                info.m_lodObjectIndices[l] = v4zero;
+                                                                info.m_lodColors[l] = clear;
+                                                            }
+                                                            materialBlock.SetVectorArray(IDPropLocation, info.m_lodLocations);
+                                                            materialBlock.SetVectorArray(IDPropObjectIndex, info.m_lodObjectIndices);
+                                                            materialBlock.SetVectorArray(IDPropColor, info.m_lodColors);
+                                                            if (info.m_requireHeightMap) {
+                                                                materialBlock.SetTexture(IDHeightMap, info.m_lodHeightMap);
+                                                                materialBlock.SetVector(IDHeightMapping, info.m_lodHeightMapping);
+                                                                materialBlock.SetVector(IDSurfaceMapping, info.m_lodSurfaceMapping);
+                                                            }
+                                                            if (info.m_requireWaterMap) {
+                                                                materialBlock.SetTexture(IDWaterHeightMap, info.m_lodWaterHeightMap);
+                                                                materialBlock.SetVector(IDWaterHeightMapping, info.m_lodWaterHeightMapping);
+                                                                materialBlock.SetVector(IDWaterSurfaceMapping, info.m_lodWaterSurfaceMapping);
+                                                            }
+                                                            if (!(info.m_rollLocation is null)) {
+                                                                info.m_lodMaterialCombined.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                                info.m_lodMaterialCombined.SetVectorArray(IDRollParams, info.m_rollParams);
+                                                            }
+                                                            if (!(mesh is null)) {
+                                                                lodMin = info.m_lodMin;
+                                                                lodMax = info.m_lodMax;
+                                                                bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
+                                                                                 new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
+                                                                mesh.bounds = bounds;
+                                                                info.m_lodMin = defLODMin;
+                                                                info.m_lodMax = defLODMax;
+                                                                pDrawCallData->m_lodCalls++;
+                                                                pDrawCallData->m_batchedCalls += (info.m_lodCount - 1);
+                                                                Graphics.DrawMesh(mesh, identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                            }
+                                                            info.m_lodCount = 0;
                                                         }
                                                     }
                                                 }
                                             } else {
                                                 if (info.m_hasEffects) {
-                                                    Matrix4x4 matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale));
+                                                    matrix4x = Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale));
                                                     PropInfo.Effect[] effects = info.m_effects;
-                                                    int len = effects.Length;
-                                                    for (int l = 0; l < len; l++) {
+                                                    for (l = 0; l < effects.Length; l++) {
                                                         EffectInfo.SpawnArea area = new EffectInfo.SpawnArea(matrix4x.MultiplyPoint(effects[l].m_position), matrix4x.MultiplyVector(effects[l].m_direction), 0f);
                                                         effects[l].m_effect.RenderEffect(id, area, v3zero, 0f, 1f, -1f, simulationTimeDelta, cameraInfo);
                                                     }
@@ -315,15 +528,13 @@ namespace EManagersLib {
                                                     if (Singleton<InfoManager>.instance.CurrentMode == InfoManager.InfoMode.None) {
                                                         if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                                             randomizer.SetSeed(id.Index);
-                                                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
-                                                            objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
+                                                            illumRange = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                                                            objectIndex.z = EMath.SmoothStep(illumRange + 0.01f, illumRange - 0.01f, lightSystem.DayLightIntensity);
                                                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
-                                                                Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
-                                                                float num2 = num * 3.71f + simulationTimer / blinkVector.w;
-                                                                num2 = (num2 - (int)num2) * blinkVector.w;
-                                                                float num3 = EMath.SmoothStep(blinkVector.x, blinkVector.y, num2);
-                                                                float num4 = EMath.SmoothStep(blinkVector.w, blinkVector.z, num2);
-                                                                objectIndex.z *= 1f - num3 * num4;
+                                                                blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
+                                                                illumStep = illumRange * 3.71f + simulationTimer / blinkVector.w;
+                                                                illumStep = (illumStep - (int)illumStep) * blinkVector.w;
+                                                                objectIndex.z *= 1f - EMath.SmoothStep(blinkVector.x, blinkVector.y, illumStep) * EMath.SmoothStep(blinkVector.w, blinkVector.z, illumStep);
                                                             }
                                                         } else {
                                                             objectIndex.z = 1f;
@@ -331,24 +542,24 @@ namespace EManagersLib {
                                                     }
                                                     if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
                                                         materialBlock.Clear();
-                                                        materialBlock.SetColor(ID_Color, color);
-                                                        materialBlock.SetVector(ID_ObjectIndex, objectIndex);
+                                                        materialBlock.SetColor(IDColor, color);
+                                                        materialBlock.SetVector(IDObjectIndex, objectIndex);
                                                         if (!(info.m_rollLocation is null)) {
-                                                            info.m_material.SetVectorArray(ID_RollLocation, info.m_rollLocation);
-                                                            info.m_material.SetVectorArray(ID_RollParams, info.m_rollParams);
+                                                            material.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                            material.SetVectorArray(IDRollParams, info.m_rollParams);
                                                         }
-                                                        pmInstance.m_drawCallData.m_defaultCalls++;
+                                                        pDrawCallData->m_defaultCalls++;
                                                         Graphics.DrawMesh(info.m_mesh, Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale)),
-                                                                            info.m_material, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                                          material, info.m_prefabDataLayer, null, 0, materialBlock);
                                                     } else if (info.m_lodMaterialCombined is null) {
                                                         materialBlock.Clear();
-                                                        materialBlock.SetColor(ID_Color, color);
-                                                        materialBlock.SetVector(ID_ObjectIndex, objectIndex);
+                                                        materialBlock.SetColor(IDColor, color);
+                                                        materialBlock.SetVector(IDObjectIndex, objectIndex);
                                                         if (!(info.m_rollLocation is null)) {
-                                                            info.m_material.SetVectorArray(ID_RollLocation, info.m_rollLocation);
-                                                            info.m_material.SetVectorArray(ID_RollParams, info.m_rollParams);
+                                                            material.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                            material.SetVectorArray(IDRollParams, info.m_rollParams);
                                                         }
-                                                        pmInstance.m_drawCallData.m_defaultCalls++;
+                                                        pDrawCallData->m_defaultCalls++;
                                                         Graphics.DrawMesh(info.m_lodMesh, Matrix4x4.TRS(position, Quaternion.AngleAxis(angle * 57.29578f, v3down), new Vector3(scale, scale, scale)),
                                                                             info.m_lodMaterial, info.m_prefabDataLayer, null, 0, materialBlock);
                                                     } else {
@@ -359,28 +570,124 @@ namespace EManagersLib {
                                                         info.m_lodMin = EMath.Min(info.m_lodMin, position);
                                                         info.m_lodMax = EMath.Max(info.m_lodMax, position);
                                                         if (++info.m_lodCount == info.m_lodLocations.Length) {
-                                                            EPropInstance.RenderLod(cameraInfo, info);
+                                                            materialBlock.Clear();
+                                                            int lodCount;
+                                                            if (info.m_lodCount <= 1) {
+                                                                mesh = info.m_lodMeshCombined1;
+                                                                lodCount = 1;
+                                                            } else if (info.m_lodCount <= 4) {
+                                                                mesh = info.m_lodMeshCombined4;
+                                                                lodCount = 4;
+                                                            } else if (info.m_lodCount <= 8) {
+                                                                mesh = info.m_lodMeshCombined8;
+                                                                lodCount = 8;
+                                                            } else {
+                                                                mesh = info.m_lodMeshCombined16;
+                                                                lodCount = 16;
+                                                            }
+                                                            for (l = info.m_lodCount; l < lodCount; l++) {
+                                                                info.m_lodLocations[l] = lodLocation;
+                                                                info.m_lodObjectIndices[l] = v4zero;
+                                                                info.m_lodColors[l] = clear;
+                                                            }
+                                                            materialBlock.SetVectorArray(IDPropLocation, info.m_lodLocations);
+                                                            materialBlock.SetVectorArray(IDPropObjectIndex, info.m_lodObjectIndices);
+                                                            materialBlock.SetVectorArray(IDPropColor, info.m_lodColors);
+                                                            if (info.m_requireHeightMap) {
+                                                                materialBlock.SetTexture(IDHeightMap, info.m_lodHeightMap);
+                                                                materialBlock.SetVector(IDHeightMapping, info.m_lodHeightMapping);
+                                                                materialBlock.SetVector(IDSurfaceMapping, info.m_lodSurfaceMapping);
+                                                            }
+                                                            if (info.m_requireWaterMap) {
+                                                                materialBlock.SetTexture(IDWaterHeightMap, info.m_lodWaterHeightMap);
+                                                                materialBlock.SetVector(IDWaterHeightMapping, info.m_lodWaterHeightMapping);
+                                                                materialBlock.SetVector(IDWaterSurfaceMapping, info.m_lodWaterSurfaceMapping);
+                                                            }
+                                                            if (!(info.m_rollLocation is null)) {
+                                                                info.m_lodMaterialCombined.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                                                                info.m_lodMaterialCombined.SetVectorArray(IDRollParams, info.m_rollParams);
+                                                            }
+                                                            if (!(mesh is null)) {
+                                                                lodMin = info.m_lodMin;
+                                                                lodMax = info.m_lodMax;
+                                                                bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
+                                                                                 new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
+                                                                mesh.bounds = bounds;
+                                                                info.m_lodMin = defLODMin;
+                                                                info.m_lodMax = defLODMax;
+                                                                pDrawCallData->m_lodCalls++;
+                                                                pDrawCallData->m_batchedCalls += (info.m_lodCount - 1);
+                                                                Graphics.DrawMesh(mesh, identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
+                                                            }
+                                                            info.m_lodCount = 0;
                                                         }
                                                     }
                                                 }
                                             }
                                         }
                                     }
-#endif
-                                    props->RenderInstance(cameraInfo, propID, 0);
-                                    propID = props->m_nextGridProp;
+                                    propID = prop->m_nextGridProp;
                                 }
                             }
                         }
                     }
                 }
-            }
-            uint prefabCount = (uint)PrefabCollection<PropInfo>.PrefabCount();
-            PrefabCollection<PropInfo>.PrefabData[] prefabs = m_simulationPrefabs().m_buffer;
-            for (uint i = 0; i < prefabCount; i++) {
-                PropInfo prefab = prefabs[i].m_prefab;
-                if (!(prefab is null) && prefab.m_lodCount != 0) {
-                    EPropInstance.RenderLod(cameraInfo, prefab);
+                uint prefabCount = (uint)PrefabCollection<PropInfo>.PrefabCount();
+                PrefabCollection<PropInfo>.PrefabData[] prefabs = m_simulationPrefabs().m_buffer;
+                for (i = 0; i < prefabCount; i++) {
+                    info = prefabs[i].m_prefab;
+                    if (!(info is null) && info.m_lodCount != 0) {
+                        materialBlock.Clear();
+                        int lodCount;
+                        if (info.m_lodCount <= 1) {
+                            mesh = info.m_lodMeshCombined1;
+                            lodCount = 1;
+                        } else if (info.m_lodCount <= 4) {
+                            mesh = info.m_lodMeshCombined4;
+                            lodCount = 4;
+                        } else if (info.m_lodCount <= 8) {
+                            mesh = info.m_lodMeshCombined8;
+                            lodCount = 8;
+                        } else {
+                            mesh = info.m_lodMeshCombined16;
+                            lodCount = 16;
+                        }
+                        for (l = info.m_lodCount; l < lodCount; l++) {
+                            info.m_lodLocations[l] = cameraInfo.m_forward * -100000f;
+                            info.m_lodObjectIndices[l] = v4zero;
+                            info.m_lodColors[l] = clear;
+                        }
+                        materialBlock.SetVectorArray(IDPropLocation, info.m_lodLocations);
+                        materialBlock.SetVectorArray(IDPropObjectIndex, info.m_lodObjectIndices);
+                        materialBlock.SetVectorArray(IDPropColor, info.m_lodColors);
+                        if (info.m_requireHeightMap) {
+                            materialBlock.SetTexture(IDHeightMap, info.m_lodHeightMap);
+                            materialBlock.SetVector(IDHeightMapping, info.m_lodHeightMapping);
+                            materialBlock.SetVector(IDSurfaceMapping, info.m_lodSurfaceMapping);
+                        }
+                        if (info.m_requireWaterMap) {
+                            materialBlock.SetTexture(IDWaterHeightMap, info.m_lodWaterHeightMap);
+                            materialBlock.SetVector(IDWaterHeightMapping, info.m_lodWaterHeightMapping);
+                            materialBlock.SetVector(IDWaterSurfaceMapping, info.m_lodWaterSurfaceMapping);
+                        }
+                        if (!(info.m_rollLocation is null)) {
+                            info.m_lodMaterialCombined.SetVectorArray(IDRollLocation, info.m_rollLocation);
+                            info.m_lodMaterialCombined.SetVectorArray(IDRollParams, info.m_rollParams);
+                        }
+                        if (!(mesh is null)) {
+                            lodMin = info.m_lodMin;
+                            lodMax = info.m_lodMax;
+                            bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
+                                             new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
+                            mesh.bounds = bounds;
+                            info.m_lodMin = defLODMin;
+                            info.m_lodMax = defLODMax;
+                            pDrawCallData->m_lodCalls++;
+                            pDrawCallData->m_batchedCalls += (info.m_lodCount - 1);
+                            Graphics.DrawMesh(mesh, identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);
+                        }
+                        info.m_lodCount = 0;
+                    }
                 }
             }
         }

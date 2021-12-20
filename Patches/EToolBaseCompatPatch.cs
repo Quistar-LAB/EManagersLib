@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -71,8 +72,24 @@ namespace EManagersLib {
 
         internal void Enable(Harmony harmony) {
             HarmonyMethod genericToolBaseCompatPatch = new HarmonyMethod(AccessTools.Method(typeof(EToolBaseCompatPatch), nameof(GenericToolBaseCompatTranspiler)));
-            harmony.Patch(AccessTools.Method(typeof(BuildingTool), nameof(BuildingTool.SimulationStep)), transpiler: genericToolBaseCompatPatch);
-            harmony.Patch(AccessTools.Method(typeof(TreeTool), nameof(TreeTool.SimulationStep)), transpiler: genericToolBaseCompatPatch);
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingTool), nameof(BuildingTool.SimulationStep)), transpiler: genericToolBaseCompatPatch);
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingTool::SimulationStep");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingTool), nameof(BuildingTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(TreeTool), nameof(TreeTool.SimulationStep)), transpiler: genericToolBaseCompatPatch);
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch TreeTool::SimulationStep");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(TreeTool), nameof(TreeTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

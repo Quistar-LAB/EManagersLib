@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -72,7 +73,16 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(InstanceManager), nameof(InstanceManager.GetPosition)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EInstanceManagerPatch), nameof(GetPositionTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(InstanceManager), nameof(InstanceManager.GetPosition)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EInstanceManagerPatch), nameof(GetPositionTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch InstanceManager::GetPosition");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(InstanceManager), nameof(InstanceManager.GetPosition)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

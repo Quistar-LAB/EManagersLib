@@ -443,18 +443,86 @@ reYield:
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndMoving>c__Iterator2", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(EndMovingTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndRotating>c__Iterator3", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(EndRotatingTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderGeometry)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(RenderGeometryTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderOverlay)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(RenderOverlayTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), "SetHoverInstance"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(SetHoverInstanceTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.SimulationStep)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(SimulationStepTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartMoving>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(StartMovingRotatingTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartRotating>c__Iterator1", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(StartMovingRotatingTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndMoving>c__Iterator2", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(EndMovingTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::EndMoving");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndMoving>c__Iterator2", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndRotating>c__Iterator3", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(EndRotatingTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::EndRotating");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<EndRotating>c__Iterator3", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderGeometry)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(RenderGeometryTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::RenderGeometry");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderGeometry)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderOverlay)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(RenderOverlayTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::RenderOverlay");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.RenderOverlay)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), "SetHoverInstance"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(SetHoverInstanceTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::SetHoverInstance");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), "SetHoverInstance"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(SimulationStepTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::SimulationStep");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool), nameof(DefaultTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartMoving>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(StartMovingRotatingTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::StartMoving");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartMoving>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartRotating>c__Iterator1", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EDefaultToolPatch), nameof(StartMovingRotatingTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch DefaultTool::StartRotating");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(DefaultTool).GetNestedType("<StartRotating>c__Iterator1", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

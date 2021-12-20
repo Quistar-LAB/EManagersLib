@@ -306,7 +306,7 @@ namespace EManagersLib {
                     using (MemoryStream ms = new MemoryStream(data)) {
                         var s = DataSerializer.Deserialize<PropPainter.PropPainterDataContainer>(ms, DataSerializer.Mode.Memory, PropPainterLegacyHandler);
                     }
-                    EUtils.ELog("Loaded " + (data.Length / 1024) + "kb of Prop Precision data");
+                    EUtils.ELog("Loaded " + (data.Length / 1024) + "kb of old Prop Painter data");
                     EraseData(PROPPAINTERID);
                 }
             }

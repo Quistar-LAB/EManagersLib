@@ -96,12 +96,40 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(BuildingAI), "CalculatePropGroupData"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(CalculatePropGroupDataTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(BuildingAI), "PopulatePropGroupData"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(PopulatePropGroupDataTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(BuildingAI), "RenderDestroyedProps"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(RenderDestroyedPropsTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(BuildingAI), "RenderProps", new Type[] {
-                typeof(RenderManager.CameraInfo), typeof(ushort), typeof(Building).MakeByRefType(), typeof(int), typeof(RenderManager.Instance).MakeByRefType(), typeof(bool), typeof(bool), typeof(bool)
-            }), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(RenderPropsTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "CalculatePropGroupData"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(CalculatePropGroupDataTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingAI::CalculatePropGroupData");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "CalculatePropGroupData"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "PopulatePropGroupData"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(PopulatePropGroupDataTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingAI::PopulatePropGroupData");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "PopulatePropGroupData"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "RenderDestroyedProps"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(RenderDestroyedPropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingAI::RenderDestroyedProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "RenderDestroyedProps"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "RenderProps", new Type[] {
+                    typeof(RenderManager.CameraInfo), typeof(ushort), typeof(Building).MakeByRefType(), typeof(int), typeof(RenderManager.Instance).MakeByRefType(), typeof(bool), typeof(bool), typeof(bool)
+                }), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingAIPatch), nameof(RenderPropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch BuildingAI::RenderProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(BuildingAI), "RenderProps"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

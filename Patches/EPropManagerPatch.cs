@@ -355,6 +355,7 @@ namespace EManagersLib {
                 if (buffer[i].m_flags != 0) {
                     PropInfo info = buffer[i].Info;
                     if (!(info is null)) {
+                        if (info.m_requireHeightMap) buffer[i].m_flags |= EPropInstance.CONFORMFLAG;
                         buffer[i].m_infoIndex = (ushort)info.m_prefabDataIndex;
                         if (buffer[i].m_scale == 0) {
                             randomizer.SetSeed(i);
@@ -475,23 +476,176 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AwakeTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.AfterTerrainUpdate)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterTerrainUpdateTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CalculateGroupData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(CalculateGroupDataTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CheckLimits)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(CheckLimitsTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), "EndRenderingImpl"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(EndRenderingImplTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.OverlapQuad)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(OverlapQuadTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.PopulateGroupData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(PopulateGroupDataTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.RayCast)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(RayCastTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.GetRandomPropInfo)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(GetRandomPropInfoTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.SampleSmoothHeight)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SampleSmoothHeightTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), "SimulationStepImpl"), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SimulationStepImplTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.TerrainUpdated)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(TerrainUpdatedTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateData)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdateDataTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdatePropsTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(DeserializeTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserializeTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SerializeTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AwakeTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::Awake");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), "Awake"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.AfterTerrainUpdate)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterTerrainUpdateTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::AfterTerrainUpdate");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.AfterTerrainUpdate)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CalculateGroupData)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(CalculateGroupDataTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::CalculateGroupData");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CalculateGroupData)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CheckLimits)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(CheckLimitsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::CheckLimits");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.CheckLimits)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), "EndRenderingImpl"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(EndRenderingImplTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::EndRenderingImpl");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), "EndRenderingImpl"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.OverlapQuad)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(OverlapQuadTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::OverlapQuad");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.OverlapQuad)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.PopulateGroupData)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(PopulateGroupDataTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::PopulateGroupData");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.PopulateGroupData)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.RayCast)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(RayCastTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::RayCast");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.RayCast)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.GetRandomPropInfo)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(GetRandomPropInfoTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::GetRandomPropInfo");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.GetRandomPropInfo)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.SampleSmoothHeight)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SampleSmoothHeightTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::SampleSmoothHeight");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.SampleSmoothHeight)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), "SimulationStepImpl"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SimulationStepImplTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::SimulationStepImpl");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), "SimulationStepImpl"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.TerrainUpdated)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(TerrainUpdatedTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::TerrainUpdated");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.TerrainUpdated)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateData)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdateDataTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::UpdateData");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateData)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(UpdatePropsTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::UpdateProps");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager), nameof(PropManager.UpdateProps)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(DeserializeTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::Data::Deserialize");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Deserialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserializeTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::Data::AfterDeserialize");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.AfterDeserialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropManagerPatch), nameof(SerializeTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropManager::Data::Serialize");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropManager.Data), nameof(PropManager.Data.Serialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {

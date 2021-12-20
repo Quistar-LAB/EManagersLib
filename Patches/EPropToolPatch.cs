@@ -450,15 +450,56 @@ namespace EManagersLib {
         }
 
         internal void Enable(Harmony harmony) {
-            harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderOverlay), new Type[] { typeof(RenderManager.CameraInfo) }),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(RenderOverlayTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderGeometry)), transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(RenderGeometryTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.SimulationStep)),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(SimulationStepTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropTool).GetNestedType("<CreateProp>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(CreatePropTranspiler))));
-            harmony.Patch(AccessTools.Method(typeof(PropTool), "ApplyBrush"),
-                transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(ApplyBrushTranspiler))));
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderOverlay), new Type[] { typeof(RenderManager.CameraInfo) }),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(RenderOverlayTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropTool::RenderOverlay");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderOverlay), new Type[] { typeof(RenderManager.CameraInfo) }),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderGeometry)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(RenderGeometryTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropTool::RenderGeometry");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.RenderGeometry), new Type[] { typeof(RenderManager.CameraInfo) }),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(SimulationStepTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropTool::SimulationStep");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropTool), nameof(PropTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropTool).GetNestedType("<CreateProp>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(CreatePropTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropTool::CreateProp");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropTool).GetNestedType("<CreateProp>c__Iterator0", BindingFlags.Instance | BindingFlags.NonPublic), "MoveNext"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
+            try {
+                harmony.Patch(AccessTools.Method(typeof(PropTool), "ApplyBrush"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EPropToolPatch), nameof(ApplyBrushTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch PropTool::ApplyBrush");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(PropTool), "ApplyBrush"),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {
