@@ -6,7 +6,7 @@ using System;
 
 namespace EManagersLib {
     public sealed class EModule : IUserMod, ILoadingExtension {
-        internal const string m_modVersion = "0.9.5";
+        internal const string m_modVersion = "0.9.6";
         internal const string m_assemblyVersion = m_modVersion + ".*";
         internal const string m_modName = "Extended Managers";
         internal const string m_modDesc = "A library that extends the existing framework in Cities Skylines";
