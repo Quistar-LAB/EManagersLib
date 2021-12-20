@@ -6,8 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
-using static EManagersLib.EPropManager;
 using System.Runtime.CompilerServices;
+using static EManagersLib.EPropManager;
 
 namespace EManagersLib {
     internal class EPropManagerPatch {

@@ -1,6 +1,7 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using static EManagersLib.EPropManager;
@@ -478,6 +479,7 @@ namespace EManagersLib {
             info.m_lodCount = 0;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool GetSnappingState() => !Singleton<LoadingManager>.instance.m_currentlyLoading && UsePropSnapping;
 
         public void CalculateProp(uint propID) {
@@ -491,6 +493,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public bool CheckOverlapWithAnarchy() {
             if (Singleton<LoadingManager>.instance.m_currentlyLoading) {
                 return true;
@@ -689,13 +692,14 @@ namespace EManagersLib {
             return result;
         }
 
-
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public bool CalculateGroupData(uint propID, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
             if (Blocked) return false;
             PropInfo info = Info;
             return (info.m_prefabDataLayer == layer || info.m_effectLayer == layer) && CalculateGroupData(info, layer, ref vertexCount, ref triangleCount, ref objectCount, ref vertexArrays);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool CalculateGroupData(PropInfo info, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
             if (info.m_prefabDataLayer == layer) return true;
@@ -713,6 +717,7 @@ namespace EManagersLib {
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public void PopulateGroupData(uint propID, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
             if (Blocked) return;
             PropInfo info = Info;

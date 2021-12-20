@@ -5,9 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using static EManagersLib.EPropManager;
-using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     public class EPropToolPatch {

@@ -1,5 +1,6 @@
 ﻿using ColossalFramework.IO;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     #region InstanceIDExtensions
@@ -11,20 +12,25 @@ namespace EManagersLib {
         private const uint OBJECT_PROP = 0x0a000000u;
         private const uint OBJECT_BUILDINGPROP = 0x0e000000u;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static uint GetProp32(this InstanceID instance) {
             uint id = instance.RawData;
             return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static uint GetProp32ByRef(ref InstanceID instance) {
             uint id = instance.RawData;
             return ((id & OBJECT_TYPE) != OBJECT_PROP) ? 0u : (id & OBJECT_INDEX);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetProp32(ref this InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetProp32ByRef(ref InstanceID instance, uint id) => instance.RawData = (OBJECT_PROP | id);
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void GetBuildingProp32(this InstanceID instance, out uint building, out int propIndex) {
             if ((instance.RawData & OBJECT_TYPE) == OBJECT_BUILDINGPROP) {
                 building = (instance.RawData & 0xffffu);
@@ -35,18 +41,22 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static uint GetBuilding32(this InstanceID instance) {
             uint id = instance.RawData;
             return ((id & OBJECT_TYPE) != OBJECT_BUILDING) ? 0u : (id & OBJECT_INDEX);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static uint GetBuilding32ByRef(ref InstanceID instance) {
             uint id = instance.RawData;
             return ((id & OBJECT_TYPE) != OBJECT_BUILDING) ? 0u : (id & OBJECT_INDEX);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetBuilding32(ref this InstanceID instance, uint id) => instance.RawData = OBJECT_BUILDING | id;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetBuilding32ByRef(ref InstanceID instance, uint id) => instance.RawData = OBJECT_BUILDING | id;
     }
     #endregion InstanceIDExtensions

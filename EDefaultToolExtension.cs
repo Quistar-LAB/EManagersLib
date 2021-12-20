@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace EManagersLib {
@@ -65,6 +66,7 @@ namespace EManagersLib {
             PropTool.RenderOverlay(cameraInfo, info, props[propID].Position, props[propID].m_scale, props[propID].Angle, toolColor);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void StartMovingRotating(ref float angle, uint propID) {
             EPropInstance[] props = EPropManager.m_props.m_buffer;
             angle = props[propID].Angle * 57.29578f;

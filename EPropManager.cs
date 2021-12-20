@@ -1,9 +1,9 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
-using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
     public static class EPropManager {
