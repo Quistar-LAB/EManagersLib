@@ -4,17 +4,22 @@ using UnityEngine;
 
 namespace PropPainter {
     public class PropPainterDataContainer : IDataContainer {
-        // This reads the object (from bytes)
-        public void Deserialize(DataSerializer s) {
+        public unsafe void Deserialize(DataSerializer s) {
+            const int DEFAULT_PROP_COUNT = 65536;
             EPropInstance[] props = EPropManager.m_props.m_buffer;
-            int[] ids = s.ReadInt32Array();
-            for (int i = 0; i < ids.Length; i++) {
-                int h = ids[i];
-                if (h != 16777216) {
-                    byte r = (byte)((h >> 16) & 0xff);
-                    byte g = (byte)((h >> 8) & 0xff);
-                    byte b = (byte)((h) & 0xff);
-                    props[i].m_color = new Color32(r, g, b, 255);
+            uint len = s.ReadUInt24();
+            if (len == DEFAULT_PROP_COUNT) {
+                fixed (EPropInstance* pProp = EPropManager.m_props.m_buffer) {
+                    EPropInstance* prop = pProp;
+                    for (int i = 0; i < DEFAULT_PROP_COUNT; i++, prop++) {
+                        byte a = (byte)s.ReadUInt8();
+                        byte r = (byte)s.ReadUInt8();
+                        byte g = (byte)s.ReadUInt8();
+                        byte b = (byte)s.ReadUInt8();
+                        if (a != 0x01 && r != 0x00 && g != 0x00 && b != 0x00) {
+                            prop->m_color = new Color32(r, g, b, 255);
+                        }
+                    }
                 }
             }
         }
