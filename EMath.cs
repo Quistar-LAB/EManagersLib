@@ -1,4 +1,4 @@
-﻿using ColossalFramework.Math;
+﻿using System;
 using UnityEngine;
 
 namespace EManagersLib {
@@ -7,7 +7,7 @@ namespace EManagersLib {
     /// and these are common Mathf methods that are optimized. I hate re-inventing
     /// the wheel, but these speed ups are drastic enough to do them
     /// </summary>
-    public static class EMath {
+    public struct EMath {
         public static readonly Vector2 Vector2Zero = Vector2.zero;
         public static readonly Vector3 Vector3Zero = Vector3.zero;
         public static readonly Vector4 Vector4Zero = Vector4.zero;
@@ -20,7 +20,6 @@ namespace EManagersLib {
         public static readonly Vector3 DefaultLodMax = new Vector3(-100000f, -100000f, -100000f);
         public static readonly Vector3 DefaultLod100 = new Vector3(100f, 100f, 100f);
         public static readonly Color ColorClear = Color.clear;
-        public static Randomizer randomizer = new Randomizer();
 
         /// <summary>
         /// Get Matrix.identity using this static variable. It's about ~5x faster
@@ -63,10 +62,7 @@ namespace EManagersLib {
         /// <param name="min">The minimum limit</param>
         /// <param name="max">The maximum limit</param>
         /// <returns>Returns the clamped result</returns>
-        public static int Clamp(int val, int min, int max) {
-            val = (val < min) ? min : val;
-            return (val > max) ? max : val;
-        }
+        public static int Clamp(int val, int min, int max) => val < min ? min : (val > max ? max : val);
 
         /// <summary>
         /// Functions exactly the same as Mathf.Clamp but ~28x faster
@@ -75,30 +71,21 @@ namespace EManagersLib {
         /// <param name="min">The minimum limit</param>
         /// <param name="max">The maximum limit</param>
         /// <returns>Returns the clamped result</returns>
-        public static float Clamp(float val, float min, float max) {
-            val = (val < min) ? min : val;
-            return (val > max) ? max : val;
-        }
+        public static float Clamp(float val, float min, float max) => val < min ? min : (val > max ? max : val);
 
         /// <summary>
         /// Same as Mathf.Clamp01, clamps between 0 and 1
         /// </summary>
         /// <param name="val"></param>
         /// <returns>Returns value between 0 and 1</returns>
-        public static float Clamp01(float val) {
-            val = val > 1 ? 1 : val;
-            return val < 0 ? 0 : val;
-        }
+        public static float Clamp01(float val) => val > 1f ? 1f : (val < 0f ? 0f : val);
 
         /// <summary>
         /// Same as Mathf.Clamp01, clamps between 0 and 1
         /// </summary>
         /// <param name="val"></param>
         /// <returns>Returns value between 0 and 1</returns>
-        public static int Clamp01(int val) {
-            val = val > 1 ? 1 : val;
-            return val < 0 ? 0 : val;
-        }
+        public static int Clamp01(int val) => val > 1 ? 1 : (val < 0 ? 0 : val);
 
         /// <summary>
         /// Same as Mathf.Floor except ~56x faster
@@ -114,7 +101,7 @@ namespace EManagersLib {
         /// <param name="b"></param>
         /// <param name="t"></param>
         /// <returns></returns>
-        public static float Lerp(float a, float b, float t) => a + (b - a) * Clamp01(t);
+        public static float Lerp(float a, float b, float t) => a + (b - a) * (t > 1 ? 1 : (t < 0 ? 0 : t));
 
         /// <summary>
         /// Same as Vector3.Lerp, just slightly faster
@@ -124,8 +111,7 @@ namespace EManagersLib {
         /// <param name="t"></param>
         /// <returns>Returns Vector3</returns>
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) {
-            t = t > 1 ? 1 : t;
-            t = t < 0 ? 0 : t;
+            t = t > 1 ? 1 : (t < 0 ? 0 : t);
             return new Vector3(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
         }
 
@@ -188,11 +174,9 @@ namespace EManagersLib {
             const float A = 0.00735246819687011731341356165096815f;
             const float B = -0.16528911397014738207016302002888890f;
             const float C = 0.99969198629596757779830113868360584f;
-            int k;
-            float x2;
-            k = RoundToInt(INVPI * x);
+            float x2 = x * x;
+            int k = RoundToInt(INVPI * x);
             x -= k * PI;
-            x2 = x * x;
             x *= (C + x2 * (B + A * x2));
             if (k % 2 != 0) x = -x;
             return x;
@@ -204,6 +188,35 @@ namespace EManagersLib {
         /// <param name="x"></param>
         /// <returns>Returns the cosine result in float</returns>
         public static float Cos(float x) => Sin(x + 1.5707963f);
+
+        /// <summary>
+        /// Functions just like Mathf::ACos
+        /// </summary>
+        /// <param name="f"></param>
+        /// <returns></returns>
+        public static float Acos(float f) => (float)Math.Acos(f);
+
+        /// <summary>
+        /// Functions just like Mathf::Asin
+        /// </summary>
+        /// <param name="f"></param>
+        /// <returns></returns>
+        public static float Asin(float f) => (float)Math.Asin(f);
+
+        /// <summary>
+        /// Functions just like Mathf::Atan2
+        /// </summary>
+        /// <param name="y"></param>
+        /// <param name="x"></param>
+        /// <returns></returns>
+        public static float Atan2(float y, float x) => (float)Math.Atan2(y, x);
+
+        /// <summary>
+        /// Functions just like Mathf::Atan
+        /// </summary>
+        /// <param name="f"></param>
+        /// <returns></returns>
+        public static float Atan(float f) => (float)Math.Atan(f);
 
         /// <summary>
         /// Functions exactly the same as Mathf.Repeat, just faster
@@ -218,13 +231,15 @@ namespace EManagersLib {
         /// </summary>
         /// <param name="x"></param>
         /// <returns></returns>
-        public static unsafe float Sqrt(float x) {
+        public static unsafe float SqrtFast(float x) {
             float xHalf = 0.5f * x;
             int tmp = 0x5f3759df - (*(int*)&x >> 1);
             float xRes = *(float*)&tmp;
             xRes *= (1.5f - (xHalf * xRes * xRes));
             return xRes * x;
         }
+
+        public static float Sqrt(float f) => (float)Math.Sqrt(f);
 
         /// <summary>
         /// Functions Exactly the same as Mathf.Sign
@@ -257,32 +272,6 @@ namespace EManagersLib {
         public static bool IsNearlyEqual(float a, float b, float epsilon = 0.0001f) => a == b || Abs(a - b) < epsilon;
 
         /// <summary>
-        /// Use this method to set the seed value, instead of calling new Randomizer(int val), so randomizer can be re-used
-        /// </summary>
-        /// <param name="val"></param>
-        public static void SetRandomizerSeed(int val) => randomizer.seed = (ulong)(6364136223846793005L * val + 1442695040888963407L);
-
-        /// <summary>
-        /// Use this method to set the seed value, instead of calling new Randomizer(int val), so randomizer can be re-used
-        /// </summary>
-        /// <param name="val"></param>
-        public static void SetRandomizerSeed(uint val) => randomizer.seed = 6364136223846793005uL * val + 1442695040888963407uL;
-
-        /// <summary>
-        /// This is an extension method to ease the reuse of randomizers
-        /// </summary>
-        /// <param name="randomizer"></param>
-        /// <param name="val"></param>
-        public static void SetSeed(ref this Randomizer randomizer, int val) => randomizer.seed = (ulong)(6364136223846793005L * val + 1442695040888963407L);
-
-        /// <summary>
-        /// This is an extension method to ease the reuse of randomizers
-        /// </summary>
-        /// <param name="randomizer"></param>
-        /// <param name="val"></param>
-        public static void SetSeed(ref this Randomizer randomizer, uint val) => randomizer.seed = 6364136223846793005uL * val + 1442695040888963407uL;
-
-        /// <summary>
         /// Functions exactly like MathUtils.SmoothStep. This one is only 1.2x faster
         /// </summary>
         /// <param name="edge0"></param>
@@ -302,7 +291,7 @@ namespace EManagersLib {
         /// <param name="point"></param>
         /// <param name="maxDistance"></param>
         /// <returns></returns>
-        public static bool ECheckRenderDistance(this RenderManager.CameraInfo cameraInfo, Vector3 point, float maxDistance) {
+        public static bool ECheckRenderDistance(RenderManager.CameraInfo cameraInfo, Vector3 point, float maxDistance) {
             float distance = maxDistance * 0.45f;
             Vector3 campos = cameraInfo.m_position;
             Vector3 camforward = cameraInfo.m_forward;
