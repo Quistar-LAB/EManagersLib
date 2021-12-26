@@ -36,7 +36,7 @@ namespace EManagersLib {
         public static int MAX_MAP_PROPS_LIMIT => MAX_PROP_LIMIT - 15536;
         public static int MAX_GAME_PROPS_LIMIT => MAX_PROP_LIMIT - 5;
         /* Custom functionality */
-        public static bool UsePropAnarchy;
+        public static bool UsePropAnarchy = true;
         public static bool UsePropSnapping;
         private static EUtils.RefGetter<FastList<PrefabCollection<PropInfo>.PrefabData>> m_simulationPrefabs;
 
@@ -129,7 +129,7 @@ namespace EManagersLib {
             if ((m_mode & ItemClass.Availability.Game) == ItemClass.Availability.None && m_markerAlpha >= 0.001f) {
                 layer |= 1 << m_markerLayer;
             }
-            Randomizer randomizer = EMath.randomizer;
+            Randomizer randomizer;
             Vector3 v3zero = EMath.Vector3Zero;
             Vector3 v3down = EMath.Vector3Down;
             Vector4 v4zero = EMath.Vector4Zero;
@@ -185,7 +185,7 @@ namespace EManagersLib {
                                     if ((prop->m_flags & (EPropInstance.HIDDENFLAG | EPropInstance.BLOCKEDFLAG)) == 0) {
                                         info = prop->Info;
                                         Vector3 position = prop->Position;
-                                        if (info.m_prefabInitialized && cameraInfo.ECheckRenderDistance(position, info.m_maxRenderDistance) && cameraInfo.Intersect(position, info.m_generatedInfo.m_size.y * info.m_maxScale)) {
+                                        if (info.m_prefabInitialized && EMath.ECheckRenderDistance(cameraInfo, position, info.m_maxRenderDistance) && cameraInfo.Intersect(position, info.m_generatedInfo.m_size.y * info.m_maxScale)) {
                                             float scale = prop->m_scale;
                                             float angle = prop->Angle;
                                             Color color = prop->m_color;
@@ -206,7 +206,7 @@ namespace EManagersLib {
                                                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
                                                     if (infoMode == InfoManager.InfoMode.None) {
                                                         if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
-                                                            randomizer.SetSeed(id.Index);
+                                                            randomizer = new Randomizer(id.Index);
                                                             illumRange = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                                                             objectIndex.z = EMath.SmoothStep(illumRange + 0.01f, illumRange - 0.01f, lightSystem.DayLightIntensity);
                                                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
@@ -219,7 +219,7 @@ namespace EManagersLib {
                                                             objectIndex.z = 1f;
                                                         }
                                                     }
-                                                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                                                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                                                         materialBlock.Clear();
                                                         materialBlock.SetColor(IDColor, color);
                                                         materialBlock.SetTexture(IDHeightMap, heightMap);
@@ -371,7 +371,7 @@ namespace EManagersLib {
                                                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
                                                     if (infoMode == InfoManager.InfoMode.None) {
                                                         if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
-                                                            randomizer.SetSeed(id.Index);
+                                                            randomizer = new Randomizer(id.Index);
                                                             illumRange = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                                                             objectIndex.z = EMath.SmoothStep(illumRange + 0.01f, illumRange - 0.01f, lightSystem.DayLightIntensity);
                                                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
@@ -384,7 +384,7 @@ namespace EManagersLib {
                                                             objectIndex.z = 1f;
                                                         }
                                                     }
-                                                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                                                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                                                         materialBlock.Clear();
                                                         materialBlock.SetColor(IDColor, color);
                                                         materialBlock.SetTexture(IDHeightMap, heightMap);
@@ -529,7 +529,7 @@ namespace EManagersLib {
                                                 if (info.m_hasRenderer && (cameraInfo.m_layerMask & 1 << info.m_prefabDataLayer) != 0) {
                                                     if (Singleton<InfoManager>.instance.CurrentMode == InfoManager.InfoMode.None) {
                                                         if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
-                                                            randomizer.SetSeed(id.Index);
+                                                            randomizer = new Randomizer(id.Index);
                                                             illumRange = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                                                             objectIndex.z = EMath.SmoothStep(illumRange + 0.01f, illumRange - 0.01f, lightSystem.DayLightIntensity);
                                                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
@@ -542,7 +542,7 @@ namespace EManagersLib {
                                                             objectIndex.z = 1f;
                                                         }
                                                     }
-                                                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                                                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                                                         materialBlock.Clear();
                                                         materialBlock.SetColor(IDColor, color);
                                                         materialBlock.SetVector(IDObjectIndex, objectIndex);
@@ -734,14 +734,13 @@ namespace EManagersLib {
             }
             if (m_props.CreateItem(out uint propID, ref randomizer)) {
                 prop = propID;
-                EMath.SetRandomizerSeed(prop);
                 EPropInstance[] props = m_props.m_buffer;
                 props[prop].m_flags = EPropInstance.CREATEDFLAG | EPropInstance.SINGLEFLAG;
                 props[prop].Info = info;
                 props[prop].Position = position;
                 props[prop].Angle = angle;
-                props[prop].m_scale = info.m_minScale + EMath.randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
-                props[prop].m_color = info.GetColor(ref EMath.randomizer);
+                props[prop].m_scale = info.m_minScale + randomizer.Int32(10000u) * (info.m_maxScale - info.m_minScale) * 0.0001f;
+                props[prop].m_color = info.GetColor(ref randomizer);
                 DistrictManager instance = Singleton<DistrictManager>.instance;
                 instance.m_parks.m_buffer[instance.GetPark(position)].m_propCount++;
                 ItemClass.Availability mode = Singleton<ToolManager>.instance.m_properties.m_mode;

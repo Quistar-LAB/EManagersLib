@@ -66,7 +66,20 @@ namespace EManagersLib {
         }
         public bool Blocked {
             get => (m_flags & BLOCKEDFLAG) != 0u;
-            set => m_flags = value ? (UsePropAnarchy ? m_flags : (ushort)(m_flags | BLOCKEDFLAG)) : (ushort)(m_flags & BLOCKEDMASK);
+            //set => m_flags = value ? (UsePropAnarchy ? m_flags : (ushort)(m_flags | BLOCKEDFLAG)) : (ushort)(m_flags & BLOCKEDMASK);
+            set {
+                if (UsePropAnarchy) {
+                    if (!value) {
+                        m_flags &= BLOCKEDMASK;
+                    }
+                } else {
+                    if (!value) {
+                        m_flags &= BLOCKEDMASK;
+                    } else {
+                        m_flags |= BLOCKEDFLAG;
+                    }
+                }
+            }
         }
         public bool Hidden {
             get => (m_flags & HIDDENFLAG) != 0u;
@@ -110,7 +123,7 @@ namespace EManagersLib {
             if ((m_flags & (HIDDENFLAG | BLOCKEDFLAG)) == 0) {
                 PropInfo info = Info;
                 Vector3 position = Position;
-                if (cameraInfo.ECheckRenderDistance(position, info.m_maxRenderDistance) && cameraInfo.Intersect(position, info.m_generatedInfo.m_size.y * info.m_maxScale)) {
+                if (EMath.ECheckRenderDistance(cameraInfo, position, info.m_maxRenderDistance) && cameraInfo.Intersect(position, info.m_generatedInfo.m_size.y * info.m_maxScale)) {
                     InstanceID id = default;
                     id.SetProp32(propID);
                     if (info.m_requireWaterMap) {
@@ -149,8 +162,8 @@ namespace EManagersLib {
                             objectIndex.z = 0f;
                         } else if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
-                            EMath.SetRandomizerSeed(id.Index);
-                            float num = info.m_illuminationOffRange.x + EMath.randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                            Randomizer randomizer = new Randomizer(id.Index);
+                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                             objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
@@ -164,7 +177,7 @@ namespace EManagersLib {
                             objectIndex.z = 1f;
                         }
                     }
-                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                         MaterialPropertyBlock materialBlock = m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(ID_Color, color);
@@ -222,8 +235,8 @@ namespace EManagersLib {
                             objectIndex.z = 0f;
                         } else if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
-                            EMath.SetRandomizerSeed(id.Index);
-                            float num = info.m_illuminationOffRange.x + EMath.randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                            Randomizer randomizer = new Randomizer(id.Index);
+                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                             objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
@@ -237,7 +250,7 @@ namespace EManagersLib {
                             objectIndex.z = 1f;
                         }
                     }
-                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                         PropManager instance = m_pmInstance;
                         MaterialPropertyBlock materialBlock = m_materialBlock;
                         materialBlock.Clear();
@@ -292,8 +305,8 @@ namespace EManagersLib {
                             objectIndex.z = 0f;
                         } else if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
-                            EMath.SetRandomizerSeed(id.Index);
-                            float num = info.m_illuminationOffRange.x + EMath.randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                            Randomizer randomizer = new Randomizer(id.Index);
+                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                             objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
@@ -307,7 +320,7 @@ namespace EManagersLib {
                             objectIndex.z = 1f;
                         }
                     }
-                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                         MaterialPropertyBlock materialBlock = m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(ID_Color, color);
@@ -363,8 +376,8 @@ namespace EManagersLib {
                             objectIndex.z = 0f;
                         } else if (info.m_illuminationOffRange.x < 1000f || info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                             LightSystem lightSystem = Singleton<RenderManager>.instance.lightSystem;
-                            EMath.SetRandomizerSeed(id.Index);
-                            float num = info.m_illuminationOffRange.x + EMath.randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
+                            Randomizer randomizer = new Randomizer(id.Index);
+                            float num = info.m_illuminationOffRange.x + randomizer.Int32(100000u) * 1E-05f * (info.m_illuminationOffRange.y - info.m_illuminationOffRange.x);
                             objectIndex.z = EMath.SmoothStep(num + 0.01f, num - 0.01f, lightSystem.DayLightIntensity);
                             if (info.m_illuminationBlinkType != LightEffect.BlinkType.None) {
                                 Vector4 blinkVector = LightEffect.GetBlinkVector(info.m_illuminationBlinkType);
@@ -378,7 +391,7 @@ namespace EManagersLib {
                             objectIndex.z = 1f;
                         }
                     }
-                    if (cameraInfo is null || cameraInfo.ECheckRenderDistance(position, info.m_lodRenderDistance)) {
+                    if (cameraInfo is null || EMath.ECheckRenderDistance(cameraInfo, position, info.m_lodRenderDistance)) {
                         MaterialPropertyBlock materialBlock = m_materialBlock;
                         materialBlock.Clear();
                         materialBlock.SetColor(ID_Color, color);
@@ -493,46 +506,39 @@ namespace EManagersLib {
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public bool CheckOverlapWithAnarchy() {
-            if (Singleton<LoadingManager>.instance.m_currentlyLoading) {
-                return true;
-            } else if (UsePropAnarchy) {
+        private void CheckOverlap(uint propID) {
+            if (!UsePropAnarchy) {
+                if (Info is PropInfo info) {
+                    ItemClass.CollisionType collisionType = (m_flags & FIXEDHEIGHTFLAG) == 0 ? ItemClass.CollisionType.Terrain : ItemClass.CollisionType.Elevated;
+                    Vector3 position = Position;
+                    float y = position.y;
+                    float maxY = position.y + info.m_generatedInfo.m_size.y * m_scale;
+                    float range = (!Single) ? 4.5f : 0.3f;
+                    Quad2 quad = default;
+                    Vector2 a = VectorUtils.XZ(position);
+                    quad.a = new Vector2(a.x - range, a.y - range);
+                    quad.b = new Vector2(a.x - range, a.y + range);
+                    quad.c = new Vector2(a.x + range, a.y + range);
+                    quad.d = new Vector2(a.x + range, a.y - range);
+                    bool flag = false;
+                    if (!(info.m_class is null)) {
+                        if (Singleton<NetManager>.instance.OverlapQuad(quad, y, maxY, collisionType, info.m_class.m_layer, 0, 0, 0)) flag = true;
+                        if (Singleton<BuildingManager>.instance.OverlapQuad(quad, y, maxY, collisionType, info.m_class.m_layer, 0, 0, 0)) flag = true;
+                    }
+                    if (flag != Blocked) {
+                        Blocked = flag;
+                        DistrictManager instance = Singleton<DistrictManager>.instance;
+                        byte park = instance.GetPark(position);
+                        if (flag) instance.m_parks.m_buffer[park].m_propCount--;
+                        else instance.m_parks.m_buffer[park].m_propCount++;
+                    }
+                }
+            } else {
                 if (Blocked) {
                     Blocked = false;
                     DistrictManager instance = Singleton<DistrictManager>.instance;
                     byte park = instance.GetPark(Position);
-                    instance.m_parks.m_buffer[park].m_propCount--;
-                }
-                return true;
-            }
-            return false;
-        }
-
-        private void CheckOverlap(uint propID) {
-            if (Info is PropInfo info && !CheckOverlapWithAnarchy()) {
-                ItemClass.CollisionType collisionType = (m_flags & FIXEDHEIGHTFLAG) == 0 ? ItemClass.CollisionType.Terrain : ItemClass.CollisionType.Elevated;
-                Vector3 position = Position;
-                float y = position.y;
-                float maxY = position.y + info.m_generatedInfo.m_size.y * m_scale;
-                float range = (!Single) ? 4.5f : 0.3f;
-                Quad2 quad = default;
-                Vector2 a = VectorUtils.XZ(position);
-                quad.a = a + new Vector2(-range, -range);
-                quad.b = a + new Vector2(-range, range);
-                quad.c = a + new Vector2(range, range);
-                quad.d = a + new Vector2(range, -range);
-                bool flag = false;
-                if (!(info.m_class is null)) {
-                    if (Singleton<NetManager>.instance.OverlapQuad(quad, y, maxY, collisionType, info.m_class.m_layer, 0, 0, 0)) flag = true;
-                    if (Singleton<BuildingManager>.instance.OverlapQuad(quad, y, maxY, collisionType, info.m_class.m_layer, 0, 0, 0)) flag = true;
-                }
-                if (flag != Blocked) {
-                    Blocked = flag;
-                    DistrictManager instance = Singleton<DistrictManager>.instance;
-                    byte park = instance.GetPark(position);
-                    if (flag) instance.m_parks.m_buffer[park].m_propCount--;
-                    else instance.m_parks.m_buffer[park].m_propCount++;
+                    instance.m_parks.m_buffer[park].m_propCount++;
                 }
             }
         }
