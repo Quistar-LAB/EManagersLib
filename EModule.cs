@@ -6,30 +6,28 @@ using System;
 
 namespace EManagersLib {
     public sealed class EModule : IUserMod, ILoadingExtension {
-        internal const string m_modVersion = "0.9.6";
+        internal const string m_modVersion = "0.9.7";
         internal const string m_assemblyVersion = m_modVersion + ".*";
         internal const string m_modName = "Extended Managers";
         internal const string m_modDesc = "A library that extends the existing framework in Cities Skylines";
         internal const string HARMONYID = "quistar.EManagersLib.mod";
         internal const string m_settingsFile = "EManagersLibKeyBind";
-        private static UIPanel m_statsPanel;
-        public string Name => m_modName;
+
+        public string Name => m_modName + ' ' + m_modVersion;
         public string Description => m_modDesc;
 
         public EModule() {
             try {
-                if (GameSettings.FindSettingsFileByName(m_settingsFile) == null) {
-                    GameSettings.AddSettingsFile(new SettingsFile[] {
-                        new SettingsFile() { fileName = m_settingsFile }
-                    });
-                }
+                EUtils.CreateDebugFile();
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
         }
 
         public void OnEnabled() {
-            EUtils.CreateDebugFile();
+            GameSettings.AddSettingsFile(new SettingsFile[] {
+                        new SettingsFile() { fileName = m_settingsFile }
+                    });
             EUtils.CheckIncompatibleMods();
             HarmonyHelper.DoOnHarmonyReady(() => EUtils.EnablePropPatches());
         }
@@ -59,11 +57,11 @@ namespace EManagersLib {
         public void OnReleased() { }
 
         public void OnLevelLoaded(LoadMode mode) {
-            m_statsPanel = UIView.GetAView().AddUIComponent(typeof(EStatsPanel)) as UIPanel;
+            EStatsPanel.Initialize();
         }
 
         public void OnLevelUnloading() {
-            if (!(m_statsPanel is null)) UnityEngine.Object.Destroy(m_statsPanel);
+
         }
     }
 }
