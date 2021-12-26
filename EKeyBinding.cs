@@ -3,16 +3,29 @@ using ColossalFramework.UI;
 using UnityEngine;
 
 namespace EManagersLib {
-    internal class EKeyBinding : UICustomControl {
+    internal sealed class EKeyBinding : UICustomControl {
         private const string thisCategory = "EManagersLib";
         private SavedInputKey m_EditingBinding;
-        [RebindableKey("TreeAnarchy")]
+        [RebindableKey("EManagersLib")]
         private static readonly string toggleStatsPanelVisibility = "toggleStatsPanelVisibility";
         private static readonly InputKey toggleStatsPanelVisiblityKey = SavedInputKey.Encode(KeyCode.L, true, false, false);
-        internal static readonly SavedInputKey m_toggleStatsPanel = new SavedInputKey(toggleStatsPanelVisibility, EModule.m_settingsFile, toggleStatsPanelVisiblityKey, true);
+        internal SavedInputKey m_toggleStatsPanel;
 
-        protected void Awake() {
+        internal void Awake() {
+            m_toggleStatsPanel = new SavedInputKey(toggleStatsPanelVisibility, EModule.m_settingsFile, toggleStatsPanelVisiblityKey, true);
             AddKeymapping("Toggle Stats Panel Visibility", m_toggleStatsPanel);
+        }
+
+        internal void OnGUI() {
+            if (m_toggleStatsPanel.IsPressed(Event.current)) {
+                EStatsPanel.m_isVisible = !EStatsPanel.m_isVisible;
+                if (EStatsPanel.m_isVisible) {
+                    StartCoroutine(EStatsPanel.UpdateStats());
+                } else {
+                    StopCoroutine(EStatsPanel.UpdateStats());
+                }
+            }
+            EStatsPanel.OnGUI();
         }
 
         private int listCount = 0;
