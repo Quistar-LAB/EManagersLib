@@ -6,21 +6,8 @@ using System.Reflection;
 using UnityEngine;
 
 namespace UI {
-    public class UIIndicator : UIPanel {
-        private const float indicatorWidth = 36f;
-        private const float indicatorHeight = 36f;
-        private const int spriteMaxSize = 128;
-        private const string IndicatorPanelName = @"IndicatorPanel";
-        private const string SnappingIconName = @"Snap";
-        private const string AnarchyIconName = @"Anarchy";
-        private const string LockForestryIconName = @"LockForestry";
-        private static UIComponent m_anchor;
-        private static UIComponent m_temperaturePanel;
-        public static UIIcon SnapIndicator { get; private set; } = null;
-        public static UIIcon AnarchyIndicator { get; private set; } = null;
-        public static UIIcon LockForestryIndicator { get; private set; } = null;
-
-        public class UIIcon : UIPanel {
+    public sealed class UIIndicator : UIPanel {
+        public sealed class UIIcon : UIPanel {
             private bool m_state;
             public string m_disabledTooltip;
             public string m_enabledTooltip;
@@ -49,7 +36,7 @@ namespace UI {
                 OnLocalizeTooltip();
                 RefreshTooltip();
             }
-            public virtual void UpdateState() {
+            public void UpdateState() {
                 tooltip = m_state ? m_enabledTooltip : m_disabledTooltip;
                 backgroundSprite = m_state ? name + @"Enabled" : name + @"Disabled";
             }
@@ -59,33 +46,138 @@ namespace UI {
             }
         }
 
-        protected override void OnResolutionChanged(Vector2 previousResolution, Vector2 currentResolution) {
-            base.OnResolutionChanged(previousResolution, currentResolution);
-            UIComponent anchor = m_anchor;
-            UIComponent tempPanel = m_temperaturePanel;
-            Vector3 demandAbsPos = anchor.relativePosition + anchor.parent.relativePosition;
-            relativePosition = new Vector3(demandAbsPos.x + anchor.size.x + 8f, demandAbsPos.y + (anchor.size.y - size.y) / 2f);
-            if (tempPanel) {
-                float xOffset = relativePosition.x + size.x + 5f;
-                if (xOffset > tempPanel.relativePosition.x) {
-                    tempPanel.relativePosition = new Vector3(xOffset, tempPanel.relativePosition.y);
-                }
+        public sealed class UISnapMenu : UILabel {
+            private const string bgSprite = @"ButtonMenu";
+
+            public override void Awake() {
+                base.Awake();
+                textAlignment = UIHorizontalAlignment.Left;
+                padding = new RectOffset(4, 1, 1, 1);
+                textScale = 0.90f;
+                text = @"Snap to Demand Panel";
+            }
+
+            protected override void OnMouseEnter(UIMouseEventParameter p) {
+                backgroundSprite = bgSprite;
+            }
+
+            protected override void OnMouseLeave(UIMouseEventParameter p) {
+                backgroundSprite = @"";
             }
         }
 
-        /* Hate this hack, but the only way I can think of
+        private const string SettingsFile = @"IndicatorPanelSettings";
+        private const float indicatorWidth = 36f;
+        private const float indicatorHeight = 36f;
+        private const int spriteMaxSize = 128;
+        private const string IndicatorPanelName = @"IndicatorPanel";
+        private const string SnappingIconName = @"Snap";
+        private const string AnarchyIconName = @"Anarchy";
+        private const string LockForestryIconName = @"LockForestry";
+        private static UIComponent m_anchor;
+        private static UIComponent m_temperaturePanel;
+        private static UIPanel m_menuPanel;
+        private static SavedFloat m_indicatorXPos;
+        private static SavedFloat m_indicatorYPos;
+        private static SavedBool m_snapToDemand;
+        public static UIIcon SnapIndicator { get; private set; } = null;
+        public static UIIcon AnarchyIndicator { get; private set; } = null;
+        public static UIIcon LockForestryIndicator { get; private set; } = null;
+        private Vector3 m_lastPosition;
+
+        public UIIndicator() {
+            if (GameSettings.FindSettingsFileByName(SettingsFile) == null) {
+                GameSettings.AddSettingsFile(new SettingsFile[] {
+                        new SettingsFile() { fileName = SettingsFile }
+                    });
+            }
+            m_indicatorXPos = new SavedFloat(@"indicatorXPos", SettingsFile);
+            m_indicatorYPos = new SavedFloat(@"indicatorYPos", SettingsFile);
+            m_snapToDemand = new SavedBool(@"snapToDemand", SettingsFile, true, true);
+        }
+
+        private bool m_startDrag;
+        private IEnumerator StartDragDelay() {
+            yield return new WaitForSeconds(1.3f);
+            m_startDrag = true;
+        }
+        protected override void OnMouseDown(UIMouseEventParameter p) {
+            p.Use();
+            Plane plane = new Plane(transform.TransformDirection(Vector3.back), transform.position);
+            Ray ray = p.ray;
+            plane.Raycast(ray, out float d);
+            m_lastPosition = ray.origin + ray.direction * d;
+            m_startDrag = false;
+            StartCoroutine(StartDragDelay());
+            base.OnMouseDown(p);
+        }
+
+        protected override void OnMouseMove(UIMouseEventParameter p) {
+            p.Use();
+            if (m_startDrag && p.buttons.IsFlagSet(UIMouseButton.Left)) {
+                Ray ray = p.ray;
+                Vector3 inNormal = GetUIView().uiCamera.transform.TransformDirection(Vector3.back);
+                Plane plane = new Plane(inNormal, m_lastPosition);
+                plane.Raycast(ray, out float d);
+                Vector3 vector = (ray.origin + ray.direction * d).Quantize(PixelsToUnits());
+                Vector3 b = vector - m_lastPosition;
+                Vector3[] corners = GetUIView().GetCorners();
+                Vector3 position = (transform.position + b).Quantize(PixelsToUnits());
+                Vector3 a = pivot.TransformToUpperLeft(size, arbitraryPivotOffset);
+                Vector3 a2 = a + new Vector3(size.x, -size.y);
+                a *= PixelsToUnits();
+                a2 *= PixelsToUnits();
+                if (position.x + a.x < corners[0].x) {
+                    position.x = corners[0].x - a.x;
+                }
+                if (position.x + a2.x > corners[1].x) {
+                    position.x = corners[1].x - a2.x;
+                }
+                if (position.y + a.y > corners[0].y) {
+                    position.y = corners[0].y - a.y;
+                }
+                if (position.y + a2.y < corners[2].y) {
+                    position.y = corners[2].y - a2.y;
+                }
+                transform.position = position;
+                m_lastPosition = vector;
+                m_snapToDemand.value = false;
+                m_indicatorXPos.value = position.x;
+                m_indicatorYPos.value = position.y;
+            }
+            base.OnMouseMove(p);
+        }
+
+        protected override void OnMouseUp(UIMouseEventParameter p) {
+            base.OnMouseUp(p);
+            m_startDrag = false;
+            MakePixelPerfect();
+        }
+
+        protected override void OnResolutionChanged(Vector2 previousResolution, Vector2 currentResolution) {
+            base.OnResolutionChanged(previousResolution, currentResolution);
+            StartCoroutine(RepositionCoroutine(m_anchor, m_temperaturePanel));
+        }
+
+        /* Hate this hack, but the only way I can think of, since UIResolution mod repositions
+         * almost everything on the panel, but at a very slow rate.
          * If anyone has a better solution, please don't hesitate to send a pull request
          * or email me. Thanks in advance */
-        private IEnumerator InitialFrameHandler(UIComponent anchor, UIButton tempPanel) {
-            while (UIView.GetAView().framesRendered < 5) { yield return new WaitForSeconds(0.1f); }
-            Vector3 demandAbsPos = anchor.relativePosition + anchor.parent.relativePosition;
+        private void RepositionIndicator(UIComponent anchor, UIComponent tempPanel) {
+            Vector3 demandAbsPos = anchor.relativePosition + anchor.parent.relativePosition + anchor.parent.parent.relativePosition;
             relativePosition = new Vector3(demandAbsPos.x + anchor.size.x + 8f, demandAbsPos.y + (anchor.size.y - size.y) / 2f);
             if (tempPanel) {
-                float offsetX = relativePosition.x + size.x + 5f;
+                Vector3 newPos = relativePosition - anchor.parent.relativePosition - anchor.parent.parent.relativePosition;
+                float offsetX = newPos.x + size.x + 5f;
                 if (offsetX > tempPanel.relativePosition.x) {
                     tempPanel.relativePosition = new Vector3(offsetX, tempPanel.relativePosition.y);
                 }
             }
+        }
+
+        private IEnumerator RepositionCoroutine(UIComponent anchor, UIComponent tempPanel) {
+            yield return new WaitForSeconds(0.3f); // new WaitForEndOfFrame();
+            RepositionIndicator(anchor, tempPanel);
         }
 
         public override void OnDestroy() {
@@ -109,37 +201,83 @@ namespace UI {
             }
         }
 
+        private static bool m_menuPanelResetFade = false;
+        private static IEnumerator FadeMenu(UIPanel menuPanel) {
+startNew:
+            yield return new WaitForSeconds(1.0f);
+            while (menuPanel.isVisible) {
+                if (m_menuPanelResetFade) {
+                    m_menuPanelResetFade = false;
+                    menuPanel.opacity = 1f;
+                    goto startNew;
+                }
+                if (menuPanel.opacity > 0) {
+                    menuPanel.opacity -= 0.2f;
+                } else {
+                    menuPanel.isVisible = false;
+                }
+                yield return new WaitForEndOfFrame();
+            }
+        }
+
         public static UIIndicator Setup() {
-            UIPanel infoPanel = UIView.GetAView().FindUIComponent<UIPanel>(@"InfoPanel");
-            UIIndicator indicatorPanel = infoPanel.GetComponentInChildren<UIIndicator>();
+            UIIndicator indicatorPanel = UIView.GetAView().FindUIComponent<UIIndicator>(IndicatorPanelName);
             if (indicatorPanel is null) {
                 Debug.Log($"UIIndicator: IndicatorPanel is NULL");
             } else {
                 Debug.Log($"UIIndicator: IndicatorPanel {indicatorPanel.name}");
             }
             if (indicatorPanel is null && (Singleton<ToolManager>.instance.m_properties.m_mode & ItemClass.Availability.MapEditor) == ItemClass.Availability.None) {
+                UIPanel infoPanel = UIView.GetAView().FindUIComponent<UIPanel>(@"InfoPanel");
                 UIPanel demand = infoPanel.Find<UIPanel>(@"Demand");
                 UIButton tempPanel = infoPanel.Find<UIButton>(@"Heat'o'meter");
                 m_anchor = demand;
                 m_temperaturePanel = tempPanel;
-                indicatorPanel = infoPanel.AddUIComponent<UIIndicator>();
+                indicatorPanel = UIView.GetAView().AddUIComponent(typeof(UIIndicator)) as UIIndicator;
                 indicatorPanel.name = IndicatorPanelName;
-                indicatorPanel.StartCoroutine(indicatorPanel.InitialFrameHandler(demand, tempPanel));
-                return indicatorPanel;
+                // Add menu
+                UIPanel menuPanel = UIView.GetAView().AddUIComponent(typeof(UIPanel)) as UIPanel;
+                menuPanel.autoSize = false;
+                menuPanel.autoLayoutDirection = LayoutDirection.Vertical;
+                menuPanel.autoLayout = true;
+                menuPanel.padding = new RectOffset(5, 5, 5, 5);
+                menuPanel.backgroundSprite = @"InfoPanelBack";
+                UISnapMenu snapDemand = menuPanel.AddUIComponent<UISnapMenu>();
+                menuPanel.width = snapDemand.width + 10;
+                menuPanel.height = snapDemand.height + 10;
+                menuPanel.relativePosition = new Vector3(indicatorPanel.relativePosition.x + indicatorPanel.width - 20f, indicatorPanel.relativePosition.y - menuPanel.height);
+                menuPanel.isVisible = false;
+                menuPanel.eventVisibilityChanged += (c, v) => {
+                    if (v) {
+                        menuPanel.opacity = 1f;
+                        menuPanel.StartCoroutine(FadeMenu(menuPanel));
+                    }
+                };
+                menuPanel.eventMouseMove += (c, p) => {
+                    m_menuPanelResetFade = true;
+                };
+                indicatorPanel.eventSizeChanged += (c, size) => {
+                    menuPanel.relativePosition = new Vector3(indicatorPanel.relativePosition.x + indicatorPanel.width - 20f, indicatorPanel.relativePosition.y - menuPanel.height);
+                };
+                indicatorPanel.eventPositionChanged += (c, pos) => {
+                    menuPanel.relativePosition = new Vector3(indicatorPanel.relativePosition.x + indicatorPanel.width - 20f, indicatorPanel.relativePosition.y - menuPanel.height);
+                };
+                snapDemand.eventClicked += (c, p) => {
+                    menuPanel.isVisible = false;
+                    m_snapToDemand.value = true;
+                    indicatorPanel.RepositionIndicator(demand, tempPanel);
+                };
+                m_menuPanel = menuPanel;
+                demand.parent.eventPositionChanged += (c, p) => {
+                    if (m_snapToDemand) indicatorPanel.RepositionIndicator(demand, tempPanel);
+                };
+                if (m_snapToDemand) {
+                    indicatorPanel.StartCoroutine(indicatorPanel.RepositionCoroutine(demand, tempPanel));
+                } else {
+                    indicatorPanel.transform.position = new Vector3(m_indicatorXPos, m_indicatorYPos);
+                }
             }
             return indicatorPanel;
-        }
-
-        public void UpdatePosition() {
-            UIPanel demand = parent.Find<UIPanel>(@"Demand");
-            UIButton uIButton = parent.Find<UIButton>(@"Heat'o'meter");
-            if (!(demand is null)) {
-                m_anchor = demand;
-                m_temperaturePanel = uIButton;
-                //cachedTransform.parent = uIButton.cachedTransform;
-                //transform.parent = uIButton.transform;
-                StartCoroutine(InitialFrameHandler(demand, uIButton));
-            }
         }
 
         public UIIcon AddSnappingIcon(string enableTooltip, string disableTooltip, bool defState, MouseEventHandler callback, out bool finalState) {
@@ -154,6 +292,11 @@ namespace UI {
                     SnappingIconName + "Disabled"
                 });
                 icon.size = new Vector2(indicatorWidth, indicatorHeight);
+                icon.eventMouseDown += (c, p) => {
+                    if ((p.buttons & UIMouseButton.Right) == UIMouseButton.Right) {
+                        m_menuPanel.isVisible = true;
+                    }
+                };
                 icon.eventClicked += callback;
                 icon.playAudioEvents = true;
                 icon.relativePosition = new Vector3(0f, 0f);
@@ -187,6 +330,11 @@ namespace UI {
                     AnarchyIconName + "Disabled"
                 });
                 icon.size = new Vector2(indicatorWidth, indicatorHeight);
+                icon.eventMouseDown += (c, p) => {
+                    if ((p.buttons & UIMouseButton.Right) == UIMouseButton.Right) {
+                        m_menuPanel.isVisible = true;
+                    }
+                };
                 icon.eventClicked += callback;
                 icon.playAudioEvents = true;
                 UIIcon anchor = SnapIndicator;
@@ -225,6 +373,11 @@ namespace UI {
                     LockForestryIconName + "Disabled"
                 });
                 icon.size = new Vector2(indicatorWidth, indicatorHeight);
+                icon.eventMouseDown += (c, p) => {
+                    if ((p.buttons & UIMouseButton.Right) == UIMouseButton.Right) {
+                        m_menuPanel.isVisible = true;
+                    }
+                };
                 icon.eventClicked += callback;
                 icon.playAudioEvents = true;
                 UIIcon anchor = AnarchyIndicator;
