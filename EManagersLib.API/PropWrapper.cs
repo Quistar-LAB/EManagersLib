@@ -321,7 +321,7 @@ namespace EManagersLib.API {
     /// <summary>
     /// Prop Wrapper for default CO prop framework
     /// </summary>
-    public unsafe class DefPropWrapper : PropWrapper {
+    public unsafe sealed class DefPropWrapper : PropWrapper {
         private readonly struct iterator_propGrid : IEnumerable<uint>, IEnumerable {
             private readonly int x, y;
             public iterator_propGrid(int x, int y) {
@@ -423,82 +423,28 @@ namespace EManagersLib.API {
         /// </summary>
         /// <param name="id">prop id</param>
         /// <returns>Returns prop position</returns>
-        public override Vector3 GetPosition(uint id) {
-            fixed (PropInstance* prop = &m_defBuffer[id]) {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    Vector3 result;
-                    result.x = prop->m_posX * 0.0164794922f;
-                    result.y = prop->m_posY * 0.015625f;
-                    result.z = prop->m_posZ * 0.0164794922f;
-                    return result;
-                }
-                Vector3 result2;
-                result2.x = prop->m_posX * 0.263671875f;
-                result2.y = prop->m_posY * 0.015625f;
-                result2.z = prop->m_posZ * 0.263671875f;
-                return result2;
-            }
-        }
+        public override Vector3 GetPosition(uint id) => m_defBuffer[id].Position;
 
         /// <summary>
         /// Get Prop position. This method is actually slightly faster than calling PropInstance::Position property getter
         /// </summary>
         /// <param name="id">InstanceID</param>
         /// <returns>Returns prop position</returns>
-        public override Vector3 GetPosition(InstanceID id) {
-            fixed (PropInstance* prop = &m_defBuffer[id.Prop]) {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    Vector3 result;
-                    result.x = prop->m_posX * 0.0164794922f;
-                    result.y = prop->m_posY * 0.015625f;
-                    result.z = prop->m_posZ * 0.0164794922f;
-                    return result;
-                }
-                Vector3 result2;
-                result2.x = prop->m_posX * 0.263671875f;
-                result2.y = prop->m_posY * 0.015625f;
-                result2.z = prop->m_posZ * 0.263671875f;
-                return result2;
-            }
-        }
+        public override Vector3 GetPosition(InstanceID id) => m_defBuffer[id.Prop].Position;
 
         /// <summary>
         /// Set prop position. This method is actually many times faster than setting PropInstance::Position property setter due to using more efficient math routines
         /// </summary>
         /// <param name="id">Prop ID</param>
         /// <param name="pos">New position</param>
-        public override void SetPosition(uint id, Vector3 pos) {
-            fixed (PropInstance* prop = &m_defBuffer[id]) {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    prop->m_posX = (short)EMath.Clamp(EMath.RoundToInt(pos.x * 60.68148f), -32767, 32767);
-                    prop->m_posZ = (short)EMath.Clamp(EMath.RoundToInt(pos.z * 60.68148f), -32767, 32767);
-                    prop->m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(pos.y * 64f), 0, 65535);
-                } else {
-                    prop->m_posX = (short)EMath.Clamp(EMath.RoundToInt(pos.x * 3.79259253f), -32767, 32767);
-                    prop->m_posZ = (short)EMath.Clamp(EMath.RoundToInt(pos.z * 3.79259253f), -32767, 32767);
-                    prop->m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(pos.y * 64f), 0, 65535);
-                }
-            }
-        }
+        public override void SetPosition(uint id, Vector3 pos) => m_defBuffer[id].Position = pos;
 
         /// <summary>
         /// Set prop position. This method is actually many times faster than setting PropInstance::Position property setter due to using more efficient math routines
         /// </summary>
         /// <param name="id">InstanceID</param>
         /// <param name="pos">New position</param>
-        public override void SetPosition(InstanceID id, Vector3 pos) {
-            fixed (PropInstance* prop = &m_defBuffer[id.Prop]) {
-                if (Singleton<ToolManager>.instance.m_properties.m_mode == ItemClass.Availability.AssetEditor) {
-                    prop->m_posX = (short)EMath.Clamp(EMath.RoundToInt(pos.x * 60.68148f), -32767, 32767);
-                    prop->m_posZ = (short)EMath.Clamp(EMath.RoundToInt(pos.z * 60.68148f), -32767, 32767);
-                    prop->m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(pos.y * 64f), 0, 65535);
-                } else {
-                    prop->m_posX = (short)EMath.Clamp(EMath.RoundToInt(pos.x * 3.79259253f), -32767, 32767);
-                    prop->m_posZ = (short)EMath.Clamp(EMath.RoundToInt(pos.z * 3.79259253f), -32767, 32767);
-                    prop->m_posY = (ushort)EMath.Clamp(EMath.RoundToInt(pos.y * 64f), 0, 65535);
-                }
-            }
-        }
+        public override void SetPosition(InstanceID id, Vector3 pos) => m_defBuffer[id.Prop].Position = pos;
 
         /// <summary>
         /// Get prop Single property
@@ -795,7 +741,7 @@ namespace EManagersLib.API {
     /// <summary>
     /// Prop Wrapper for EML prop framework
     /// </summary>
-    public unsafe class EMLPropWrapper : PropWrapper {
+    public sealed unsafe class EMLPropWrapper : PropWrapper {
         private const string EPROPMANAGER = "EManagersLib.EPropManager";
 
         internal delegate T Getter<T>();
