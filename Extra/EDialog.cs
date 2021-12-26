@@ -3,7 +3,7 @@
 // HFTDialog.MessageBox("error", "Sorry but you're S.O.L", () => { Application.Quit() });
 
 namespace EManagersLib.Extra {
-    public class EDialog : MonoBehaviour {
+    public sealed class EDialog : MonoBehaviour {
         private const int id = 0xab44932;
         private Rect m_windowRect;
         //private Action m_action;
@@ -29,7 +29,7 @@ namespace EManagersLib.Extra {
             useGUILayout = true;
         }
 
-        protected void OnGUI() {
+        public void OnGUI() {
             const int maxWidth = 640;
             const int maxHeight = 480;
 
@@ -47,7 +47,9 @@ namespace EManagersLib.Extra {
                 skin.horizontalScrollbarThumb = new GUIStyle(GUI.skin.horizontalScrollbarThumb);
                 skin.horizontalSlider = new GUIStyle(GUI.skin.horizontalSlider);
                 skin.horizontalSliderThumb = new GUIStyle(GUI.skin.horizontalSliderThumb);
-                skin.label = new GUIStyle(GUI.skin.label);
+                skin.label = new GUIStyle(GUI.skin.label) {
+                    fontSize = 15
+                };
                 skin.scrollView = new GUIStyle(GUI.skin.scrollView);
                 skin.textArea = new GUIStyle(GUI.skin.textArea);
                 skin.textField = new GUIStyle(GUI.skin.textField);
