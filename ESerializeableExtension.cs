@@ -7,7 +7,7 @@ using System.Threading;
 using static EManagersLib.EPropManager;
 
 namespace EManagersLib {
-    public class ESerializableData : ISerializableDataExtension {
+    public sealed class ESerializableData : ISerializableDataExtension {
         private const string EMANAGER_PROP_KEY = @"EManagers/PropAnarchy";
         private const string PROPSNAPPINGID = "PropSnapping";
         private const string PROPPRECISIONID = "PropPrecision";
@@ -19,7 +19,7 @@ namespace EManagersLib {
             Version3 = 3
         }
 
-        private class Data : IDataContainer {
+        private sealed class Data : IDataContainer {
             private void EnsureCapacity(int maxLimit, out Array32<EPropInstance> newArray, out EPropInstance[] propBuffer) {
                 if (maxLimit > MAX_PROP_LIMIT) {
                     EPropInstance[] oldBuffer = m_props.m_buffer;
