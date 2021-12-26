@@ -3,7 +3,7 @@ using EManagersLib;
 using UnityEngine;
 
 namespace PropPainter {
-    public class PropPainterDataContainer : IDataContainer {
+    public sealed class PropPainterDataContainer : IDataContainer {
         public unsafe void Deserialize(DataSerializer s) {
             const int DEFAULT_PROP_COUNT = 65536;
             EPropInstance[] props = EPropManager.m_props.m_buffer;
