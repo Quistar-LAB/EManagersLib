@@ -148,6 +148,7 @@ namespace EManagersLib {
             new ModInfo(694512541, @"Prop Line Tool", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(911295408, @"Prop Scaler", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(1869561285, @"Prop Painter", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(2685506044, @"Prop Painter: Revisited", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(922939393, @"Transparency LOD Fix", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(1410003347, @"Additive Shader by Ronyx69", false, @"Use Prop Anarchy Beta instead"),
             new ModInfo(2119477759, @"[TEST]Additive Shader by aubergine18", false, @"Use Prop Anarchy Beta instead"),
@@ -155,6 +156,7 @@ namespace EManagersLib {
             new ModInfo(2153618633, @"Prop Switcher", false, @"Use BOB instead"),
             new ModInfo(518456166, @"Prop Remover", false, @"Use BOB instead"),
             new ModInfo(1890830956, @"Undo It", false),
+            new ModInfo(531738447, @"CSL Show More Limits", true)
         };
 
         internal static bool CheckIncompatibleMods() {

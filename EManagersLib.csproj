@@ -60,6 +60,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EArray32.cs" />
     <Compile Include="EEffectInfo.cs" />
     <Compile Include="EInstanceID.cs" />
     <Compile Include="EKeyBinding.cs" />
