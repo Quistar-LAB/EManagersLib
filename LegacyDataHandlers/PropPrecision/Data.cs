@@ -4,9 +4,7 @@ using EManagersLib;
 /* Special class to load old Prop Precision data
  */
 namespace PropPrecision {
-    public class Data : IDataContainer {
-        public void Serialize(DataSerializer s) { }
-
+    public sealed class Data : IDataContainer {
         public void Deserialize(DataSerializer s) {
             EPropInstance[] props = EPropManager.m_props.m_buffer;
             var arraySize = s.ReadInt32();
@@ -22,6 +20,8 @@ namespace PropPrecision {
                 props[propID].m_preciseZ = preciseZ * 3.79259253f - posZ;
             }
         }
+
+        public void Serialize(DataSerializer s) { }
 
         public void AfterDeserialize(DataSerializer s) { }
     }

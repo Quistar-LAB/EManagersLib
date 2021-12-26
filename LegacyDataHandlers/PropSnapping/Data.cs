@@ -8,17 +8,7 @@ using UnityEngine;
  * during deserialization to cope with Type translation.
  */
 namespace PropSnapping {
-    public class Data : IDataContainer {
-        public void Serialize(DataSerializer s) {
-            EPropInstance[] props = EPropManager.m_props.m_buffer;
-            s.WriteInt32(props.Length);
-            var @ushort = EncodedArray.UShort.BeginWrite(s);
-            for (var index = 0; index < props.Length; index++) {
-                @ushort.Write(props[index].m_posY);
-            }
-            @ushort.EndWrite();
-        }
-
+    public sealed class Data : IDataContainer {
         public void Deserialize(DataSerializer s) {
             TerrainManager tmInstance = Singleton<TerrainManager>.instance;
             EPropInstance[] props = EPropManager.m_props.m_buffer;
@@ -34,6 +24,8 @@ namespace PropSnapping {
             }
             @ushort.EndRead();
         }
+
+        public void Serialize(DataSerializer s) { }
 
         public void AfterDeserialize(DataSerializer s) { }
     }
