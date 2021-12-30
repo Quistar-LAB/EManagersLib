@@ -71,12 +71,12 @@ namespace EManagersLib.API {
                 Vector3 result;
                 if (EMLPropWrapper.ModeGetter() == ItemClass.Availability.AssetEditor) {
                     result.x = m_posX * 0.0164794922f;
-                    result.y = m_posY / PROPGRID_CELL_SIZE;
+                    result.y = m_posY * 0.015625f;
                     result.z = m_posZ * 0.0164794922f;
                     return result;
                 }
                 result.x = (m_posX + m_preciseX) * 0.263671875f;
-                result.y = m_posY / PROPGRID_CELL_SIZE;
+                result.y = m_posY * 0.015625f;
                 result.z = (m_posZ + m_preciseZ) * 0.263671875f;
                 return result;
             }
