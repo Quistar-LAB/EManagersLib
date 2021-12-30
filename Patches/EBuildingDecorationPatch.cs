@@ -7,7 +7,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EBuildingDecorationPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ReleaseProps() {
@@ -163,7 +163,7 @@ namespace EManagersLib {
             }
         }
 
-        private void Enable(Harmony harmony) {
+        internal void Enable(Harmony harmony) {
             try {
                 harmony.Patch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.ClearDecorations)),
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingDecorationPatch), nameof(BDClearDecorationTranspiler))));
@@ -196,7 +196,7 @@ namespace EManagersLib {
             }
         }
 
-        private void Disable(Harmony harmony) {
+        internal void Disable(Harmony harmony) {
             harmony.Unpatch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.ClearDecorations)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.SaveProps)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(BuildingDecoration), nameof(BuildingDecoration.LoadProps)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
