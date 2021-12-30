@@ -60,6 +60,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="81Patches\EGameAreaInfoPanel.cs" />
+    <Compile Include="81Patches\EGameAreaToolPatch.cs" />
+    <Compile Include="EGameAreaManager.cs" />
     <Compile Include="EArray32.cs" />
     <Compile Include="EEffectInfo.cs" />
     <Compile Include="EInstanceID.cs" />
@@ -78,7 +81,13 @@
     <Compile Include="EModule.cs" />
     <Compile Include="Extra\EDialog.cs" />
     <Compile Include="IEManagersInit.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneDataContainer.cs" />
     <Compile Include="LegacyDataHandlers\PropPainter\PropPainterDataContainer.cs" />
+    <Compile Include="81Patches\EGameAreaManagerPatch.cs" />
+    <Compile Include="81Patches\EAreaWrapperPatch.cs" />
+    <Compile Include="Patches\ETerrainManagerPatch.cs" />
+    <Compile Include="Patches\ENetManagerPatch.cs" />
+    <Compile Include="Patches\ENaturalResourceManagerPatch.cs" />
     <Compile Include="Patches\E81TilesCompatPatch.cs" />
     <Compile Include="Patches\EToolBaseCompatPatch.cs" />
     <Compile Include="Patches\EBuildingAIPatch.cs" />

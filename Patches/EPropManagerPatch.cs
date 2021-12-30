@@ -9,7 +9,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using static EManagersLib.EPropManager;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EPropManagerPatch {
         private static IEnumerable<CodeInstruction> AwakeTranspiler(IEnumerable<CodeInstruction> instructions) {
             using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
@@ -63,12 +63,14 @@ namespace EManagersLib {
         }
 
         /* This method is completely overriden, do not touch */
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> AfterTerrainUpdateTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.AfterTerrainUpdate)));
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> CalculateGroupDataTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Ldarg_2);
@@ -81,6 +83,7 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> CheckLimitsTranspiler(IEnumerable<CodeInstruction> instructions) {
             foreach (var code in instructions) {
                 if (code.LoadsConstant(EPropManager.DEFAULT_MAP_PROPS)) {
@@ -93,6 +96,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> EndRenderingImplTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_1);
@@ -100,6 +104,7 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> PopulateGroupDataTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1); /* groupX */
             yield return new CodeInstruction(OpCodes.Ldarg_2); /* groupZ */
@@ -116,12 +121,14 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> SampleSmoothHeightTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.SampleSmoothHeight)));
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> SimulationStepImplTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_1);
@@ -129,6 +136,7 @@ namespace EManagersLib {
             yield return new CodeInstruction(OpCodes.Ret);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> TerrainUpdatedTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_2);
             yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.TerrainUpdated)));
@@ -257,6 +265,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> UpdatePropsTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_1);
@@ -276,6 +285,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> GetRandomPropInfoTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Ldarg_2);

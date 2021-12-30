@@ -39,6 +39,11 @@ namespace EManagersLib {
         public static bool UsePropAnarchy = true;
         public static bool UsePropSnapping;
         private static EUtils.RefGetter<FastList<PrefabCollection<PropInfo>.PrefabData>> m_simulationPrefabs;
+        public delegate void PropEventHandler(uint propID);
+#pragma warning disable IDE1006 // Naming Styles
+        public static event PropEventHandler eventPropCreated;
+        public static event PropEventHandler eventPropReleased;
+#pragma warning restore IDE1006 // Naming Styles
 
         [NonSerialized]
         public static int ID_Color;
@@ -111,7 +116,13 @@ namespace EManagersLib {
             ID_RollLocation = Shader.PropertyToID("_RollLocation");
             ID_RollParams = Shader.PropertyToID("_RollParams");
             m_props.CreateItem(out uint _);
+            eventPropCreated += EPropManager_eventPropCreated;
+            eventPropReleased += EPropManager_eventPropReleased;
         }
+
+        private static void EPropManager_eventPropReleased(uint propID) { }
+
+        private static void EPropManager_eventPropCreated(uint propID) { }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void EnsureCapacity(PropManager pmInstance) {
@@ -134,8 +145,8 @@ namespace EManagersLib {
             Vector3 v3down = EMath.Vector3Down;
             Vector4 v4zero = EMath.Vector4Zero;
             Vector4 lodLocation = cameraInfo.m_forward * -100000f;
-            Vector3 defLODMin = EMath.DefaultLodMin;
-            Vector3 defLODMax = EMath.DefaultLodMax;
+            Vector3 defLODMin = new Vector3(100000f, 100000f, 100000f);
+            Vector3 defLODMax = new Vector3(-100000f, -100000f, -100000f);
             Matrix4x4 identity = EMath.matrix4Identity;
             Vector4 clear = EMath.ColorClear;
             int IDColor = ID_Color;
@@ -747,6 +758,7 @@ namespace EManagersLib {
                 InitializeProp(prop, ref props[prop], (mode & ItemClass.Availability.AssetEditor) != ItemClass.Availability.None);
                 UpdateProp(prop);
                 pmInstance.m_propCount = (int)(m_props.ItemCount() - 1u);
+                eventPropCreated(prop);
                 return true;
             }
             prop = 0;
@@ -770,6 +782,7 @@ namespace EManagersLib {
                 FinalizeProp(prop, ref data);
                 m_props.ReleaseItem(prop);
                 m_pmInstance.m_propCount = (int)(m_props.ItemCount() - 1u);
+                eventPropReleased(prop);
             }
         }
 
@@ -852,6 +865,7 @@ namespace EManagersLib {
 
         private static int GetPropIndex(ItemClass.Service service) => service - ItemClass.Service.Residential;
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static PropInfo GetRandomPropInfo(ref Randomizer r, ItemClass.Service service) {
             if (!m_propsRefreshed) {
                 CODebugBase<LogChannel>.Error(LogChannel.Core, "Random props not refreshed yet!");
@@ -918,7 +932,6 @@ namespace EManagersLib {
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void UpdateProp(uint prop) {
             m_updatedProps[prop >> 6] |= 1uL << (int)prop;
             m_pmInstance.m_propsUpdated = true;
@@ -1095,6 +1108,7 @@ namespace EManagersLib {
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SimulationStepImpl(PropManager pmInstance, int subStep) {
             if (pmInstance.m_propsUpdated) {
                 EPropInstance[] props = m_props.m_buffer;
@@ -1128,6 +1142,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void TerrainUpdated(TerrainArea surfaceArea) {
             uint[] propGrid = m_propGrid;
             EPropInstance[] props = m_props.m_buffer;
@@ -1154,6 +1169,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void AfterTerrainUpdate(TerrainArea heightArea) {
             uint[] propGrid = m_propGrid;
             EPropInstance[] props = m_props.m_buffer;
@@ -1180,6 +1196,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static bool CalculateGroupData(int groupX, int groupZ, int layer, ref int vertexCount, ref int triangleCount, ref int objectCount, ref RenderGroup.VertexArrays vertexArrays) {
             bool result = false;
             if (layer != m_propLayer && layer != m_markerLayer && layer != Singleton<RenderManager>.instance.lightSystem.m_lightLayer) {
@@ -1205,6 +1222,7 @@ namespace EManagersLib {
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void PopulateGroupData(int groupX, int groupZ, int layer, ref int vertexIndex, ref int triangleIndex, Vector3 groupPosition, RenderGroup.MeshData data, ref Vector3 min, ref Vector3 max, ref float maxRenderDistance, ref float maxInstanceDistance) {
             if (layer != m_propLayer && layer != m_markerLayer && layer != Singleton<RenderManager>.instance.lightSystem.m_lightLayer) return;
             uint[] propGrid = m_propGrid;

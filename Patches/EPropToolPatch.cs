@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using static EManagersLib.EPropManager;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     public class EPropToolPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static float CalcSeedPropScale(PropInfo info, ref Randomizer defRandom) {
@@ -85,6 +85,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void SetRaycastInput(ref ToolBase.RaycastInput input) {
             input.m_ignoreBuildingFlags = Building.Flags.None;
             input.m_ignoreNodeFlags = NetNode.Flags.None;
@@ -432,6 +433,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> ApplyBrushTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldarg_0);

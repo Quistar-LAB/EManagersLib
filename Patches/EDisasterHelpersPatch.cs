@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EDisasterHelpersPatch {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> DestroyPropsTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1);
             yield return new CodeInstruction(OpCodes.Ldarg_2);

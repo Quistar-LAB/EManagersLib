@@ -16,7 +16,8 @@ namespace EManagersLib {
         private enum Format : uint {
             Version1 = 1,
             Version2 = 2,
-            Version3 = 3
+            Version3 = 3,
+            Version4 = 4
         }
 
         private sealed class Data : IDataContainer {
@@ -131,24 +132,45 @@ namespace EManagersLib {
                     }
                 }
                 uShortPosY.EndRead();
-                EncodedArray.Float @floatPreciseX = EncodedArray.Float.BeginRead(s);
-                for (int i = 1; i < maxLen; i++) {
-                    if (props[i].m_flags != 0) {
-                        props[i].m_preciseX = floatPreciseX.Read();
-                    } else {
-                        props[i].m_preciseX = 0f;
+                if (s.version >= (uint)Format.Version4) {
+                    EncodedArray.Float @floatPreciseX = EncodedArray.Float.BeginRead(s);
+                    for (int i = 1; i < maxLen; i++) {
+                        if (props[i].m_flags != 0) {
+                            props[i].m_preciseX = floatPreciseX.Read();
+                        } else {
+                            props[i].m_preciseX = 0f;
+                        }
                     }
-                }
-                floatPreciseX.EndRead();
-                EncodedArray.Float @floatPreciseZ = EncodedArray.Float.BeginRead(s);
-                for (int i = 1; i < maxLen; i++) {
-                    if (props[i].m_flags != 0) {
-                        props[i].m_preciseZ = floatPreciseZ.Read();
-                    } else {
-                        props[i].m_preciseZ = 0f;
+                    floatPreciseX.EndRead();
+                    EncodedArray.Float @floatPreciseZ = EncodedArray.Float.BeginRead(s);
+                    for (int i = 1; i < maxLen; i++) {
+                        if (props[i].m_flags != 0) {
+                            props[i].m_preciseZ = floatPreciseZ.Read();
+                        } else {
+                            props[i].m_preciseZ = 0f;
+                        }
                     }
+                    floatPreciseZ.EndRead();
+                } else {
+                    EncodedArray.Float @floatPreciseX = EncodedArray.Float.BeginRead(s);
+                    for (int i = 1; i < maxLen; i++) {
+                        if (props[i].m_flags != 0) {
+                            props[i].m_preciseX = (props[i].m_posX + floatPreciseX.Read()) * 0.263671875f;
+                        } else {
+                            props[i].m_preciseX = 0f;
+                        }
+                    }
+                    floatPreciseX.EndRead();
+                    EncodedArray.Float @floatPreciseZ = EncodedArray.Float.BeginRead(s);
+                    for (int i = 1; i < maxLen; i++) {
+                        if (props[i].m_flags != 0) {
+                            props[i].m_preciseZ = (props[i].m_posZ + floatPreciseZ.Read()) * 0.263671875f;
+                        } else {
+                            props[i].m_preciseZ = 0f;
+                        }
+                    }
+                    floatPreciseZ.EndRead();
                 }
-                floatPreciseZ.EndRead();
                 EncodedArray.Float @float = EncodedArray.Float.BeginRead(s);
                 for (int i = 1; i < maxLen; i++) {
                     if (props[i].m_flags != 0) {
@@ -317,7 +339,7 @@ namespace EManagersLib {
             try {
                 byte[] data;
                 using (var stream = new MemoryStream()) {
-                    DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, (uint)Format.Version3, new Data());
+                    DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, (uint)Format.Version4, new Data());
                     data = stream.ToArray();
                 }
                 SaveData(EMANAGER_PROP_KEY, data);
@@ -325,9 +347,11 @@ namespace EManagersLib {
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
+            // Process 81 tiles data
+            EGameAreaManager.Serialize();
         }
 
-        private void SaveData(string id, byte[] data) {
+        internal static void SaveData(string id, byte[] data) {
             SimulationManager smInstance = Singleton<SimulationManager>.instance;
             while (!Monitor.TryEnter(smInstance.m_serializableDataStorage, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
             try {
@@ -337,7 +361,7 @@ namespace EManagersLib {
             }
         }
 
-        private void EraseData(string id) {
+        private static void EraseData(string id) {
             SimulationManager smInstance = Singleton<SimulationManager>.instance;
             while (!Monitor.TryEnter(smInstance.m_serializableDataStorage, SimulationManager.SYNCHRONIZE_TIMEOUT)) { }
             try {

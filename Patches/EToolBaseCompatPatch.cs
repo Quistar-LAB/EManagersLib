@@ -4,16 +4,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     public class EToolBaseCompatPatch {
-        private static IEnumerable<CodeInstruction> TestSimulationTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
-            var codes = GenericToolBaseCompatTranspiler(instructions, il);
-            foreach (var code in codes) {
-                EUtils.ELog(code.ToString());
-            }
-            return codes;
-        }
-
         private static IEnumerable<CodeInstruction> GenericToolBaseCompatTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
             LocalBuilder raycastOutput = il.DeclareLocal(typeof(EToolBase.RaycastOutput));
             MethodInfo raycast = AccessTools.Method(typeof(ToolBase), "RayCast");

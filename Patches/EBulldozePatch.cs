@@ -8,7 +8,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     public class EBulldozePatch {
         private static Action<BulldozeTool, BulldozeTool.Mode> set_BulldozingMode;
         private static Action<BulldozeTool, ItemClass.Service> set_BulldozingService;

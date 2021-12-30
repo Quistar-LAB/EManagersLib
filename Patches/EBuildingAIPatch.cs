@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EBuildingAIPatch {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> CalculatePropGroupDataTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo calculateGroupData = typeof(PropInstance).GetMethod(nameof(PropInstance.CalculateGroupData), BindingFlags.Public | BindingFlags.Static);
             foreach (var code in instructions) {
@@ -18,6 +20,7 @@ namespace EManagersLib {
             }
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> PopulatePropGroupDataTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo populateGroupData = typeof(PropInstance).GetMethod(nameof(PropInstance.PopulateGroupData), BindingFlags.Public | BindingFlags.Static);
             foreach (var code in instructions) {

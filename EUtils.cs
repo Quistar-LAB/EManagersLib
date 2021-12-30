@@ -1,5 +1,6 @@
 ﻿using ColossalFramework.PlatformServices;
 using EManagersLib.Extra;
+using EManagersLib.Patches;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -141,17 +142,17 @@ namespace EManagersLib {
         }
 
         private static readonly ModInfo[] IncompatibleMods = new ModInfo[] {
-            new ModInfo(593588108, @"Prop & Tree Anarchy", false, @"Prop Anarchy Beta and Tree Anarchy Beta together replaces Prop & Tree Anarchy"),
-            new ModInfo(791221322, @"Prop Precision", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(787611845, @"Prop Snapping", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(767233815, @"Decal Prop Fix", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(694512541, @"Prop Line Tool", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(911295408, @"Prop Scaler", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(1869561285, @"Prop Painter", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(2685506044, @"Prop Painter: Revisited", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(922939393, @"Transparency LOD Fix", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(1410003347, @"Additive Shader by Ronyx69", false, @"Use Prop Anarchy Beta instead"),
-            new ModInfo(2119477759, @"[TEST]Additive Shader by aubergine18", false, @"Use Prop Anarchy Beta instead"),
+            new ModInfo(593588108, @"Prop & Tree Anarchy", false, @"Prop Anarchy and Tree Anarchy together replaces Prop & Tree Anarchy"),
+            new ModInfo(791221322, @"Prop Precision", false, @"Use Prop Anarchy instead"),
+            new ModInfo(787611845, @"Prop Snapping", false, @"Use Prop Anarchy instead"),
+            new ModInfo(767233815, @"Decal Prop Fix", false, @"Use Prop Anarchy instead"),
+            new ModInfo(694512541, @"Prop Line Tool", false, @"Use Prop Anarchy instead"),
+            new ModInfo(911295408, @"Prop Scaler", false, @"Use Prop Anarchy instead"),
+            new ModInfo(1869561285, @"Prop Painter", false, @"Use Prop Anarchy instead"),
+            new ModInfo(2685506044, @"Prop Painter: Revisited", false, @"Use Prop Anarchy instead"),
+            new ModInfo(922939393, @"Transparency LOD Fix", false, @"Use Prop Anarchy instead"),
+            new ModInfo(1410003347, @"Additive Shader by Ronyx69", false, @"Use Prop Anarchy instead"),
+            new ModInfo(2119477759, @"[TEST]Additive Shader by aubergine18", false, @"Use Prop Anarchy instead"),
             new ModInfo(878991312, @"Prop It Up", false, @"Use BOB instead"),
             new ModInfo(2153618633, @"Prop Switcher", false, @"Use BOB instead"),
             new ModInfo(518456166, @"Prop Remover", false, @"Use BOB instead"),
@@ -183,6 +184,7 @@ namespace EManagersLib {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Enable(harmony);
             new EDefaultToolPatch().Enable(harmony);
+            new EBuildingDecorationPatch().Enable(harmony);
             new EBulldozePatch().Enable(harmony);
             new EDisasterHelpersPatch().Enable(harmony);
             new EDistrictManagerPatch().Enable(harmony);
@@ -190,6 +192,15 @@ namespace EManagersLib {
             new EPropToolPatch().Enable(harmony);
             new EBuildingAIPatch().Enable(harmony);
             new EToolBaseCompatPatch().Enable(harmony);
+#if ENABLEEIGHTYONE
+            new EAreaWrapperPatch().Enable(harmony);
+            new EGameAreaManagerPatch().Enable(harmony);
+            new EGameAreaToolPatch().Enable(harmony);
+            new EGameAreaInfoPanel().Enable(harmony);
+            new ENaturalResourceManagerPatch().Enable(harmony);
+            new ENetManagerPatch().Enable(harmony);
+            new ETerrainManagerPatch().Enable(harmony);
+#endif
         }
 
         internal static void DisablePropPatches() {
@@ -197,13 +208,24 @@ namespace EManagersLib {
             new EPropManagerPatch().Disable(harmony);
             new EBulldozePatch().Disable(harmony);
             new EDefaultToolPatch().Disable(harmony);
+            new EBuildingDecorationPatch().Disable(harmony);
             new EDisasterHelpersPatch().Disable(harmony);
             new EDistrictManagerPatch().Disable(harmony);
             new EInstanceManagerPatch().Disable(harmony);
             new EPropToolPatch().Disable(harmony);
             new EBuildingAIPatch().Disable(harmony);
             new EToolBaseCompatPatch().Disable(harmony);
+#if ENABLEEIGHTONE
+            new EAreaWrapperPatch().Disable(harmony);
+            new EGameAreaManagerPatch().Disable(harmony);
+            new EGameAreaToolPatch().Disable(harmony);
+            new EGameAreaInfoPanel().Disable(harmony);
+            new ENaturalResourceManagerPatch().Disable(harmony);
+            new ENetManagerPatch().Disable(harmony);
+            new ETerrainManagerPatch().Disable(harmony);
+#else
             new E81TilesCompatPatch().Disable(harmony);
+#endif
         }
 
         /// <summary>
@@ -211,8 +233,8 @@ namespace EManagersLib {
         /// Mod load and instantiation order is undefined at OnEnabled, and CitiesHarmony DoOnHarmonyReady may - and often does - trigger this BEFORE target mod is lodaed.
         /// </summary>
         internal static void EnableModPatches() {
-            Harmony harmony = new Harmony(EModule.HARMONYID);
-            new E81TilesCompatPatch().Enable(harmony);
+            //Harmony harmony = new Harmony(EModule.HARMONYID);
+            //new E81TilesCompatPatch().Enable(harmony);
         }
     }
 }

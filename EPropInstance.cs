@@ -483,8 +483,8 @@ namespace EManagersLib {
                 bounds.SetMinMax(new Vector3(lodMin.x - 100f, lodMin.y - 100f, lodMin.z - 100f),
                                  new Vector3(lodMax.x + 100f, lodMax.y + 100f, lodMax.z + 100f));
                 mesh.bounds = bounds;
-                info.m_lodMin = EMath.DefaultLodMin;
-                info.m_lodMax = EMath.DefaultLodMax;
+                info.m_lodMin = new Vector3(100000f, 100000f, 100000f);
+                info.m_lodMax = new Vector3(-100000f, -100000f, -100000f);
                 m_pmInstance.m_drawCallData.m_lodCalls++;
                 m_pmInstance.m_drawCallData.m_batchedCalls += (info.m_lodCount - 1);
                 Graphics.DrawMesh(mesh, EMath.matrix4Identity, info.m_lodMaterialCombined, info.m_prefabDataLayer, null, 0, materialBlock);

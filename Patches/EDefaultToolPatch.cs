@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EDefaultToolPatch {
         private static IEnumerable<CodeInstruction> EndMovingTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
             CodeInstruction newStLoc(LocalBuilder local) {
@@ -131,7 +131,7 @@ namespace EManagersLib {
 
         private static IEnumerable<CodeInstruction> RenderGeometryTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo renderInstance = AccessTools.Method(typeof(PropInstance), nameof(PropInstance.RenderInstance),
-                new System.Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(UnityEngine.Vector3),
+                new Type[] { typeof(RenderManager.CameraInfo), typeof(PropInfo), typeof(InstanceID), typeof(UnityEngine.Vector3),
                                     typeof(float), typeof(float), typeof(UnityEngine.Color), typeof(UnityEngine.Vector4), typeof(bool)
                 });
             MethodInfo getPMInstance = AccessTools.PropertyGetter(typeof(Singleton<PropManager>), nameof(Singleton<PropManager>.instance));

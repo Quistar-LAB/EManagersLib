@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EInstanceManagerPatch {
         private static IEnumerable<CodeInstruction> GetPositionTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
             CodeInstruction newStLoc(LocalBuilder local) {

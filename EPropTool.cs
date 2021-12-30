@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Math;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace EManagersLib {
@@ -8,6 +9,8 @@ namespace EManagersLib {
         private static Vector2 vecb = new Vector2(-0.3f, 0.3f);
         private static Vector2 vecc = new Vector2(0.3f, 0.3f);
         private static Vector2 vecd = new Vector2(0.3f, -0.3f);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static ToolBase.ToolErrors CheckPlacementErrors(PropInfo info, Vector3 position, bool fixedHeight, uint id, ulong[] collidingSegmentBuffer, ulong[] collidingBuildingBuffer) {
             if (EPropManager.UsePropAnarchy) return ToolBase.ToolErrors.None;
             float scale = EPropManager.m_props.m_buffer[id].m_scale;
