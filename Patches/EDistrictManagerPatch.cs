@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
-namespace EManagersLib {
+namespace EManagersLib.Patches {
     internal class EDistrictManagerPatch {
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> MoveParkPropsTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(DistrictManager), nameof(DistrictManager.m_parks)));
