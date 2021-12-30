@@ -69,7 +69,7 @@ namespace UI {
         private const string SettingsFile = @"IndicatorPanelSettings";
         private const float indicatorWidth = 36f;
         private const float indicatorHeight = 36f;
-        private const int spriteMaxSize = 128;
+        private const int spriteMaxSize = 1024; /* set to power of 4 */
         private const string IndicatorPanelName = @"IndicatorPanel";
         private const string SnappingIconName = @"Snap";
         private const string AnarchyIconName = @"Anarchy";
@@ -88,8 +88,8 @@ namespace UI {
         public UIIndicator() {
             if (GameSettings.FindSettingsFileByName(SettingsFile) == null) {
                 GameSettings.AddSettingsFile(new SettingsFile[] {
-                        new SettingsFile() { fileName = SettingsFile }
-                    });
+                    new SettingsFile() { fileName = SettingsFile }
+                });
             }
             m_indicatorXPos = new SavedFloat(@"indicatorXPos", SettingsFile);
             m_indicatorYPos = new SavedFloat(@"indicatorYPos", SettingsFile);
@@ -98,7 +98,7 @@ namespace UI {
 
         private bool m_startDrag;
         private IEnumerator StartDragDelay() {
-            yield return new WaitForSeconds(1.3f);
+            yield return new WaitForSeconds(0.3f);
             m_startDrag = true;
         }
         protected override void OnMouseDown(UIMouseEventParameter p) {
@@ -167,8 +167,9 @@ namespace UI {
             Vector3 demandAbsPos = anchor.relativePosition + anchor.parent.relativePosition + anchor.parent.parent.relativePosition;
             relativePosition = new Vector3(demandAbsPos.x + anchor.size.x + 8f, demandAbsPos.y + (anchor.size.y - size.y) / 2f);
             if (tempPanel) {
-                Vector3 newPos = relativePosition - anchor.parent.relativePosition - anchor.parent.parent.relativePosition;
-                float offsetX = newPos.x + size.x + 5f;
+                //Vector3 newPos = anchor.parent.relativePosition.x
+                float offsetX = anchor.parent.relativePosition.x + anchor.size.x + 8f + size.x + 8f;
+                //float offsetX = newPos.x + size.x + 5f;
                 if (offsetX > tempPanel.relativePosition.x) {
                     tempPanel.relativePosition = new Vector3(offsetX, tempPanel.relativePosition.y);
                 }
