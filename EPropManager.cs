@@ -126,6 +126,10 @@ namespace EManagersLib {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void EnsureCapacity(PropManager pmInstance) {
+            if (m_props is null) {
+                Awake(Singleton<PropManager>.instance);
+                return;
+            }
             if (m_props.m_buffer.Length != MAX_PROP_LIMIT) {
                 m_props = new Array32<EPropInstance>((uint)MAX_PROP_LIMIT);
                 m_updatedProps = new ulong[MAX_UPDATEDPROP_LIMIT];

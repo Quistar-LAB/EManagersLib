@@ -419,7 +419,7 @@ startNew:
         }
 
         private static Texture2D LoadTextureFromAssembly(string filename) {
-            UnmanagedMemoryStream s = (UnmanagedMemoryStream)Assembly.GetExecutingAssembly().GetManifestResourceStream("UIIndicator.Icons." + filename);
+            Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream("UIIndicator.Icons." + filename);
             byte[] array = new byte[s.Length];
             s.Read(array, 0, array.Length);
             Texture2D texture = new Texture2D(2, 2);
