@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib.Patches {
@@ -8,14 +9,11 @@ namespace EManagersLib.Patches {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> SetMaxAreaCountTranspiler(IEnumerable<CodeInstruction> instructions) {
-            foreach (var code in instructions) {
-                if (code.LoadsConstant(EGameAreaManager.DEFAULTAREACOUNT)) {
-                    code.operand = EGameAreaManager.CUSTOMAREACOUNT;
-                    yield return code;
-                } else {
-                    yield return code;
-                }
-            }
+            yield return new CodeInstruction(OpCodes.Ldarg_0);
+            yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(AreasWrapper), @"m_gameAreaManager"));
+            yield return new CodeInstruction(OpCodes.Ldc_I4, EGameAreaManager.CUSTOMAREACOUNT);
+            yield return new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(GameAreaManager), nameof(GameAreaManager.m_maxAreaCount)));
+            yield return new CodeInstruction(OpCodes.Ret);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

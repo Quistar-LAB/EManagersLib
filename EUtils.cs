@@ -156,7 +156,7 @@ namespace EManagersLib {
             new ModInfo(878991312, @"Prop It Up", false, @"Use BOB instead"),
             new ModInfo(2153618633, @"Prop Switcher", false, @"Use BOB instead"),
             new ModInfo(518456166, @"Prop Remover", false, @"Use BOB instead"),
-            new ModInfo(1890830956, @"Undo It", false),
+            new ModInfo(2140866327, @"Asset Color Expander 2", false),
             new ModInfo(531738447, @"CSL Show More Limits", true)
         };
 
@@ -186,8 +186,8 @@ namespace EManagersLib {
             new EDefaultToolPatch().Enable(harmony);
             new EBuildingDecorationPatch().Enable(harmony);
             new EBulldozePatch().Enable(harmony);
-            new EDisasterHelpersPatch().Enable(harmony);
             new EDistrictManagerPatch().Enable(harmony);
+            new EDisasterHelpersPatch().Enable(harmony);
             new EInstanceManagerPatch().Enable(harmony);
             new EPropToolPatch().Enable(harmony);
             new EBuildingAIPatch().Enable(harmony);
@@ -203,19 +203,26 @@ namespace EManagersLib {
 #endif
         }
 
+        internal static void LateEnablePatches() {
+            Harmony harmony = new Harmony(EModule.HARMONYID);
+#if ENABLEEIGHTYONE
+            new EDistrictToolPatch().Enable(harmony);
+#endif
+        }
+
         internal static void DisablePropPatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Disable(harmony);
             new EBulldozePatch().Disable(harmony);
             new EDefaultToolPatch().Disable(harmony);
             new EBuildingDecorationPatch().Disable(harmony);
-            new EDisasterHelpersPatch().Disable(harmony);
             new EDistrictManagerPatch().Disable(harmony);
+            new EDisasterHelpersPatch().Disable(harmony);
             new EInstanceManagerPatch().Disable(harmony);
             new EPropToolPatch().Disable(harmony);
             new EBuildingAIPatch().Disable(harmony);
             new EToolBaseCompatPatch().Disable(harmony);
-#if ENABLEEIGHTONE
+#if ENABLEEIGHTYONE
             new EAreaWrapperPatch().Disable(harmony);
             new EGameAreaManagerPatch().Disable(harmony);
             new EGameAreaToolPatch().Disable(harmony);
@@ -228,13 +235,22 @@ namespace EManagersLib {
 #endif
         }
 
+        internal static void LateDisablePatches() {
+            Harmony harmony = new Harmony(EModule.HARMONYID);
+#if ENABLEEIGHTYONE
+            new EDistrictToolPatch().Disable(harmony);
+#endif
+        }
+
         /// <summary>
         /// Enables Harmony patches for other mods. Do NOT call before OnCreated() - especially DO NOT USE DoOnHarmonyReady.
         /// Mod load and instantiation order is undefined at OnEnabled, and CitiesHarmony DoOnHarmonyReady may - and often does - trigger this BEFORE target mod is lodaed.
         /// </summary>
         internal static void EnableModPatches() {
-            //Harmony harmony = new Harmony(EModule.HARMONYID);
-            //new E81TilesCompatPatch().Enable(harmony);
+#if !ENABLEEIGHTYONE
+            Harmony harmony = new Harmony(EModule.HARMONYID);
+            new E81TilesCompatPatch().Enable(harmony);
+#endif
         }
     }
 }

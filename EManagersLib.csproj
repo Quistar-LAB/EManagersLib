@@ -28,7 +28,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;ENABLEEIGHTYONE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\EManagersLib.xml</DocumentationFile>
@@ -60,8 +60,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="81Patches\EGameAreaInfoPanel.cs" />
-    <Compile Include="81Patches\EGameAreaToolPatch.cs" />
+    <Compile Include="ETerrainManager.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneDistrictDataContainer.cs" />
+    <Compile Include="Patches\81Patches\EGameAreaInfoPanel.cs" />
+    <Compile Include="Patches\81Patches\EGameAreaToolPatch.cs" />
     <Compile Include="EGameAreaManager.cs" />
     <Compile Include="EArray32.cs" />
     <Compile Include="EEffectInfo.cs" />
@@ -83,8 +85,9 @@
     <Compile Include="IEManagersInit.cs" />
     <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneDataContainer.cs" />
     <Compile Include="LegacyDataHandlers\PropPainter\PropPainterDataContainer.cs" />
-    <Compile Include="81Patches\EGameAreaManagerPatch.cs" />
-    <Compile Include="81Patches\EAreaWrapperPatch.cs" />
+    <Compile Include="Patches\81Patches\EGameAreaManagerPatch.cs" />
+    <Compile Include="Patches\81Patches\EAreaWrapperPatch.cs" />
+    <Compile Include="Patches\EDistrictToolPatch.cs" />
     <Compile Include="Patches\ETerrainManagerPatch.cs" />
     <Compile Include="Patches\ENetManagerPatch.cs" />
     <Compile Include="Patches\ENaturalResourceManagerPatch.cs" />

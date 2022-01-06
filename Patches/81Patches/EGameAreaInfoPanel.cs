@@ -11,7 +11,6 @@ namespace EManagersLib.Patches {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> UpdatePanelTranspiler(IEnumerable<CodeInstruction> instructions) => EGameAreaManagerPatch.ReplaceGetTileXZ(instructions);
 
-
         internal void Enable(Harmony harmony) {
             try {
                 harmony.Patch(AccessTools.Method(typeof(GameAreaInfoPanel), "ShowInternal"),
@@ -25,7 +24,7 @@ namespace EManagersLib.Patches {
             }
             try {
                 harmony.Patch(AccessTools.Method(typeof(GameAreaInfoPanel), "UpdatePanel"),
-                    transpiler: new HarmonyMethod(typeof(EGameAreaInfoPanel), nameof(ShowInternalTranspiler)));
+                    transpiler: new HarmonyMethod(typeof(EGameAreaInfoPanel), nameof(UpdatePanelTranspiler)));
             } catch (Exception e) {
                 EUtils.ELog("Failed to patch GameAreaInfoPanel::UpdatePanel");
                 EUtils.ELog(e.Message);
