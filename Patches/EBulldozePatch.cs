@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace EManagersLib.Patches {
-    public class EBulldozePatch {
+    internal readonly struct EBulldozePatch {
         private static Action<BulldozeTool, BulldozeTool.Mode> set_BulldozingMode;
         private static Action<BulldozeTool, ItemClass.Service> set_BulldozingService;
         private static Action<BulldozeTool, ItemClass.Layer> set_BulldozingLayers;

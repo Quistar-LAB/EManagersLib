@@ -9,7 +9,7 @@ namespace EManagersLib {
     /// the wheel, but these speed ups are drastic enough to do them
     /// </summary>
 #if OPTIMIZEDMATH
-    public struct EMath {
+    public readonly struct EMath {
         public static readonly Vector2 Vector2Zero = Vector2.zero;
         public static readonly Vector3 Vector3Zero = Vector3.zero;
         public static readonly Vector4 Vector4Zero = Vector4.zero;
@@ -170,18 +170,33 @@ namespace EManagersLib {
         /// </summary>
         /// <param name="x"></param>
         /// <returns>Returns the sine result in float</returns>
-        public static float Sin(float x) {
-            const float PI = 3.14159265358979323846264338327950288f;
-            const float INVPI = 0.31830988618379067153776752674502872f;
-            const float A = 0.00735246819687011731341356165096815f;
-            const float B = -0.16528911397014738207016302002888890f;
-            const float C = 0.99969198629596757779830113868360584f;
-            float x2 = x * x;
-            int k = RoundToInt(INVPI * x);
-            x -= k * PI;
-            x *= (C + x2 * (B + A * x2));
-            if (k % 2 != 0) x = -x;
-            return x;
+        public unsafe static float Sin(double x) {
+            int k;
+            double y;
+            double z;
+
+            z = x;
+            z *= 0.3183098861837907;
+            z += 6755399441055744.0;
+            k = *((int*)&z);
+            z = k;
+            z *= 3.1415926535897932;
+            x -= z;
+            y = x;
+            y *= x;
+            z = 0.0073524681968701;
+            z *= y;
+            z -= 0.1652891139701474;
+            z *= y;
+            z += 0.9996919862959676;
+            x *= z;
+            k &= 1;
+            k += k;
+            z = k;
+            z *= x;
+            x -= z;
+
+            return (float)x;
         }
 
         /// <summary>

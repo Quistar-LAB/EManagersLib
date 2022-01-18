@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib.Patches {
-    internal class ENaturalResourceManagerPatch {
+    internal readonly struct ENaturalResourceManagerPatch {
         private static IEnumerable<CodeInstruction> GetTileResourcesTranspiler(IEnumerable<CodeInstruction> instructions) {
             foreach (var code in instructions) {
                 if (code.opcode == OpCodes.Ldc_I4_2) {

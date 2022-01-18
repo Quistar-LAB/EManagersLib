@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib.Patches {
-    internal class EDisasterHelpersPatch {
+    internal readonly struct EDisasterHelpersPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> DestroyPropsTranspiler(IEnumerable<CodeInstruction> instructions) {
             yield return new CodeInstruction(OpCodes.Ldarg_1);

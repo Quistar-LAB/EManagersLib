@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib.Patches {
-    internal class EAreaWrapperPatch {
+    internal readonly struct EAreaWrapperPatch {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> SetMaxAreaCountTranspiler(IEnumerable<CodeInstruction> instructions) {

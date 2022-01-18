@@ -180,7 +180,7 @@ namespace EManagersLib {
             return true;
         }
 
-        internal static void EnablePropPatches() {
+        internal static void EnablePatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Enable(harmony);
             new EDefaultToolPatch().Enable(harmony);
@@ -191,7 +191,8 @@ namespace EManagersLib {
             new EInstanceManagerPatch().Enable(harmony);
             new EPropToolPatch().Enable(harmony);
             new EBuildingAIPatch().Enable(harmony);
-            new EToolBaseCompatPatch().Enable(harmony);
+            new ETreeToolPatch().Enable(harmony);
+            new EBuildingToolPatch().Enable(harmony);
 #if ENABLEEIGHTYONE
             new EAreaWrapperPatch().Enable(harmony);
             new EGameAreaManagerPatch().Enable(harmony);
@@ -200,17 +201,22 @@ namespace EManagersLib {
             new ENaturalResourceManagerPatch().Enable(harmony);
             new ENetManagerPatch().Enable(harmony);
             new ETerrainManagerPatch().Enable(harmony);
+            new EZoneManagerPatch().Enable(harmony);
+            new EZoneBlockPatch().Enable(harmony);
+            new EZoneToolPatch().Enable(harmony);
+            new EBuildingPatch().Enable(harmony);
+            new EDistrictToolPatch().Enable(harmony);
+            new EElectricityManagerPatch().Enable(harmony);
+            new EImmaterialResourceManagerPatch().Enable(harmony);
+            new EWaterManagerPatch().Enable(harmony);
 #endif
         }
 
         internal static void LateEnablePatches() {
-            Harmony harmony = new Harmony(EModule.HARMONYID);
-#if ENABLEEIGHTYONE
-            new EDistrictToolPatch().Enable(harmony);
-#endif
+            //Harmony harmony = new Harmony(EModule.HARMONYID);
         }
 
-        internal static void DisablePropPatches() {
+        internal static void DisablePatches() {
             Harmony harmony = new Harmony(EModule.HARMONYID);
             new EPropManagerPatch().Disable(harmony);
             new EBulldozePatch().Disable(harmony);
@@ -221,7 +227,8 @@ namespace EManagersLib {
             new EInstanceManagerPatch().Disable(harmony);
             new EPropToolPatch().Disable(harmony);
             new EBuildingAIPatch().Disable(harmony);
-            new EToolBaseCompatPatch().Disable(harmony);
+            new ETreeToolPatch().Disable(harmony);
+            new EBuildingToolPatch().Disable(harmony);
 #if ENABLEEIGHTYONE
             new EAreaWrapperPatch().Disable(harmony);
             new EGameAreaManagerPatch().Disable(harmony);
@@ -230,16 +237,21 @@ namespace EManagersLib {
             new ENaturalResourceManagerPatch().Disable(harmony);
             new ENetManagerPatch().Disable(harmony);
             new ETerrainManagerPatch().Disable(harmony);
+            new EZoneManagerPatch().Disable(harmony);
+            new EZoneBlockPatch().Disable(harmony);
+            new EZoneToolPatch().Disable(harmony);
+            new EBuildingPatch().Disable(harmony);
+            new EDistrictToolPatch().Disable(harmony);
+            new EElectricityManagerPatch().Disable(harmony);
+            new EImmaterialResourceManagerPatch().Disable(harmony);
+            new EWaterManagerPatch().Disable(harmony);
 #else
             new E81TilesCompatPatch().Disable(harmony);
 #endif
         }
 
         internal static void LateDisablePatches() {
-            Harmony harmony = new Harmony(EModule.HARMONYID);
-#if ENABLEEIGHTYONE
-            new EDistrictToolPatch().Disable(harmony);
-#endif
+            //Harmony harmony = new Harmony(EModule.HARMONYID);
         }
 
         /// <summary>

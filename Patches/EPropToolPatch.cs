@@ -10,7 +10,7 @@ using UnityEngine;
 using static EManagersLib.EPropManager;
 
 namespace EManagersLib.Patches {
-    public class EPropToolPatch {
+    internal readonly struct EPropToolPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static float CalcSeedPropScale(PropInfo info, ref Randomizer defRandom) {
             Randomizer randomizer = new Randomizer((int)m_props.NextFreeItem(ref defRandom));

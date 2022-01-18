@@ -111,8 +111,8 @@ namespace EManagersLib {
                         }
                         dmInstance.m_districtGrid = newDistrict;
                         dmInstance.m_parkGrid = newPark;
+                        EUtils.ELog(@"No 81 Tiles District data found, converted default district data");
                     }
-                    EUtils.ELog(@"No 81 Tiles District data found");
                 }
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
@@ -138,6 +138,16 @@ namespace EManagersLib {
                 }
             }
             return newBuf;
+        }
+
+        internal static byte GetDistrict(DistrictManager dmInstance, int x, int z) => dmInstance.m_districtGrid[z * DISTRICTGRID_RESOLUTION + x].m_district1;
+
+        internal static byte GetDistrict(DistrictManager dmInstance, Vector3 worldPos) {
+            const float halfGrid = DISTRICTGRID_RESOLUTION / 2f;
+            const int gridSize = DISTRICTGRID_RESOLUTION - 1;
+            int x = EMath.Clamp((int)(worldPos.x / 19.2f + halfGrid), 0, gridSize);
+            int z = EMath.Clamp((int)(worldPos.z / 19.2f + halfGrid), 0, gridSize);
+            return dmInstance.m_districtGrid[z * DISTRICTGRID_RESOLUTION + x].m_district1;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

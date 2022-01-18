@@ -221,7 +221,7 @@ namespace EManagersLib {
                 s.Append(GetLimitColor(val, zmInstance.m_blocks.m_buffer.Length - 512)).Append(val).AppendLine("</color>]");
                 val = (int)vmInstance.m_vehicles.ItemCount() - 1;
                 s.Append(GetLimitColor(val, vmInstance.m_vehicles.m_buffer.Length)).Append(val).AppendLine("</color>]");
-                val = (int)vmInstance.m_parkedCount;
+                val = vmInstance.m_parkedCount;
                 s.Append(GetLimitColor(val, vmInstance.m_parkedVehicles.m_buffer.Length)).Append(val).AppendLine("</color>]");
                 val = (int)cmInstance.m_citizens.ItemCount() - 1;
                 s.Append(GetLimitColor(val, cmInstance.m_citizens.m_buffer.Length)).Append(val).AppendLine("</color>]");

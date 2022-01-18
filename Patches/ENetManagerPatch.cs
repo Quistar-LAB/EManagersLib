@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib.Patches {
-    internal class ENetManagerPatch {
+    internal readonly struct ENetManagerPatch {
         private static IEnumerable<CodeInstruction> AwakeTranspiler(IEnumerable<CodeInstruction> instructions) {
             const int defTileNodeCount = 925;
             const int customTileNodeCount = 37 * EGameAreaManager.CUSTOMGRIDSIZE * EGameAreaManager.CUSTOMGRIDSIZE;

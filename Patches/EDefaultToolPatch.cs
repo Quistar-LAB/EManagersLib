@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 
 namespace EManagersLib.Patches {
-    internal class EDefaultToolPatch {
+    internal readonly struct EDefaultToolPatch {
         private static IEnumerable<CodeInstruction> EndMovingTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
             CodeInstruction newStLoc(LocalBuilder local) {
                 switch (local.LocalIndex) {

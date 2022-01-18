@@ -60,7 +60,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EWaterManager.cs" />
+    <Compile Include="EImmaterialResourceManager.cs" />
+    <Compile Include="EZoneBlock.cs" />
+    <Compile Include="EElectricityManager.cs" />
+    <Compile Include="EZoneManager.cs" />
     <Compile Include="ETerrainManager.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneElectricityDataContainer.cs" />
     <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneDistrictDataContainer.cs" />
     <Compile Include="Patches\81Patches\EGameAreaInfoPanel.cs" />
     <Compile Include="Patches\81Patches\EGameAreaToolPatch.cs" />
@@ -87,12 +93,20 @@
     <Compile Include="LegacyDataHandlers\PropPainter\PropPainterDataContainer.cs" />
     <Compile Include="Patches\81Patches\EGameAreaManagerPatch.cs" />
     <Compile Include="Patches\81Patches\EAreaWrapperPatch.cs" />
+    <Compile Include="Patches\EWaterManagerPatch.cs" />
+    <Compile Include="Patches\EImmaterialResourceManagerPatch.cs" />
+    <Compile Include="Patches\EElectricityManagerPatch.cs" />
+    <Compile Include="Patches\EBuildingToolPatch.cs" />
+    <Compile Include="Patches\EBuildingPatch.cs" />
+    <Compile Include="Patches\EZoneToolPatch.cs" />
+    <Compile Include="Patches\EZoneBlockPatch.cs" />
+    <Compile Include="Patches\EZoneManagerPatch.cs" />
     <Compile Include="Patches\EDistrictToolPatch.cs" />
     <Compile Include="Patches\ETerrainManagerPatch.cs" />
     <Compile Include="Patches\ENetManagerPatch.cs" />
     <Compile Include="Patches\ENaturalResourceManagerPatch.cs" />
     <Compile Include="Patches\E81TilesCompatPatch.cs" />
-    <Compile Include="Patches\EToolBaseCompatPatch.cs" />
+    <Compile Include="Patches\ETreeToolPatch.cs" />
     <Compile Include="Patches\EBuildingAIPatch.cs" />
     <Compile Include="Patches\EPropToolPatch.cs" />
     <Compile Include="Patches\EInstanceManagerPatch.cs" />

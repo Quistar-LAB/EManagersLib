@@ -9,7 +9,7 @@ using UnityEngine;
 using static EManagersLib.EDistrictManager;
 
 namespace EManagersLib.Patches {
-    internal class EDistrictManagerPatch {
+    internal readonly struct EDistrictManagerPatch {
         internal static IEnumerable<CodeInstruction> ReplaceDistrictConstants(IEnumerable<CodeInstruction> instructions) {
             const int DefTotalResolution = DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION;
             const int TotalResolution = DISTRICTGRID_RESOLUTION * DISTRICTGRID_RESOLUTION;

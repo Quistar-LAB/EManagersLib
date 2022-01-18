@@ -1,12 +1,12 @@
 ﻿using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Reflection;
 
 namespace EManagersLib.Patches {
-    internal class ETerrainManagerPatch {
+    internal readonly struct ETerrainManagerPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> GetUnlockableTerrainFlatnessTranspiler(IEnumerable<CodeInstruction> instructions) {
             foreach (var code in EGameAreaManagerPatch.ReplaceGetTileXZ(instructions)) {
@@ -17,7 +17,7 @@ namespace EManagersLib.Patches {
                     code.opcode = OpCodes.Ldc_I4_0;
                     yield return code;
                 } else if (code.opcode == OpCodes.Ldc_I4_5) {
-                    yield return new CodeInstruction(OpCodes.Ldc_I4_S, EGameAreaManager.CUSTOMGRIDSIZE);
+                    yield return new CodeInstruction(OpCodes.Ldc_I4, EGameAreaManager.CUSTOMGRIDSIZE);
                 } else {
                     yield return code;
                 }
@@ -49,8 +49,8 @@ namespace EManagersLib.Patches {
 
         private static IEnumerable<CodeInstruction> SampleDetailSurfaceTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo getSurfaceCell = AccessTools.Method(typeof(TerrainManager), nameof(TerrainManager.GetSurfaceCell));
-            foreach(var code in instructions) {
-                if(code.opcode == OpCodes.Call && code.operand == getSurfaceCell) {
+            foreach (var code in instructions) {
+                if (code.opcode == OpCodes.Call && code.operand == getSurfaceCell) {
                     code.operand = AccessTools.Method(typeof(ETerrainManager), nameof(ETerrainManager.GetSurfaceCell));
                     yield return code;
                 } else {
@@ -80,7 +80,6 @@ namespace EManagersLib.Patches {
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
                 throw;
             }
-#if FALSE
             try {
                 harmony.Patch(AccessTools.Method(typeof(TerrainManager), nameof(TerrainManager.GetSurfaceCell)),
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(ETerrainManagerPatch), nameof(GetSurfaceCellTranspiler))));
@@ -91,7 +90,6 @@ namespace EManagersLib.Patches {
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
                 throw;
             }
-#endif
             try {
                 harmony.Patch(AccessTools.Method(typeof(TerrainManager), nameof(TerrainManager.SampleDetailSurface), new Type[] { typeof(float), typeof(float) }),
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(ETerrainManagerPatch), nameof(SampleDetailSurfaceTranspiler))));

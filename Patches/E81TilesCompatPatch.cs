@@ -7,8 +7,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace EManagersLib {
-
-    public class E81TilesCompatPatch {
+    internal class E81TilesCompatPatch {
         private MethodInfo fakeParkProps;
 
         /// <summary>

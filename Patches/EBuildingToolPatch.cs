@@ -3,10 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using static EManagersLib.EZoneManager;
 
 namespace EManagersLib.Patches {
-    public class EToolBaseCompatPatch {
-        private static IEnumerable<CodeInstruction> GenericToolBaseCompatTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
+    internal readonly struct EBuildingToolPatch {
+        private static IEnumerable<CodeInstruction> GenericToolBaseCompat(IEnumerable<CodeInstruction> instructions, ILGenerator il) {
             LocalBuilder raycastOutput = il.DeclareLocal(typeof(EToolBase.RaycastOutput));
             MethodInfo raycast = AccessTools.Method(typeof(ToolBase), "RayCast");
             FieldInfo m_hitPos = AccessTools.Field(typeof(ToolBase.RaycastOutput), nameof(ToolBase.RaycastOutput.m_hitPos));
@@ -62,10 +63,27 @@ namespace EManagersLib.Patches {
             }
         }
 
+        private static IEnumerable<CodeInstruction> ReplaceConstants(IEnumerable<CodeInstruction> instructions) {
+            const float defHalfGrid = DEFGRID_RESOLUTION / 2f;
+            const float halfGrid = ZONEGRID_RESOLUTION / 2f;
+            foreach (var code in instructions) {
+                if (code.LoadsConstant(defHalfGrid)) {
+                    code.operand = halfGrid;
+                } else if (code.LoadsConstant(DEFGRID_RESOLUTION - 1)) {
+                    code.operand = ZONEGRID_RESOLUTION - 1;
+                } else if (code.LoadsConstant(DEFGRID_RESOLUTION)) {
+                    code.operand = ZONEGRID_RESOLUTION;
+                }
+                yield return code;
+            }
+        }
+
+        private static IEnumerable<CodeInstruction> SimulationStepTranspiler(IEnumerable<CodeInstruction> instructions, ILGenerator il) => GenericToolBaseCompat(ReplaceConstants(instructions), il);
+
         internal void Enable(Harmony harmony) {
-            HarmonyMethod genericToolBaseCompatPatch = new HarmonyMethod(AccessTools.Method(typeof(EToolBaseCompatPatch), nameof(GenericToolBaseCompatTranspiler)));
             try {
-                harmony.Patch(AccessTools.Method(typeof(BuildingTool), nameof(BuildingTool.SimulationStep)), transpiler: genericToolBaseCompatPatch);
+                harmony.Patch(AccessTools.Method(typeof(BuildingTool), nameof(BuildingTool.SimulationStep)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EBuildingToolPatch), nameof(SimulationStepTranspiler))));
             } catch (Exception e) {
                 EUtils.ELog("Failed to patch BuildingTool::SimulationStep");
                 EUtils.ELog(e.Message);
@@ -73,20 +91,10 @@ namespace EManagersLib.Patches {
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
                 throw;
             }
-            try {
-                harmony.Patch(AccessTools.Method(typeof(TreeTool), nameof(TreeTool.SimulationStep)), transpiler: genericToolBaseCompatPatch);
-            } catch (Exception e) {
-                EUtils.ELog("Failed to patch TreeTool::SimulationStep");
-                EUtils.ELog(e.Message);
-                harmony.Patch(AccessTools.Method(typeof(TreeTool), nameof(TreeTool.SimulationStep)),
-                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
-                throw;
-            }
         }
 
         internal void Disable(Harmony harmony) {
             harmony.Unpatch(AccessTools.Method(typeof(BuildingTool), nameof(BuildingTool.SimulationStep)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
-            harmony.Unpatch(AccessTools.Method(typeof(TreeTool), nameof(TreeTool.SimulationStep)), HarmonyPatchType.Transpiler, EModule.HARMONYID);
         }
     }
 }

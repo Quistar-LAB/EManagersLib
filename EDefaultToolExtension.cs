@@ -95,7 +95,7 @@ namespace EManagersLib {
                     float y = position.y;
                     position.y = num7;
                     toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.Shoreline, (int)id, position, num5, num7 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.Shoreline, id, position, num5, num7 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
                     if (y - num5 > 128f) {
                         toolErrors |= ToolBase.ToolErrors.HeightTooHigh;
                     }
@@ -111,7 +111,7 @@ namespace EManagersLib {
                         float y2 = position.y;
                         position.y = num10;
                         toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                        toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.Shoreline, (int)id, position, num8, num10 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                        toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.Shoreline, id, position, num8, num10 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
                         if (y2 - num3 > 128f) {
                             toolErrors |= ToolBase.ToolErrors.HeightTooHigh;
                         }
@@ -128,7 +128,7 @@ namespace EManagersLib {
                     Building.SampleBuildingHeight(position, angle, info.m_cellWidth, info.m_cellLength, info, out float num11, out float num12, out float num13);
                     position.y = num13;
                     toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.OnGround, (int)id, position, num11, num13 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.OnGround, id, position, num11, num13 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
                     if ((toolErrors & ToolBase.ToolErrors.CannotBuildOnWater) == ToolBase.ToolErrors.None && num12 - num11 > info.m_maxHeightOffset) {
                         toolErrors |= ToolBase.ToolErrors.SlopeTooSteep;
                     }
@@ -142,7 +142,7 @@ namespace EManagersLib {
                     angle = Mathf.Atan2(-a2.x, a2.z);
                     Building.SampleBuildingHeight(position, angle, info.m_cellWidth, info.m_cellLength, info, out float num14, out float num15, out float num16);
                     toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.PathsideOrGround, (int)id, position, num14, position.y + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.PathsideOrGround, id, position, num14, position.y + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
                     if (num15 - num14 > info.m_maxHeightOffset) {
                         toolErrors |= ToolBase.ToolErrors.SlopeTooSteep;
                     }
@@ -152,7 +152,7 @@ namespace EManagersLib {
                     Building.SampleBuildingHeight(position, angle, info.m_cellWidth, info.m_cellLength, info, out float num17, out float num18, out float num19);
                     position.y = num19;
                     toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.OnGround, (int)id, position, num17, num19 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                    toolErrors |= BuildingTool.CheckSpace(info, BuildingInfo.PlacementMode.OnGround, id, position, num17, num19 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
                     if (num18 - num17 > info.m_maxHeightOffset) {
                         toolErrors |= ToolBase.ToolErrors.SlopeTooSteep;
                     }
@@ -163,14 +163,14 @@ namespace EManagersLib {
                 Building.SampleBuildingHeight(position, angle, info.m_cellWidth, info.m_cellLength, info, out float minY, out float num20, out float num21);
                 position.y = num21;
                 toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                toolErrors |= BuildingTool.CheckSpace(info, info.m_placementMode, (int)id, position, minY, num21 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                toolErrors |= BuildingTool.CheckSpace(info, info.m_placementMode, id, position, minY, num21 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
             } else if (info.m_placementMode == BuildingInfo.PlacementMode.OnGround) {
                 Quaternion rotation4 = Quaternion.AngleAxis(angle * 57.29578f, Vector3.down);
                 position -= rotation4 * info.m_centerOffset;
                 Building.SampleBuildingHeight(position, angle, info.m_cellWidth, info.m_cellLength, info, out float num22, out float num23, out float num24);
                 position.y = num24;
                 toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                toolErrors |= BuildingTool.CheckSpace(info, info.m_placementMode, (int)id, position, num22, num24 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                toolErrors |= BuildingTool.CheckSpace(info, info.m_placementMode, id, position, num22, num24 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
                 if (num23 - num22 > info.m_maxHeightOffset) {
                     toolErrors |= ToolBase.ToolErrors.SlopeTooSteep;
                 }
@@ -180,7 +180,7 @@ namespace EManagersLib {
                 Building.SampleBuildingHeight(position, angle, info.m_cellWidth, info.m_cellLength, info, out float minY2, out float num25, out float num26);
                 position.y = num26;
                 toolErrors = info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);
-                toolErrors |= BuildingTool.CheckSpace(info, info.m_placementMode, (int)id, position, minY2, num26 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
+                toolErrors |= BuildingTool.CheckSpace(info, info.m_placementMode, id, position, minY2, num26 + info.m_collisionHeight, angle, info.m_cellWidth, info.m_cellLength, true, collidingSegmentBuffer, collidingBuildingBuffer);
             } else {
                 toolErrors = ToolBase.ToolErrors.Pending;
                 toolErrors |= info.m_buildingAI.CheckBuildPosition(id, ref position, ref angle, num3, 0f, ref segment, out num, out num2);

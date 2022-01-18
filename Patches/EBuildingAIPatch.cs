@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace EManagersLib.Patches {
-    internal class EBuildingAIPatch {
+    internal readonly struct EBuildingAIPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> CalculatePropGroupDataTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo calculateGroupData = typeof(PropInstance).GetMethod(nameof(PropInstance.CalculateGroupData), BindingFlags.Public | BindingFlags.Static);

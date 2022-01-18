@@ -10,34 +10,38 @@ using System.Runtime.CompilerServices;
 using static EManagersLib.EPropManager;
 
 namespace EManagersLib.Patches {
-    internal class EPropManagerPatch {
+    internal readonly struct EPropManagerPatch {
         private static IEnumerable<CodeInstruction> AwakeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            using (IEnumerator<CodeInstruction> codes = instructions.GetEnumerator()) {
+            FieldInfo m_props = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_props));
+            FieldInfo m_updatedProps = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_updatedProps));
+            FieldInfo m_propGrid = AccessTools.Field(typeof(PropManager), nameof(PropManager.m_propGrid));
+            MethodInfo createItem = AccessTools.Method(typeof(Array16<PropInstance>), nameof(Array16<PropInstance>.CreateItem), new Type[] { typeof(ushort).MakeByRefType() });
+            using (var codes = instructions.GetEnumerator()) {
                 while (codes.MoveNext()) {
                     var cur = codes.Current;
                     if (cur.opcode == OpCodes.Ldarg_0 && codes.MoveNext()) {
                         var next = codes.Current;
-                        if (next.LoadsConstant(EPropManager.DEFAULT_PROP_LIMIT) && codes.MoveNext()) {
+                        if (next.LoadsConstant() && codes.MoveNext()) {
                             var next1 = codes.Current;
-                            if (next1.opcode == OpCodes.Newobj && codes.MoveNext()) {
-                                codes.MoveNext(); /* LDARG_0 */
-                                codes.MoveNext(); /* LDC_I4 */
-                                codes.MoveNext(); /* NEWARR */
-                                codes.MoveNext(); /* STFLD m_updatedProp */
-                                codes.MoveNext(); /* LDARG_0 */
-                                codes.MoveNext(); /* LDC_I4 */
-                                codes.MoveNext(); /* NEWARR */
-                                codes.MoveNext(); /* STFLD */
+                            if ((next1.opcode == OpCodes.Newobj || next1.opcode == OpCodes.Newarr) && codes.MoveNext()) {
+                                var next2 = codes.Current;
+                                if (next2.opcode == OpCodes.Stfld &&
+                                    (next2.operand != m_props && next2.operand != m_updatedProps && next2.operand != m_propGrid)) {
+                                    yield return cur;
+                                    yield return next;
+                                    yield return next1;
+                                    yield return next2;
+                                }
                             } else {
                                 yield return cur;
                                 yield return next;
                                 yield return next1;
                             }
-                        } else if (next.opcode == OpCodes.Ldfld && codes.MoveNext()) {
+                        } else if (next.opcode == OpCodes.Ldfld && next.operand == m_props && codes.MoveNext()) {
                             var next1 = codes.Current;
                             if (next1.opcode == OpCodes.Ldloca_S && codes.MoveNext()) {
                                 var next2 = codes.Current;
-                                if (next2.opcode == OpCodes.Callvirt && codes.MoveNext()) {
+                                if (next2.opcode == OpCodes.Callvirt && next2.operand == createItem && codes.MoveNext()) {
                                     yield return new CodeInstruction(OpCodes.Ldarg_0);
                                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManager), nameof(EPropManager.Awake)));
                                 } else {
@@ -294,61 +298,78 @@ namespace EManagersLib.Patches {
         }
 
         private static IEnumerable<CodeInstruction> AfterDeserializeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            bool skip = false;
-            int sigCounter = 0;
             MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
             MethodInfo beginAfterDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginAfterDeserialize));
-            foreach (var code in instructions) {
-                if (!skip && code.opcode == OpCodes.Callvirt && code.operand == beginAfterDeserialize) {
-                    skip = true;
-                    yield return code;
-                    yield return new CodeInstruction(OpCodes.Ldarg_1);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserialize)));
-                } else if (skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
-                    if (++sigCounter == 2) {
-                        skip = false;
-                        yield return code;
+            FieldInfo loadingProfiler = AccessTools.Field(typeof(LoadingManager), nameof(LoadingManager.m_loadingProfilerSimulation));
+            using (var codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Callvirt && cur.operand == beginAfterDeserialize) {
+                        yield return cur;
+                        yield return new CodeInstruction(OpCodes.Ldarg_1);
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(AfterDeserialize)));
+                        while (codes.MoveNext()) {
+                            cur = codes.Current;
+                            if (cur.opcode == OpCodes.Call && cur.operand == loadingManagerInstance && codes.MoveNext()) {
+                                var next = codes.Current;
+                                if (next.opcode == OpCodes.Ldfld && next.operand == loadingProfiler) {
+                                    yield return cur;
+                                    yield return next;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        yield return cur;
                     }
-                } else if (!skip) {
-                    yield return code;
                 }
             }
         }
 
         private static IEnumerable<CodeInstruction> DeserializeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            bool skip = false;
             MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
             MethodInfo beginDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginDeserialize), new Type[] { typeof(DataSerializer), typeof(string) });
-            foreach (var code in instructions) {
-                if (code.opcode == OpCodes.Callvirt && code.operand == beginDeserialize) {
-                    skip = true;
-                    yield return code;
-                    yield return new CodeInstruction(OpCodes.Ldarg_1);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize)));
-                } else if (skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
-                    skip = false;
-                    yield return code;
-                } else if (!skip) {
-                    yield return code;
+            using (var codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Callvirt && cur.operand == beginDeserialize) {
+                        yield return cur;
+                        yield return new CodeInstruction(OpCodes.Ldarg_1);
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Deserialize)));
+                        while (codes.MoveNext()) {
+                            cur = codes.Current;
+                            if (cur.opcode == OpCodes.Call && cur.operand == loadingManagerInstance) {
+                                yield return cur;
+                                break;
+                            }
+                        }
+                    } else {
+                        yield return cur;
+                    }
                 }
             }
         }
 
         private static IEnumerable<CodeInstruction> SerializeTranspiler(IEnumerable<CodeInstruction> instructions) {
-            bool skip = false;
             MethodInfo loadingManagerInstance = AccessTools.PropertyGetter(typeof(Singleton<LoadingManager>), nameof(Singleton<LoadingManager>.instance));
             MethodInfo beginDeserialize = AccessTools.Method(typeof(LoadingProfiler), nameof(LoadingProfiler.BeginSerialize), new Type[] { typeof(DataSerializer), typeof(string) });
-            foreach (var code in instructions) {
-                if (code.opcode == OpCodes.Callvirt && code.operand == beginDeserialize) {
-                    skip = true;
-                    yield return code;
-                    yield return new CodeInstruction(OpCodes.Ldarg_1);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize)));
-                } else if (skip && code.opcode == OpCodes.Call && code.operand == loadingManagerInstance) {
-                    skip = false;
-                    yield return code;
-                } else if (!skip) {
-                    yield return code;
+            using (var codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Callvirt && cur.operand == beginDeserialize) {
+                        yield return cur;
+                        yield return new CodeInstruction(OpCodes.Ldarg_1);
+                        yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EPropManagerPatch), nameof(Serialize)));
+                        while (codes.MoveNext()) {
+                            cur = codes.Current;
+                            if (cur.opcode == OpCodes.Call && cur.operand == loadingManagerInstance) {
+                                yield return cur;
+                                break;
+                            }
+                        }
+                    } else {
+                        yield return cur;
+                    }
                 }
             }
         }
@@ -447,15 +468,14 @@ namespace EManagersLib.Patches {
 
         private static void Serialize(DataSerializer s) {
             EPropInstance[] buffer = m_props.m_buffer;
-            int num = DEFAULT_PROP_LIMIT;
             EncodedArray.UShort uShort = EncodedArray.UShort.BeginWrite(s);
-            for (int i = 1; i < num; i++) {
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
                 uShort.Write(buffer[i].m_flags);
             }
             uShort.EndWrite();
             try {
                 PrefabCollection<PropInfo>.BeginSerialize(s);
-                for (int i = 1; i < num; i++) {
+                for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
                     if (buffer[i].m_flags != 0) {
                         PrefabCollection<PropInfo>.Serialize(buffer[i].m_infoIndex);
                     }
@@ -464,21 +484,21 @@ namespace EManagersLib.Patches {
                 PrefabCollection<PropInfo>.EndSerialize(s);
             }
             EncodedArray.Short @short = EncodedArray.Short.BeginWrite(s);
-            for (int i = 1; i < num; i++) {
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
                 if (buffer[i].m_flags != 0) {
                     @short.Write(buffer[i].m_posX);
                 }
             }
             @short.EndWrite();
             EncodedArray.Short short2 = EncodedArray.Short.BeginWrite(s);
-            for (int i = 1; i < num; i++) {
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
                 if (buffer[i].m_flags != 0) {
                     short2.Write(buffer[i].m_posZ);
                 }
             }
             short2.EndWrite();
             EncodedArray.UShort uShort2 = EncodedArray.UShort.BeginWrite(s);
-            for (int i = 1; i < num; i++) {
+            for (int i = 1; i < DEFAULT_PROP_LIMIT; i++) {
                 if (buffer[i].m_flags != 0) {
                     uShort2.Write(buffer[i].m_angle);
                 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib.Patches {
-    internal class EGameAreaToolPatch {
+    internal readonly struct EGameAreaToolPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerable<CodeInstruction> OnToolGUITranspiler(IEnumerable<CodeInstruction> instructions) => EGameAreaManagerPatch.ReplaceGetTileXZ(instructions);
 

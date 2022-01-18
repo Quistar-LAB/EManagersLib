@@ -84,9 +84,11 @@ namespace UI {
         public static UIIcon AnarchyIndicator { get; private set; } = null;
         public static UIIcon LockForestryIndicator { get; private set; } = null;
         private Vector3 m_lastPosition;
+        private bool m_startDrag;
 
-        public UIIndicator() {
-            if (GameSettings.FindSettingsFileByName(SettingsFile) == null) {
+        public override void Awake() {
+            base.Awake();
+            if (GameSettings.FindSettingsFileByName(SettingsFile) is null) {
                 GameSettings.AddSettingsFile(new SettingsFile[] {
                     new SettingsFile() { fileName = SettingsFile }
                 });
@@ -96,7 +98,6 @@ namespace UI {
             m_snapToDemand = new SavedBool(@"snapToDemand", SettingsFile, true, true);
         }
 
-        private bool m_startDrag;
         private IEnumerator StartDragDelay() {
             yield return new WaitForSeconds(0.3f);
             m_startDrag = true;
@@ -177,7 +178,7 @@ namespace UI {
         }
 
         private IEnumerator RepositionCoroutine(UIComponent anchor, UIComponent tempPanel) {
-            yield return new WaitForSeconds(0.3f); // new WaitForEndOfFrame();
+            yield return new WaitForSeconds(0.15f); // new WaitForEndOfFrame();
             RepositionIndicator(anchor, tempPanel);
         }
 

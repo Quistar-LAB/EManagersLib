@@ -10,7 +10,7 @@ using UnityEngine;
 using static EManagersLib.EGameAreaManager;
 
 namespace EManagersLib.Patches {
-    internal class EGameAreaManagerPatch {
+    internal readonly struct EGameAreaManagerPatch {
         internal static IEnumerable<CodeInstruction> ReplaceDefaultConstants(IEnumerable<CodeInstruction> instructions) {
             foreach (var code in instructions) {
                 if (code.LoadsConstant(MINAREACOUNT)) {

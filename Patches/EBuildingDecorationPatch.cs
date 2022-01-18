@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace EManagersLib.Patches {
-    internal class EBuildingDecorationPatch {
+    internal readonly struct EBuildingDecorationPatch {
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ReleaseProps() {
             PropManager pmInstance = Singleton<PropManager>.instance;

@@ -5,7 +5,7 @@ using UnityEngine;
 using static EManagersLib.EDistrictManager;
 
 namespace EManagersLib.Patches {
-    internal class EDistrictToolPatch {
+    internal readonly struct EDistrictToolPatch {
         private static IEnumerable<CodeInstruction> ApplyBrushTranspiler(IEnumerable<CodeInstruction> instructions) {
             bool sigFound = false;
             foreach (var code in instructions) {

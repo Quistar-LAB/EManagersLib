@@ -9,7 +9,7 @@ using System.IO;
 
 namespace EManagersLib {
     public sealed class EModule : IUserMod, ILoadingExtension {
-        internal const string m_modVersion = "1.0.3";
+        internal const string m_modVersion = "1.0.5";
         internal const string m_assemblyVersion = m_modVersion + ".*";
         internal const string m_modName = "Extended Managers";
         internal const string m_modDesc = "A library that extends the existing framework in Cities Skylines";
@@ -41,12 +41,12 @@ namespace EManagersLib {
                 UnityEngine.Debug.LogException(e);
             }
             EUtils.CheckIncompatibleMods();
-            HarmonyHelper.DoOnHarmonyReady(() => EUtils.EnablePropPatches());
+            HarmonyHelper.DoOnHarmonyReady(() => EUtils.EnablePatches());
         }
 
         public void OnDisabled() {
             if (HarmonyHelper.IsHarmonyInstalled) {
-                EUtils.DisablePropPatches();
+                EUtils.DisablePatches();
             }
         }
 
