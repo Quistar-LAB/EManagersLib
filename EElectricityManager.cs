@@ -6,8 +6,9 @@ using System.IO;
 using UnityEngine;
 
 namespace EManagersLib {
-    public static class EElectricityManager {
+    internal static class EElectricityManager {
         private const string EESERIALIZETOKEN = "fakeEM";
+        private const int DEFGRID_RESOLUTION = 256;
         private const int ELECTRICITYGRID_RESOLUTION = 462;
         private const float ELECTRICITYGRID_CELL_SIZE = 38.25f;
 
@@ -29,8 +30,9 @@ namespace EManagersLib {
             public ushort m_z;
         }
 
-        public static PulseGroup[] m_pulseGroups;
-        public static PulseUnit[] m_pulseUnits;
+        internal static PulseGroup[] m_pulseGroups;
+        internal static PulseUnit[] m_pulseUnits;
+        internal static ElectricityManager.Cell[] m_electricityGrid;
 
         internal static void EnsureCapacity(ref Texture2D electricityTexture, ref int m_modifiedX2, ref int m_modifiedZ2) {
             if (m_modifiedX2 != ELECTRICITYGRID_RESOLUTION - 1 || m_modifiedZ2 != ELECTRICITYGRID_RESOLUTION - 1) {
@@ -51,22 +53,25 @@ namespace EManagersLib {
             }
         }
 
-        private static Type ElectricityDataLegacyHandler(string _) => typeof(EightyOneElectricityDataContainer);
+        private static Type ElectricityDataLegacyHandler(string _) => typeof(ElectricityManagerDataContainer);
         internal unsafe static void IntegratedDeserialize(ref ElectricityManager.Cell[] electricityGrid, ref ElectricityManager.PulseGroup[] pulseGroups, ref ElectricityManager.PulseUnit[] pulseUnits) {
             try {
+                PulseGroup[] newPulseGroups = new PulseGroup[ElectricityManager.MAX_PULSE_GROUPS];
+                PulseUnit[] newPulseUnits = new PulseUnit[32768]; /* should this be enlarged to RES^2/2? */
+                ElectricityManager.Cell[] newElectricityGrid = new ElectricityManager.Cell[ELECTRICITYGRID_RESOLUTION * ELECTRICITYGRID_RESOLUTION];
+                m_electricityGrid = newElectricityGrid;
+                m_pulseGroups = newPulseGroups;
+                m_pulseUnits = newPulseUnits;
                 if (Singleton<SimulationManager>.instance.m_serializableDataStorage.TryGetValue(EESERIALIZETOKEN, out byte[] data)) {
                     EUtils.ELog("Found 81 ElectricityManager data, loading...");
                     using (MemoryStream stream = new MemoryStream(data)) {
-                        DataSerializer.Deserialize<EightyOneElectricityDataContainer>(stream, DataSerializer.Mode.Memory, ElectricityDataLegacyHandler);
+                        DataSerializer.Deserialize<ElectricityManagerDataContainer>(stream, DataSerializer.Mode.Memory, ElectricityDataLegacyHandler);
                     }
                     EUtils.ELog(@"Loaded " + (data.Length / 1024f) + @"kb of 81 ElectricityManager data");
                 } else {
                     int i, len;
                     const int diff = (ELECTRICITYGRID_RESOLUTION - ElectricityManager.ELECTRICITYGRID_RESOLUTION) / 2;
                     // It might seem strange to initialize buffers here, but this is indeed the best spot to do it, if the map is new to EML + 81 Tiles
-                    PulseGroup[] newPulseGroups = new PulseGroup[ElectricityManager.MAX_PULSE_GROUPS];
-                    PulseUnit[] newPulseUnits = new PulseUnit[32768]; /* should this be enlarged to RES^2/2? */
-                    ElectricityManager.Cell[] newElectricityGrid = new ElectricityManager.Cell[ELECTRICITYGRID_RESOLUTION * ELECTRICITYGRID_RESOLUTION];
                     for (i = 0; i < ElectricityManager.ELECTRICITYGRID_RESOLUTION; i++) {
                         for (int j = 0; j < ElectricityManager.ELECTRICITYGRID_RESOLUTION; j++) {
                             newElectricityGrid[(j + diff) * ELECTRICITYGRID_RESOLUTION + (i + diff)] = electricityGrid[j * ElectricityManager.ELECTRICITYGRID_RESOLUTION + i];
@@ -98,17 +103,15 @@ namespace EManagersLib {
                             pNew->m_z = pOld->m_z;
                         }
                     }
-                    m_pulseGroups = newPulseGroups;
-                    m_pulseUnits = newPulseUnits;
-                    electricityGrid = newElectricityGrid;
                     EUtils.ELog("No 81 ElectricityManager data found, Converted default new 81 format tiles");
                 }
+                electricityGrid = newElectricityGrid;
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
         }
 
-        internal unsafe static void IntegratedSerialize(ref ElectricityManager.Cell[] electricityGrid, ref ElectricityManager.PulseGroup[] pulseGroups, ref ElectricityManager.PulseUnit[] pulseUnits) {
+        internal unsafe static ElectricityManager.Cell[] IntegratedSerialize(ElectricityManager.Cell[] electricityGrid, ref ElectricityManager.PulseGroup[] pulseGroups, ref ElectricityManager.PulseUnit[] pulseUnits) {
             int i, j, len;
             ElectricityManager.Cell[] defEGrid = new ElectricityManager.Cell[ElectricityManager.ELECTRICITYGRID_RESOLUTION * ElectricityManager.ELECTRICITYGRID_RESOLUTION];
             const int diff = (ELECTRICITYGRID_RESOLUTION - ElectricityManager.ELECTRICITYGRID_RESOLUTION) / 2;
@@ -143,15 +146,17 @@ namespace EManagersLib {
                     pOld->m_z = (byte)EMath.Clamp(pNew->m_z, 0, 255);
                 }
             }
+            return defEGrid;
+        }
+
+        internal static void Serialize() {
             byte[] data;
             using (var stream = new MemoryStream()) {
-                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, BuildConfig.DATA_FORMAT_VERSION, new EightyOneElectricityDataContainer());
+                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, BuildConfig.DATA_FORMAT_VERSION, new ElectricityManagerDataContainer());
                 data = stream.ToArray();
             }
             ESerializableData.SaveData(EESERIALIZETOKEN, data);
             EUtils.ELog($"Saved {data.Length / 1024f}kb of 81 ElectricityManager data");
-
-            electricityGrid = defEGrid;
         }
 
         internal static void ConductToCell(PulseGroup[] pulseGroups, ElectricityManager.Cell[] electricityGrid,
@@ -177,12 +182,12 @@ namespace EManagersLib {
                         return;
                     }
                 }
-                if (cell.m_pulseGroup == 65535) {
+                if (cell.m_pulseGroup == 0xffff) {
                     PulseUnit pulseUnit;
                     pulseUnit.m_group = group;
                     pulseUnit.m_node = 0;
-                    pulseUnit.m_x = (byte)x;
-                    pulseUnit.m_z = (byte)z;
+                    pulseUnit.m_x = (ushort)x;
+                    pulseUnit.m_z = (ushort)z;
                     pulseUnits[pulseUnitEnd] = pulseUnit;
                     if (++pulseUnitEnd == pulseUnits.Length) {
                         pulseUnitEnd = 0;
@@ -216,7 +221,7 @@ namespace EManagersLib {
             if (node.m_position.x >= minX && node.m_position.z >= minZ && node.m_position.x <= maxX && node.m_position.z <= maxZ) {
                 NetInfo info = node.Info;
                 if (info.m_class.m_service == ItemClass.Service.Electricity) {
-                    if (nodeGroups[nodeIndex] == 65535) {
+                    if (nodeGroups[nodeIndex] == 0xffff) {
                         PulseUnit pulseUnit;
                         pulseUnit.m_group = group;
                         pulseUnit.m_node = nodeIndex;
@@ -249,12 +254,12 @@ namespace EManagersLib {
             float z1 = z + ELECTRICITYGRID_CELL_SIZE;
             int startX = EMath.Max((int)(x / 64f + 135f), 0);
             int startZ = EMath.Max((int)(z / 64f + 135f), 0);
-            int endX = EMath.Min((int)(x1 / 64f + 135f), 269);
-            int endZ = EMath.Min((int)(z1 / 64f + 135f), 269);
+            int endX = EMath.Min((int)(x1 / 64f + 135f), NetManager.NODEGRID_RESOLUTION - 1);
+            int endZ = EMath.Min((int)(z1 / 64f + 135f), NetManager.NODEGRID_RESOLUTION - 1);
             NetManager instance = Singleton<NetManager>.instance;
             for (int i = startZ; i <= endZ; i++) {
                 for (int j = startX; j <= endX; j++) {
-                    ushort nodeID = instance.m_nodeGrid[i * 270 + j];
+                    ushort nodeID = instance.m_nodeGrid[i * NetManager.NODEGRID_RESOLUTION + j];
                     while (nodeID != 0) {
                         ConductToNode(nodeGroups, pulseGroups, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue, nodeID, ref instance.m_nodes.m_buffer[nodeID], group, x, z, x1, z1);
                         nodeID = instance.m_nodes.m_buffer[nodeID].m_nextGridNode;
@@ -264,7 +269,7 @@ namespace EManagersLib {
         }
 
         internal static ushort GetRootGroup(PulseGroup[] pulseGroups, ushort group) {
-            for (ushort mergeIndex = pulseGroups[group].m_mergeIndex; mergeIndex != 65535; mergeIndex = pulseGroups[group].m_mergeIndex) {
+            for (ushort mergeIndex = pulseGroups[group].m_mergeIndex; mergeIndex != 0xffff; mergeIndex = pulseGroups[group].m_mergeIndex) {
                 group = mergeIndex;
             }
             return group;
@@ -318,107 +323,57 @@ namespace EManagersLib {
                         if (netNodes[i].m_flags != NetNode.Flags.None) {
                             NetInfo info = netNodes[i].Info;
                             if (info.m_class.m_service == ItemClass.Service.Electricity) {
-                                UpdateNodeElectricity(nmInstance, netNodes, i, (nodeGroups[i] == 65535) ? 0 : 1);
+                                UpdateNodeElectricity(nmInstance, netNodes, i, (nodeGroups[i] == 0xffff) ? 0 : 1);
                                 conductiveCells++;
                             }
                         }
-                        emInstance.m_nodeGroups[i] = 65535;
+                        nodeGroups[i] = 0xffff;
                     }
-#if true
-                    int num4 = num * 4;
-                    if (num4 < ELECTRICITYGRID_RESOLUTION) {
-                        int num5 = EMath.Min(ELECTRICITYGRID_RESOLUTION, num4 + 4);
-                        for (int j = num4; j <= num5; j++) {
-                            int eGrid = j * ELECTRICITYGRID_RESOLUTION;
-                            for (int k = 0; k < ELECTRICITYGRID_RESOLUTION; k++) {
-                                ElectricityManager.Cell cell = electricityGrid[eGrid];
-                                if (cell.m_currentCharge > 0) {
-                                    if (pulseGroupCount < 1024) {
-                                        PulseGroup pulseGroup;
-                                        pulseGroup.m_origCharge = (uint)cell.m_currentCharge;
-                                        pulseGroup.m_curCharge = (uint)cell.m_currentCharge;
-                                        pulseGroup.m_mergeCount = 0;
-                                        pulseGroup.m_mergeIndex = 65535;
-                                        pulseGroup.m_x = (byte)k;
-                                        pulseGroup.m_z = (byte)j;
-                                        PulseUnit pulseUnit;
-                                        pulseUnit.m_group = (ushort)pulseGroupCount;
-                                        pulseUnit.m_node = 0;
-                                        pulseUnit.m_x = (byte)k;
-                                        pulseUnit.m_z = (byte)j;
-                                        cell.m_pulseGroup = (ushort)pulseGroupCount;
-                                        pulseGroups[pulseGroupCount++] = pulseGroup;
-                                        pulseUnits[pulseUnitEnd] = pulseUnit;
-                                        if (++pulseUnitEnd == pulseUnits.Length) {
-                                            pulseUnitEnd = 0;
-                                        }
-                                    } else {
-                                        cell.m_pulseGroup = 65535;
+                    int num4 = num * ELECTRICITYGRID_RESOLUTION >> 7;
+                    int num5 = ((num + 1) * ELECTRICITYGRID_RESOLUTION >> 7) - 1;
+                    for (int j = num4; j <= num5; j++) {
+                        int eGrid = j * ELECTRICITYGRID_RESOLUTION;
+                        for (int k = 0; k < ELECTRICITYGRID_RESOLUTION; k++) {
+                            ElectricityManager.Cell cell = electricityGrid[eGrid];
+                            if (cell.m_currentCharge > 0) {
+                                if (pulseGroupCount < 1024) {
+                                    PulseGroup pulseGroup;
+                                    pulseGroup.m_origCharge = (uint)cell.m_currentCharge;
+                                    pulseGroup.m_curCharge = (uint)cell.m_currentCharge;
+                                    pulseGroup.m_mergeCount = 0;
+                                    pulseGroup.m_mergeIndex = 0xffff;
+                                    pulseGroup.m_x = (ushort)k;
+                                    pulseGroup.m_z = (ushort)j;
+                                    PulseUnit pulseUnit;
+                                    pulseUnit.m_group = (ushort)pulseGroupCount;
+                                    pulseUnit.m_node = 0;
+                                    pulseUnit.m_x = (ushort)k;
+                                    pulseUnit.m_z = (ushort)j;
+                                    cell.m_pulseGroup = (ushort)pulseGroupCount;
+                                    pulseGroups[pulseGroupCount++] = pulseGroup;
+                                    pulseUnits[pulseUnitEnd] = pulseUnit;
+                                    if (++pulseUnitEnd == pulseUnits.Length) {
+                                        pulseUnitEnd = 0;
                                     }
-                                    cell.m_currentCharge = 0;
-                                    conductiveCells++;
                                 } else {
-                                    cell.m_pulseGroup = 65535;
-                                    if (cell.m_conductivity >= 64) {
-                                        conductiveCells++;
-                                    }
+                                    cell.m_pulseGroup = 0xffff;
                                 }
-                                if (cell.m_tmpElectrified != cell.m_electrified) {
-                                    cell.m_electrified = cell.m_tmpElectrified;
+                                cell.m_currentCharge = 0;
+                                conductiveCells++;
+                            } else {
+                                cell.m_pulseGroup = 0xffff;
+                                if (cell.m_conductivity >= 64) {
+                                    conductiveCells++;
                                 }
-                                cell.m_tmpElectrified = (cell.m_pulseGroup != 65535);
-                                electricityGrid[eGrid] = cell;
-                                eGrid++;
                             }
+                            if (cell.m_tmpElectrified != cell.m_electrified) {
+                                cell.m_electrified = cell.m_tmpElectrified;
+                            }
+                            cell.m_tmpElectrified = (cell.m_pulseGroup != 0xffff);
+                            electricityGrid[eGrid] = cell;
+                            eGrid++;
                         }
                     }
-#else
-					int num4 = num * 256 >> 7;
-					int num5 = ((num + 1) * 256 >> 7) - 1;
-					for (int j = num4; j <= num5; j++) {
-						int eGrid = j * ELECTRICITYGRID_RESOLUTION;
-						for (int k = 0; k < ELECTRICITYGRID_RESOLUTION; k++) {
-							ElectricityManager.Cell cell = electricityGrid[eGrid];
-							if (cell.m_currentCharge > 0) {
-								if (pulseGroupCount < 1024) {
-									ElectricityManager.PulseGroup pulseGroup;
-									pulseGroup.m_origCharge = (uint)cell.m_currentCharge;
-									pulseGroup.m_curCharge = (uint)cell.m_currentCharge;
-									pulseGroup.m_mergeCount = 0;
-									pulseGroup.m_mergeIndex = 65535;
-									pulseGroup.m_x = (byte)k;
-									pulseGroup.m_z = (byte)j;
-									ElectricityManager.PulseUnit pulseUnit;
-									pulseUnit.m_group = (ushort)pulseGroupCount;
-									pulseUnit.m_node = 0;
-									pulseUnit.m_x = (byte)k;
-									pulseUnit.m_z = (byte)j;
-									cell.m_pulseGroup = (ushort)pulseGroupCount;
-									pulseGroups[pulseGroupCount++] = pulseGroup;
-									pulseUnits[pulseUnitEnd] = pulseUnit;
-									if (++pulseUnitEnd == pulseUnits.Length) {
-										pulseUnitEnd = 0;
-									}
-								} else {
-									cell.m_pulseGroup = 65535;
-								}
-								cell.m_currentCharge = 0;
-								conductiveCells++;
-							} else {
-								cell.m_pulseGroup = 65535;
-								if (cell.m_conductivity >= 64) {
-									conductiveCells++;
-								}
-							}
-							if (cell.m_tmpElectrified != cell.m_electrified) {
-								cell.m_electrified = cell.m_tmpElectrified;
-							}
-							cell.m_tmpElectrified = (cell.m_pulseGroup != 65535);
-							electricityGrid[eGrid] = cell;
-							eGrid++;
-						}
-					}
-#endif
                 } else {
                     int num7 = (num - 127) * conductiveCells >> 7;
                     if (num == 255) {
@@ -428,14 +383,14 @@ namespace EManagersLib {
                         canContinue = false;
                         int __pulseUnitEnd = pulseUnitEnd;
                         while (pulseUnitStart != __pulseUnitEnd) {
-                            ref PulseUnit pulseUnit2 = ref pulseUnits[pulseUnitStart];
+                            PulseUnit pulseUnit = pulseUnits[pulseUnitStart];
                             if (++pulseUnitStart == pulseUnits.Length) {
                                 pulseUnitStart = 0;
                             }
-                            pulseUnit2.m_group = GetRootGroup(pulseGroups, pulseUnit2.m_group);
-                            uint num8 = pulseGroups[pulseUnit2.m_group].m_curCharge;
-                            if (pulseUnit2.m_node == 0) {
-                                int num9 = pulseUnit2.m_z * 256 + pulseUnit2.m_x;
+                            pulseUnit.m_group = GetRootGroup(pulseGroups, pulseUnit.m_group);
+                            uint num8 = pulseGroups[pulseUnit.m_group].m_curCharge;
+                            if (pulseUnit.m_node == 0) {
+                                int num9 = pulseUnit.m_z * ELECTRICITYGRID_RESOLUTION + pulseUnit.m_x;
                                 ElectricityManager.Cell cell = electricityGrid[num9];
                                 if (cell.m_conductivity != 0 && !cell.m_tmpElectrified && num8 != 0u) {
                                     int num10 = EMath.Clamp((-cell.m_currentCharge), 0, (int)num8);
@@ -445,54 +400,54 @@ namespace EManagersLib {
                                         cell.m_tmpElectrified = true;
                                     }
                                     electricityGrid[num9] = cell;
-                                    pulseGroups[pulseUnit2.m_group].m_curCharge = num8;
+                                    pulseGroups[pulseUnit.m_group].m_curCharge = num8;
                                 }
                                 if (num8 != 0u) {
                                     int limit = (cell.m_conductivity < 64) ? 64 : 1;
                                     processedCells++;
-                                    if (pulseUnit2.m_z > 0) {
+                                    if (pulseUnit.m_z > 0) {
                                         ConductToCell(pulseGroups, electricityGrid, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                            ref electricityGrid[num9 - 256], pulseUnit2.m_group, pulseUnit2.m_x, (pulseUnit2.m_z - 1), limit);
+                                            ref electricityGrid[num9 - ELECTRICITYGRID_RESOLUTION], pulseUnit.m_group, pulseUnit.m_x, (pulseUnit.m_z - 1), limit);
                                     }
-                                    if (pulseUnit2.m_x > 0) {
+                                    if (pulseUnit.m_x > 0) {
                                         ConductToCell(pulseGroups, electricityGrid, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                            ref electricityGrid[num9 - 1], pulseUnit2.m_group, (pulseUnit2.m_x - 1), pulseUnit2.m_z, limit);
+                                            ref electricityGrid[num9 - 1], pulseUnit.m_group, (pulseUnit.m_x - 1), pulseUnit.m_z, limit);
                                     }
-                                    if (pulseUnit2.m_z < 255) {
+                                    if (pulseUnit.m_z < ELECTRICITYGRID_RESOLUTION - 1) {
                                         ConductToCell(pulseGroups, electricityGrid, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                            ref electricityGrid[num9 + 256], pulseUnit2.m_group, pulseUnit2.m_x, (pulseUnit2.m_z + 1), limit);
+                                            ref electricityGrid[num9 + ELECTRICITYGRID_RESOLUTION], pulseUnit.m_group, pulseUnit.m_x, (pulseUnit.m_z + 1), limit);
                                     }
-                                    if (pulseUnit2.m_x < 255) {
+                                    if (pulseUnit.m_x < ELECTRICITYGRID_RESOLUTION - 1) {
                                         ConductToCell(pulseGroups, electricityGrid, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                            ref electricityGrid[num9 + 1], pulseUnit2.m_group, (pulseUnit2.m_x + 1), pulseUnit2.m_z, limit);
+                                            ref electricityGrid[num9 + 1], pulseUnit.m_group, (pulseUnit.m_x + 1), pulseUnit.m_z, limit);
                                     }
                                     ConductToNodes(nodeGroups, pulseGroups, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                        pulseUnit2.m_group, pulseUnit2.m_x, pulseUnit2.m_z);
+                                        pulseUnit.m_group, pulseUnit.m_x, pulseUnit.m_z);
                                 } else {
-                                    pulseUnits[pulseUnitEnd] = pulseUnit2;
+                                    pulseUnits[pulseUnitEnd] = pulseUnit;
                                     if (++pulseUnitEnd == pulseUnits.Length) {
                                         pulseUnitEnd = 0;
                                     }
                                 }
                             } else if (num8 != 0u) {
                                 processedCells++;
-                                ref NetNode netNode = ref netNodes[pulseUnit2.m_node];
+                                NetNode netNode = netNodes[pulseUnit.m_node];
                                 if (netNode.m_flags != NetNode.Flags.None && netNode.m_buildIndex < (currentFrameIndex & 4294967168u)) {
                                     ConductToCells(pulseGroups, electricityGrid, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                        pulseUnit2.m_group, netNode.m_position.x, netNode.m_position.z);
+                                        pulseUnit.m_group, netNode.m_position.x, netNode.m_position.z);
                                     for (int l = 0; l < 8; l++) {
                                         ushort segment = netNode.GetSegment(l);
                                         if (segment != 0) {
                                             ushort startNode = netSegments[segment].m_startNode;
                                             ushort endNode = netSegments[segment].m_endNode;
-                                            ushort nodeIndex = (startNode != pulseUnit2.m_node) ? startNode : endNode;
+                                            ushort nodeIndex = (startNode != pulseUnit.m_node) ? startNode : endNode;
                                             ConductToNode(nodeGroups, pulseGroups, pulseUnits, pulseGroupCount, ref pulseUnitEnd, ref canContinue,
-                                                nodeIndex, ref netNodes[nodeIndex], pulseUnit2.m_group, -100000f, -100000f, 100000f, 100000f);
+                                                nodeIndex, ref netNodes[nodeIndex], pulseUnit.m_group, -100000f, -100000f, 100000f, 100000f);
                                         }
                                     }
                                 }
                             } else {
-                                pulseUnits[pulseUnitEnd] = pulseUnit2;
+                                pulseUnits[pulseUnitEnd] = pulseUnit;
                                 if (++pulseUnitEnd == pulseUnits.Length) {
                                     pulseUnitEnd = 0;
                                 }
@@ -501,23 +456,23 @@ namespace EManagersLib {
                     }
                     if (num == 255) {
                         for (int m = 0; m < pulseGroupCount; m++) {
-                            PulseGroup pulseGroup2 = pulseGroups[m];
-                            if (pulseGroup2.m_mergeIndex != 65535) {
-                                PulseGroup pulseGroup3 = pulseGroups[pulseGroup2.m_mergeIndex];
-                                pulseGroup2.m_curCharge = (uint)(pulseGroup3.m_curCharge * (ulong)pulseGroup2.m_origCharge / pulseGroup3.m_origCharge);
-                                pulseGroup3.m_curCharge -= pulseGroup2.m_curCharge;
-                                pulseGroup3.m_origCharge -= pulseGroup2.m_origCharge;
-                                pulseGroups[pulseGroup2.m_mergeIndex] = pulseGroup3;
-                                pulseGroups[m] = pulseGroup2;
+                            PulseGroup pulseGroup = pulseGroups[m];
+                            if (pulseGroup.m_mergeIndex != 0xffff) {
+                                PulseGroup pulseGroup3 = pulseGroups[pulseGroup.m_mergeIndex];
+                                pulseGroup.m_curCharge = (uint)(pulseGroup3.m_curCharge * (ulong)pulseGroup.m_origCharge / pulseGroup3.m_origCharge);
+                                pulseGroup3.m_curCharge -= pulseGroup.m_curCharge;
+                                pulseGroup3.m_origCharge -= pulseGroup.m_origCharge;
+                                pulseGroups[pulseGroup.m_mergeIndex] = pulseGroup3;
+                                pulseGroups[m] = pulseGroup;
                             }
                         }
                         for (int n = 0; n < pulseGroupCount; n++) {
-                            PulseGroup pulseGroup4 = pulseGroups[n];
-                            if (pulseGroup4.m_curCharge != 0u) {
-                                int num12 = pulseGroup4.m_z * 256 + pulseGroup4.m_x;
+                            PulseGroup pulseGroup = pulseGroups[n];
+                            if (pulseGroup.m_curCharge != 0u) {
+                                int num12 = pulseGroup.m_z * ELECTRICITYGRID_RESOLUTION + pulseGroup.m_x;
                                 ElectricityManager.Cell cell3 = electricityGrid[num12];
                                 if (cell3.m_conductivity != 0) {
-                                    cell3.m_extraCharge += (ushort)EMath.Min((int)pulseGroup4.m_curCharge, (32767 - cell3.m_extraCharge));
+                                    cell3.m_extraCharge += (ushort)EMath.Min((int)pulseGroup.m_curCharge, (32767 - cell3.m_extraCharge));
                                 }
                                 electricityGrid[num12] = cell3;
                             }
@@ -638,13 +593,13 @@ namespace EManagersLib {
                 }
             }
             for (int num25 = ez1; num25 <= ez2; num25++) {
-                int num26 = num25 * 256 + ex1;
+                int num26 = num25 * Grid + ex1;
                 for (int num27 = ex1; num27 <= ex2; num27++) {
                     ElectricityManager.Cell cell = electricityGrid[num26];
                     if (cell.m_conductivity == 0) {
                         cell.m_currentCharge = 0;
                         cell.m_extraCharge = 0;
-                        cell.m_pulseGroup = 65535;
+                        cell.m_pulseGroup = 0xffff;
                         cell.m_tmpElectrified = false;
                         cell.m_electrified = false;
                         electricityGrid[num26] = cell;

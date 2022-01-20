@@ -110,9 +110,9 @@ namespace EManagersLib {
                                 item2.m_source = item2.m_location;
                             } else {
                                 item2.m_cost = (item2.m_location.m_x - item.m_source.m_x) *
-                                                     (item2.m_location.m_x - item.m_source.m_x) +
-                                                     (item2.m_location.m_z - item.m_source.m_z) *
-                                                     (item2.m_location.m_z - item.m_source.m_z);
+                                               (item2.m_location.m_x - item.m_source.m_x) +
+                                               (item2.m_location.m_z - item.m_source.m_z) *
+                                               (item2.m_location.m_z - item.m_source.m_z);
                                 item2.m_source = item.m_source;
                             }
                             if (item2.m_cost < areaCost) {
@@ -136,9 +136,9 @@ namespace EManagersLib {
                                 item3.m_source = item3.m_location;
                             } else {
                                 item3.m_cost = (item3.m_location.m_x - item.m_source.m_x) *
-                                                     (item3.m_location.m_x - item.m_source.m_x) +
-                                                     (item3.m_location.m_z - item.m_source.m_z) *
-                                                     (item3.m_location.m_z - item.m_source.m_z);
+                                               (item3.m_location.m_x - item.m_source.m_x) +
+                                               (item3.m_location.m_z - item.m_source.m_z) *
+                                               (item3.m_location.m_z - item.m_source.m_z);
                                 item3.m_source = item.m_source;
                             }
                             if (item3.m_cost < areaCost) {
@@ -162,9 +162,9 @@ namespace EManagersLib {
                                 item4.m_source = item4.m_location;
                             } else {
                                 item4.m_cost = (item4.m_location.m_x - item.m_source.m_x) *
-                                                     (item4.m_location.m_x - item.m_source.m_x) +
-                                                     (item4.m_location.m_z - item.m_source.m_z) *
-                                                     (item4.m_location.m_z - item.m_source.m_z);
+                                               (item4.m_location.m_x - item.m_source.m_x) +
+                                               (item4.m_location.m_z - item.m_source.m_z) *
+                                               (item4.m_location.m_z - item.m_source.m_z);
                                 item4.m_source = item.m_source;
                             }
                             if (item4.m_cost < areaCost) {
@@ -188,9 +188,9 @@ namespace EManagersLib {
                                 item5.m_source = item5.m_location;
                             } else {
                                 item5.m_cost = (item5.m_location.m_x - item.m_source.m_x) *
-                                                     (item5.m_location.m_x - item.m_source.m_x) +
-                                                     (item5.m_location.m_z - item.m_source.m_z) *
-                                                     (item5.m_location.m_z - item.m_source.m_z);
+                                               (item5.m_location.m_x - item.m_source.m_x) +
+                                               (item5.m_location.m_z - item.m_source.m_z) *
+                                               (item5.m_location.m_z - item.m_source.m_z);
                                 item5.m_source = item.m_source;
                             }
                             if (item5.m_cost < areaCost) {
@@ -781,7 +781,7 @@ namespace EManagersLib {
                     float num10 = (float)((j - halfGrid + 0.5f) * ratio - position.x);
                     float num11 = num9 * num9 + num10 * num10;
                     if (num11 < num2 * num2) {
-                        int num12 = (int)((i * 256 + j) * 29 + resource);
+                        int num12 = (int)((i * RESOURCEGRID_RESOLUTION + j) * 29 + resource);
                         int num13 = localFinalResources[num12];
                         if (num11 > num * num) {
                             float num14 = EMath.Clamp01((num2 - (float)Math.Sqrt(num11)) / (num2 - num));
@@ -878,60 +878,28 @@ namespace EManagersLib {
             }
         }
 
-        internal static void IntegratedDeserialize(ImmaterialResourceManager _, ref int[] localFinalResources, ref int[] localTempResources) {
-            const int len = DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION;
-            int[] newFinalResources = new int[RESOURCEGRID_RESOLUTION * RESOURCEGRID_RESOLUTION * RESOURCE_COUNT];
-            int[] newTempResources = new int[RESOURCEGRID_RESOLUTION * RESOURCEGRID_RESOLUTION * RESOURCE_COUNT];
-            if (localFinalResources is null) {
-                EUtils.ELog("LocalFinalResources is null");
-            } else {
-                EUtils.ELog($"LocalFinalResources length is {localFinalResources.Length}");
+        internal static void IntegratedDeserialize(ImmaterialResourceManager _, ref ushort[] localFinalResources, ref ushort[] localTempResources) {
+            int i;
+            const int len = DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION * RESOURCE_COUNT;
+            ushort[] newFinalResources = new ushort[RESOURCEGRID_RESOLUTION * RESOURCEGRID_RESOLUTION * RESOURCE_COUNT];
+            ushort[] newTempResources = new ushort[RESOURCEGRID_RESOLUTION * RESOURCEGRID_RESOLUTION * RESOURCE_COUNT];
+            for (i = 0; i < len; i++) {
+                newFinalResources[i] = localFinalResources[i];
             }
-            if (localTempResources is null) {
-                EUtils.ELog("localTempResources is null");
-            } else {
-                EUtils.ELog($"localTempResources length is {localTempResources.Length}");
+            for (i = 0; i < len; i++) {
+                newTempResources[i] = localTempResources[i];
             }
-
-#if FALSE
-            for (int i = 0; i < len; i++) {
-                int zIndex = i * RESOURCE_COUNT;
-                for (int j = 0; j < RESOURCE_COUNT; j++) {
-                    newFinalResources[zIndex + j] = localFinalResources[zIndex + j];
-                }
-            }
-            for (int i = 0; i < len; i++) {
-                int zIndex = i * RESOURCE_COUNT;
-                for (int j = 0; j < RESOURCE_COUNT; j++) {
-                    newTempResources[zIndex + j] = localTempResources[zIndex + j];
-                }
-            }
-#else
-#endif
             localFinalResources = newFinalResources;
             localTempResources = newTempResources;
         }
 
-        internal static void IntegratedSerialize(ref int[] localFinalResources, ref int[] localTempResources) {
-            const int len = DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION;
-            int[] oldFinalResources = new int[DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION * RESOURCE_COUNT];
-            int[] oldTempResources = new int[DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION * RESOURCE_COUNT];
+        internal static ushort[] PrepareResourcesForSerialize(ushort[] localResources) {
+            const int len = DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION * RESOURCE_COUNT;
+            ushort[] oldResources = new ushort[len];
             for (int i = 0; i < len; i++) {
-                int zIndex = i * RESOURCE_COUNT;
-                for (int j = 0; j < RESOURCE_COUNT; j++) {
-                    oldFinalResources[zIndex + j] = localFinalResources[zIndex + j];
-                }
+                oldResources[i] = localResources[i];
             }
-            for (int i = 0; i < len; i++) {
-                int zIndex = i * RESOURCE_COUNT;
-                for (int j = 0; j < RESOURCE_COUNT; j++) {
-                    oldTempResources[zIndex + j] = localTempResources[zIndex + j];
-                }
-            }
-            localFinalResources = oldFinalResources;
-            localTempResources = oldTempResources;
+            return oldResources;
         }
-
-
     }
 }

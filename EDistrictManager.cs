@@ -55,7 +55,7 @@ namespace EManagersLib {
             }
         }
 
-        private static Type EightyOneDistrictLegacyHandler(string _) => typeof(EightyOneDistrictDataContainer);
+        private static Type EightyOneDistrictLegacyHandler(string _) => typeof(DistrictManagerDataContainer);
         internal unsafe static void IntegratedDeserialize() {
             try {
                 const int RESOLUTION = DISTRICTGRID_RESOLUTION * DISTRICTGRID_RESOLUTION;
@@ -95,7 +95,7 @@ namespace EManagersLib {
                         dmInstance.m_districtGrid = newDistrict;
                         dmInstance.m_parkGrid = newPark;
                         using (MemoryStream stream = new MemoryStream(data)) {
-                            DataSerializer.Deserialize<EightyOneDistrictDataContainer>(stream, DataSerializer.Mode.Memory, EightyOneDistrictLegacyHandler);
+                            DataSerializer.Deserialize<DistrictManagerDataContainer>(stream, DataSerializer.Mode.Memory, EightyOneDistrictLegacyHandler);
                         }
                         EUtils.ELog(@"Loaded " + (data.Length / 1024f) + @"kb of 81 Tiles District data");
                     } else {
@@ -122,7 +122,7 @@ namespace EManagersLib {
         internal static void Serialize() {
             byte[] data;
             using (var stream = new MemoryStream()) {
-                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, FORMATVERSION, new EightyOneDistrictDataContainer());
+                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, FORMATVERSION, new DistrictManagerDataContainer());
                 data = stream.ToArray();
             }
             ESerializableData.SaveData(CUSTOMDISTRICTKEY, data);

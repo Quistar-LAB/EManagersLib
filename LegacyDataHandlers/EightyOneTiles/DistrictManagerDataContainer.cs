@@ -2,7 +2,7 @@
 using ColossalFramework.IO;
 
 namespace EManagersLib.LegacyDataHandlers.EightyOneTiles {
-    public sealed class EightyOneDistrictDataContainer : IDataContainer {
+    public sealed class DistrictManagerDataContainer : IDataContainer {
         public void AfterDeserialize(DataSerializer s) { }
 
         public void Deserialize(DataSerializer s) {

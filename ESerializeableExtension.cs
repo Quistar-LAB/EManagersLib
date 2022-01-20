@@ -351,6 +351,8 @@ namespace EManagersLib {
             // Process 81 tiles data
             EGameAreaManager.Serialize();
             EDistrictManager.Serialize();
+            EElectricityManager.Serialize();
+            EWaterManager.Serialize();
 #endif
         }
 

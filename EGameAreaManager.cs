@@ -6,7 +6,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace EManagersLib {
-    public static class EGameAreaManager {
+    internal static class EGameAreaManager {
         private const string EIGHTYONE_KEY = "fakeGAM";
         private const uint SaveFormatVersion = 1;
         internal const int DEFAULTRESOLUTION = 1920;
@@ -49,16 +49,15 @@ namespace EManagersLib {
             //}
         }
 
-        private static Type EightyOneDataLegacyHandler(string _) => typeof(EightyOneDataContainer);
+        private static Type EightyOneDataLegacyHandler(string _) => typeof(GameAreaDataContainer);
 
-        internal static void IntegratedDeserialize() {
-            GameAreaManager gamInstance = Singleton<GameAreaManager>.instance;
+        internal static void IntegratedDeserialize(GameAreaManager gamInstance) {
             gamInstance.m_maxAreaCount = CUSTOMAREACOUNT;
             try {
                 if (Singleton<SimulationManager>.instance.m_serializableDataStorage.TryGetValue(EIGHTYONE_KEY, out byte[] data)) {
                     EUtils.ELog("Found 81 Tiles data, loading...");
                     using (MemoryStream stream = new MemoryStream(data)) {
-                        DataSerializer.Deserialize<EightyOneDataContainer>(stream, DataSerializer.Mode.Memory, EightyOneDataLegacyHandler);
+                        DataSerializer.Deserialize<GameAreaDataContainer>(stream, DataSerializer.Mode.Memory, EightyOneDataLegacyHandler);
                     }
                     EUtils.ELog(@"Loaded " + (data.Length / 1024f) + @"kb of 81 Tiles data");
                 } else {
@@ -84,12 +83,11 @@ namespace EManagersLib {
         internal static void Serialize() {
             byte[] data;
             using (var stream = new MemoryStream()) {
-                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, SaveFormatVersion, new EightyOneDataContainer());
+                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, SaveFormatVersion, new GameAreaDataContainer());
                 data = stream.ToArray();
             }
             ESerializableData.SaveData(EIGHTYONE_KEY, data);
             EUtils.ELog($"Saved {data.Length / 1024f}kb of 81 Tiles data");
         }
-
     }
 }

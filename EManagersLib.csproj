@@ -66,8 +66,9 @@
     <Compile Include="EElectricityManager.cs" />
     <Compile Include="EZoneManager.cs" />
     <Compile Include="ETerrainManager.cs" />
-    <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneElectricityDataContainer.cs" />
-    <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneDistrictDataContainer.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\WaterManagerDataContainer.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\ElectricityManagerDataContainer.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\DistrictManagerDataContainer.cs" />
     <Compile Include="Patches\81Patches\EGameAreaInfoPanel.cs" />
     <Compile Include="Patches\81Patches\EGameAreaToolPatch.cs" />
     <Compile Include="EGameAreaManager.cs" />
@@ -89,7 +90,7 @@
     <Compile Include="EModule.cs" />
     <Compile Include="Extra\EDialog.cs" />
     <Compile Include="IEManagersInit.cs" />
-    <Compile Include="LegacyDataHandlers\EightyOneTiles\EightyOneDataContainer.cs" />
+    <Compile Include="LegacyDataHandlers\EightyOneTiles\GameAreaDataContainer.cs" />
     <Compile Include="LegacyDataHandlers\PropPainter\PropPainterDataContainer.cs" />
     <Compile Include="Patches\81Patches\EGameAreaManagerPatch.cs" />
     <Compile Include="Patches\81Patches\EAreaWrapperPatch.cs" />

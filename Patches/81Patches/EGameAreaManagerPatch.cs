@@ -569,6 +569,7 @@ namespace EManagersLib.Patches {
                         }
                     } else if (cur.opcode == OpCodes.Stfld && cur.operand == cameraMode && codes.MoveNext()) {
                         yield return cur;
+                        yield return new CodeInstruction(OpCodes.Ldloc_0);
                         yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(EGameAreaManager), nameof(EGameAreaManager.IntegratedDeserialize))).WithLabels(codes.Current.labels);
                         yield return new CodeInstruction(codes.Current.opcode, codes.Current.operand);
                     } else {

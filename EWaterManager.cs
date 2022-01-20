@@ -1,13 +1,17 @@
 ﻿using ColossalFramework;
+using ColossalFramework.IO;
 using ColossalFramework.Math;
+using EManagersLib.LegacyDataHandlers.EightyOneTiles;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using UnityEngine;
 
 namespace EManagersLib {
     internal static class EWaterManager {
+        private const string WATERMANAGERDATAKEY = "fakeWM";
         internal const float WATERGRID_CELL_SIZE = 38.25f;
         internal const int DEFAULTGRID_RESOLUTION = 256;
         internal const int WATERGRID_RESOLUTION = 462;
@@ -18,9 +22,11 @@ namespace EManagersLib {
             public ushort m_x;
             public ushort m_z;
         }
-        private static PulseUnit[] m_waterPulseUnits;
-        private static PulseUnit[] m_sewagePulseUnits;
-        private static PulseUnit[] m_heatingPulseUnits;
+
+        internal static WaterManager.Cell[] m_waterGrid;
+        internal static PulseUnit[] m_waterPulseUnits;
+        internal static PulseUnit[] m_sewagePulseUnits;
+        internal static PulseUnit[] m_heatingPulseUnits;
 
         internal static void CheckHeating(WaterManager.Cell[] waterGrid, Vector3 pos, out bool heating) {
             const float halfGrid = WATERGRID_RESOLUTION / 2f;
@@ -1367,8 +1373,6 @@ namespace EManagersLib {
             waterTexture.Apply();
         }
 
-
-
         internal static void EnsureCapacity(WaterManager wmInstance, ref Texture2D waterTexture, ref int modifiedX2, ref int modifiedZ2) {
             if (modifiedX2 != WATERGRID_RESOLUTION - 1 && modifiedZ2 != WATERGRID_RESOLUTION - 1) {
                 modifiedX2 = WATERGRID_RESOLUTION - 1;
@@ -1385,34 +1389,50 @@ namespace EManagersLib {
             m_heatingPulseUnits = new PulseUnit[DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION / 2];
         }
 
+        private static Type WaterManagerDataLegacyHandler(string _) => typeof(WaterManagerDataContainer);
         internal static void IntegratedDeserialize(ref WaterManager.Cell[] waterGrid, ref WaterManager.PulseUnit[] waterPulseUnits,
                                                    ref WaterManager.PulseUnit[] sewagePulseUnits, ref WaterManager.PulseUnit[] heatingPulseUnits) {
             int i, j;
             const int diff = (WATERGRID_RESOLUTION - DEFAULTGRID_RESOLUTION) / 2;
-            WaterManager.Cell[] newWaterGrid = new WaterManager.Cell[WATERGRID_RESOLUTION * WATERGRID_RESOLUTION];
-            for (i = 0; i < DEFAULTGRID_RESOLUTION; i++) {
-                for (j = 0; j < DEFAULTGRID_RESOLUTION; j++) {
-                    newWaterGrid[(j + diff) * WATERGRID_RESOLUTION + (i + diff)] = waterGrid[j * DEFAULTGRID_RESOLUTION + i];
+            try {
+                WaterManager.Cell[] newWaterGrid = new WaterManager.Cell[WATERGRID_RESOLUTION * WATERGRID_RESOLUTION];
+                m_waterGrid = newWaterGrid;
+                if (Singleton<SimulationManager>.instance.m_serializableDataStorage.TryGetValue(WATERMANAGERDATAKEY, out byte[] data)) {
+                    EUtils.ELog("Found 81 WaterManager data, loading...");
+                    using (MemoryStream stream = new MemoryStream(data)) {
+                        DataSerializer.Deserialize<WaterManagerDataContainer>(stream, DataSerializer.Mode.Memory, WaterManagerDataLegacyHandler);
+                    }
+                    EUtils.ELog(@"Loaded " + (data.Length / 1024f) + @"kb of 81 WaterManager data");
+                } else {
+                    for (i = 0; i < DEFAULTGRID_RESOLUTION; i++) {
+                        for (j = 0; j < DEFAULTGRID_RESOLUTION; j++) {
+                            newWaterGrid[(j + diff) * WATERGRID_RESOLUTION + (i + diff)] = waterGrid[j * DEFAULTGRID_RESOLUTION + i];
+                        }
+                    }
+                    PulseUnit[] newWaterPulseUnits = m_waterPulseUnits;
+                    PulseUnit[] newSewagePulseUnits = m_sewagePulseUnits;
+                    PulseUnit[] newHeatingPulseUnits = m_heatingPulseUnits;
+                    for (i = 0; i < (DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION / 2); i++) {
+                        newWaterPulseUnits[i].m_group = waterPulseUnits[i].m_group;
+                        newWaterPulseUnits[i].m_node = waterPulseUnits[i].m_node;
+                        newWaterPulseUnits[i].m_x = waterPulseUnits[i].m_x;
+                        newWaterPulseUnits[i].m_z = waterPulseUnits[i].m_z;
+                        newSewagePulseUnits[i].m_group = sewagePulseUnits[i].m_group;
+                        newSewagePulseUnits[i].m_node = sewagePulseUnits[i].m_node;
+                        newSewagePulseUnits[i].m_x = sewagePulseUnits[i].m_x;
+                        newSewagePulseUnits[i].m_z = sewagePulseUnits[i].m_z;
+                        newHeatingPulseUnits[i].m_group = heatingPulseUnits[i].m_group;
+                        newHeatingPulseUnits[i].m_node = heatingPulseUnits[i].m_node;
+                        newHeatingPulseUnits[i].m_x = heatingPulseUnits[i].m_x;
+                        newHeatingPulseUnits[i].m_z = heatingPulseUnits[i].m_z;
+                    }
+                    EUtils.ELog("No 81 WaterManager data found, initialized default buffer to new buffer framework");
                 }
+                waterGrid = newWaterGrid;
+            } catch (Exception e) {
+                EUtils.ELog($"Exception Occurred in Integrated Deserialize");
+                UnityEngine.Debug.LogException(e);
             }
-            PulseUnit[] newWaterPulseUnits = m_waterPulseUnits;
-            PulseUnit[] newSewagePulseUnits = m_sewagePulseUnits;
-            PulseUnit[] newHeatingPulseUnits = m_heatingPulseUnits;
-            for (i = 0; i < (DEFAULTGRID_RESOLUTION * DEFAULTGRID_RESOLUTION / 2); i++) {
-                newWaterPulseUnits[i].m_group = waterPulseUnits[i].m_group;
-                newWaterPulseUnits[i].m_node = waterPulseUnits[i].m_node;
-                newWaterPulseUnits[i].m_x = waterPulseUnits[i].m_x;
-                newWaterPulseUnits[i].m_z = waterPulseUnits[i].m_z;
-                newSewagePulseUnits[i].m_group = sewagePulseUnits[i].m_group;
-                newSewagePulseUnits[i].m_node = sewagePulseUnits[i].m_node;
-                newSewagePulseUnits[i].m_x = sewagePulseUnits[i].m_x;
-                newSewagePulseUnits[i].m_z = sewagePulseUnits[i].m_z;
-                newHeatingPulseUnits[i].m_group = heatingPulseUnits[i].m_group;
-                newHeatingPulseUnits[i].m_node = heatingPulseUnits[i].m_node;
-                newHeatingPulseUnits[i].m_x = heatingPulseUnits[i].m_x;
-                newHeatingPulseUnits[i].m_z = heatingPulseUnits[i].m_z;
-            }
-            waterGrid = newWaterGrid;
         }
 
         internal static WaterManager.Cell[] IntegratedSerialize(WaterManager.Cell[] waterGrid, ref WaterManager.PulseUnit[] waterPulseUnits,
@@ -1443,6 +1463,16 @@ namespace EManagersLib {
                 heatingPulseUnits[i].m_z = (byte)EMath.Clamp(newHeatingPulseUnits[i].m_z, 0, 255);
             }
             return defWaterGrid;
+        }
+
+        internal static void Serialize() {
+            byte[] data;
+            using (var stream = new MemoryStream()) {
+                DataSerializer.Serialize(stream, DataSerializer.Mode.Memory, BuildConfig.DATA_FORMAT_VERSION, new WaterManagerDataContainer());
+                data = stream.ToArray();
+            }
+            ESerializableData.SaveData(WATERMANAGERDATAKEY, data);
+            EUtils.ELog($"Saved {data.Length / 1024f}kb of 81 WaterManager data");
         }
     }
 }

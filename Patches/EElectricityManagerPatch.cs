@@ -226,16 +226,15 @@ namespace EManagersLib.Patches {
 
         private static IEnumerable<CodeInstruction> SerializeTranspiler(IEnumerable<CodeInstruction> instructions) {
             MethodInfo getEMInstance = AccessTools.PropertyGetter(typeof(Singleton<ElectricityManager>), nameof(Singleton<ElectricityManager>.instance));
+            FieldInfo electricityGrid = AccessTools.Field(typeof(ElectricityManager), "m_electricityGrid");
             using (var codes = instructions.GetEnumerator()) {
                 while (codes.MoveNext()) {
                     var cur = codes.Current;
-                    if (cur.opcode == OpCodes.Call && cur.operand == getEMInstance && codes.MoveNext()) {
+                    if (cur.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
                         var next = codes.Current;
                         yield return cur;
                         yield return next;
-                        if (next.opcode == OpCodes.Stloc_0) {
-                            yield return new CodeInstruction(OpCodes.Ldloc_0);
-                            yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(ElectricityManager), "m_electricityGrid"));
+                        if (next.opcode == OpCodes.Ldfld && next.operand == electricityGrid) {
                             yield return new CodeInstruction(OpCodes.Ldloc_0);
                             yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(ElectricityManager), "m_pulseGroups"));
                             yield return new CodeInstruction(OpCodes.Ldloc_0);

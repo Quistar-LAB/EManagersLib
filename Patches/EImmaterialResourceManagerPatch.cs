@@ -286,6 +286,30 @@ namespace EManagersLib.Patches {
             }
         }
 
+        private static IEnumerable<CodeInstruction> SerializeTranspiler(IEnumerable<CodeInstruction> instructions) {
+            FieldInfo localFinalResources = AccessTools.Field(typeof(ImmaterialResourceManager), "m_localFinalResources");
+            FieldInfo localTempResources = AccessTools.Field(typeof(ImmaterialResourceManager), "m_localTempResources");
+            using (var codes = instructions.GetEnumerator()) {
+                while (codes.MoveNext()) {
+                    var cur = codes.Current;
+                    if (cur.opcode == OpCodes.Ldloc_0 && codes.MoveNext()) {
+                        var next = codes.Current;
+                        yield return cur;
+                        yield return next;
+                        if (next.opcode == OpCodes.Ldfld && next.operand == localFinalResources) {
+                            yield return new CodeInstruction(OpCodes.Call,
+                                AccessTools.Method(typeof(EImmaterialResourceManager), nameof(EImmaterialResourceManager.PrepareResourcesForSerialize)));
+                        } else if (next.opcode == OpCodes.Ldfld && next.operand == localTempResources) {
+                            yield return new CodeInstruction(OpCodes.Call,
+                                AccessTools.Method(typeof(EImmaterialResourceManager), nameof(EImmaterialResourceManager.PrepareResourcesForSerialize)));
+                        }
+                    } else {
+                        yield return cur;
+                    }
+                }
+            }
+        }
+
         internal void Enable(Harmony harmony) {
             try {
                 harmony.Patch(AccessTools.Method(typeof(ImmaterialResourceManager), "AddLocalResource"),
@@ -452,7 +476,16 @@ namespace EManagersLib.Patches {
                     transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
                 throw;
             }
-
+            try {
+                harmony.Patch(AccessTools.Method(typeof(ImmaterialResourceManager.Data), nameof(ImmaterialResourceManager.Data.Serialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EImmaterialResourceManagerPatch), nameof(SerializeTranspiler))));
+            } catch (Exception e) {
+                EUtils.ELog("Failed to patch ImmaterialResourceManager::Data::Serialize");
+                EUtils.ELog(e.Message);
+                harmony.Patch(AccessTools.Method(typeof(ImmaterialResourceManager.Data), nameof(ImmaterialResourceManager.Data.Serialize)),
+                    transpiler: new HarmonyMethod(AccessTools.Method(typeof(EUtils), nameof(EUtils.DebugPatchOutput))));
+                throw;
+            }
         }
 
         internal void Disable(Harmony harmony) {
@@ -475,6 +508,8 @@ namespace EManagersLib.Patches {
             harmony.Unpatch(AccessTools.Method(typeof(ImmaterialResourceManager), "UpdateResourceMapping"), HarmonyPatchType.ReversePatch, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(ImmaterialResourceManager), "UpdateTexture"), HarmonyPatchType.Transpiler, EModule.HARMONYID);
             harmony.Unpatch(AccessTools.Method(typeof(ImmaterialResourceManager.Data), nameof(ImmaterialResourceManager.Data.Deserialize)),
+                HarmonyPatchType.Transpiler, EModule.HARMONYID);
+            harmony.Unpatch(AccessTools.Method(typeof(ImmaterialResourceManager.Data), nameof(ImmaterialResourceManager.Data.Serialize)),
                 HarmonyPatchType.Transpiler, EModule.HARMONYID);
         }
     }

@@ -2,7 +2,7 @@
 using ColossalFramework.IO;
 
 namespace EManagersLib.LegacyDataHandlers.EightyOneTiles {
-    public sealed class EightyOneDataContainer : IDataContainer {
+    public sealed class GameAreaDataContainer : IDataContainer {
         public void Serialize(DataSerializer s) {
             int[] areaGrid = Singleton<GameAreaManager>.instance.m_areaGrid;
             EncodedArray.Byte @byte = EncodedArray.Byte.BeginWrite(s);
