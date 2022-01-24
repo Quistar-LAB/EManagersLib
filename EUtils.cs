@@ -1,6 +1,8 @@
 ﻿using ColossalFramework.PlatformServices;
 using EManagersLib.Extra;
 using EManagersLib.Patches;
+using EManagersLib.Patches.ElectrifiedRoad;
+using EManagersLib.Patches.OutsideConnection;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -210,10 +212,14 @@ namespace EManagersLib {
             new EImmaterialResourceManagerPatch().Enable(harmony);
             new EWaterManagerPatch().Enable(harmony);
 #endif
+            new ENetworkAIPatches().Enable(harmony);
         }
 
         internal static void LateEnablePatches() {
-            //Harmony harmony = new Harmony(EModule.HARMONYID);
+            Harmony harmony = new Harmony(EModule.HARMONYID);
+            if (ESettings.m_electrifiedRoad) {
+                new ERoadBaseAIPatch().Enable(harmony);
+            }
         }
 
         internal static void DisablePatches() {
@@ -248,10 +254,14 @@ namespace EManagersLib {
 #else
             new E81TilesCompatPatch().Disable(harmony);
 #endif
+            new ENetworkAIPatches().Disable(harmony);
         }
 
         internal static void LateDisablePatches() {
-            //Harmony harmony = new Harmony(EModule.HARMONYID);
+            Harmony harmony = new Harmony(EModule.HARMONYID);
+            if (ESettings.m_electrifiedRoad) {
+                new ERoadBaseAIPatch().Disable(harmony);
+            }
         }
 
         /// <summary>

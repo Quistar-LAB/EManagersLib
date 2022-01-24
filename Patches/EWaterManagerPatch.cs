@@ -41,6 +41,7 @@ namespace EManagersLib.Patches {
         }
 
         private static IEnumerable<CodeInstruction> ConductHeatingToCellTranspiler(IEnumerable<CodeInstruction> instructions) {
+            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EWaterManager), nameof(m_heatingPulseUnits)));
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(WaterManager), "m_heatingPulseUnitEnd"));
             yield return new CodeInstruction(OpCodes.Ldarg_0);
@@ -87,6 +88,7 @@ namespace EManagersLib.Patches {
         }
 
         private static IEnumerable<CodeInstruction> ConductSewageToCellTranspiler(IEnumerable<CodeInstruction> instructions) {
+            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EWaterManager), nameof(m_sewagePulseUnits)));
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(WaterManager), "m_sewagePulseUnitEnd"));
             yield return new CodeInstruction(OpCodes.Ldarg_0);
@@ -133,6 +135,7 @@ namespace EManagersLib.Patches {
         }
 
         private static IEnumerable<CodeInstruction> ConductWaterToCellTranspiler(IEnumerable<CodeInstruction> instructions) {
+            yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(EWaterManager), nameof(m_waterPulseUnits)));
             yield return new CodeInstruction(OpCodes.Ldarg_0);
             yield return new CodeInstruction(OpCodes.Ldflda, AccessTools.Field(typeof(WaterManager), "m_waterPulseUnitEnd"));
             yield return new CodeInstruction(OpCodes.Ldarg_0);

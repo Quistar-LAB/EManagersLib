@@ -54,12 +54,14 @@
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\ICities.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <Reference Include="System.XML" />
     <Reference Include="UnityEngine">
       <HintPath>H:\SteamLibrary\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EOptionPanel.cs" />
+    <Compile Include="ESettings.cs" />
     <Compile Include="EWaterManager.cs" />
     <Compile Include="EImmaterialResourceManager.cs" />
     <Compile Include="EZoneBlock.cs" />
@@ -94,6 +96,7 @@
     <Compile Include="LegacyDataHandlers\PropPainter\PropPainterDataContainer.cs" />
     <Compile Include="Patches\81Patches\EGameAreaManagerPatch.cs" />
     <Compile Include="Patches\81Patches\EAreaWrapperPatch.cs" />
+    <Compile Include="Patches\ElectrifiedRoad\ERoadBaseAIPatch.cs" />
     <Compile Include="Patches\EWaterManagerPatch.cs" />
     <Compile Include="Patches\EImmaterialResourceManagerPatch.cs" />
     <Compile Include="Patches\EElectricityManagerPatch.cs" />
@@ -117,6 +120,7 @@
     <Compile Include="Patches\EBuildingDecorationPatch.cs" />
     <Compile Include="Patches\EDefaultToolPatch.cs" />
     <Compile Include="Patches\EPropManagerPatch.cs" />
+    <Compile Include="Patches\OutsideConnection\ENetworkAIPatches.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LegacyDataHandlers\PropPrecision\Data.cs" />
     <Compile Include="LegacyDataHandlers\PropSnapping\Data.cs" />
