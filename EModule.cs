@@ -37,6 +37,7 @@ namespace EManagersLib {
             } catch (Exception e) {
                 UnityEngine.Debug.LogException(e);
             }
+            ELocale.Init();
             ESettings.LoadSettings();
             EUtils.CheckIncompatibleMods();
             HarmonyHelper.DoOnHarmonyReady(() => EUtils.EnablePatches());
@@ -50,6 +51,8 @@ namespace EManagersLib {
         }
 
         public void OnSettingsUI(UIHelperBase helper) {
+            ELocale.OnLocaleChanged();
+            LocaleManager.eventLocaleChanged += ELocale.OnLocaleChanged;
             UIHelper helperPanel = helper.AddGroup(m_modName + " " + m_modVersion) as UIHelper;
             UIPanel root = helperPanel.self as UIPanel;
             UILabel msg = root.AddUIComponent<UILabel>();
